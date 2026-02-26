@@ -701,8 +701,6 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
               )}
             </div>
           )}
-            </div>
-          )}
         </div>
       )}
     </div>
@@ -835,7 +833,7 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
   // ──────────────────────────────────────────────────────
   // MODE JOUR
   // ──────────────────────────────────────────────────────
-  const VueJour=()=>{
+  const vueJour=()=>{
     const taches=filtrerTaches(data.taches.filter(t=>t.date===curDayStr))
       .sort((a,b)=>a.heure?.localeCompare(b.heure));
     const isToday=curDayStr===TODAY;
@@ -887,7 +885,7 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
   // ──────────────────────────────────────────────────────
   // MODE SEMAINE
   // ──────────────────────────────────────────────────────
-  const VueSemaine=()=>(
+  const vueSemaine=()=>(
     <div style={{display:"flex",flex:1,overflowY:"hidden",overflowX:"hidden",gap:0}}>
       {week.map((date,i)=>{
         const ds=date.toISOString().split("T")[0];
@@ -930,7 +928,7 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
   // ──────────────────────────────────────────────────────
   // MODE MOIS
   // ──────────────────────────────────────────────────────
-  const VueMois=()=>{
+  const vueMois=()=>{
     const cells=[];
     for(let i=0;i<premierJour;i++) cells.push(null);
     for(let d=1;d<=nbJours;d++) cells.push(d);
@@ -1002,9 +1000,9 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
       </div>
 
       {/* Contenu selon mode */}
-      {planMode==="jour"&&<VueJour/>}
-      {planMode==="semaine"&&<VueSemaine/>}
-      {planMode==="mois"&&<VueMois/>}
+      {planMode==="jour"&&{vueJour()}}
+      {planMode==="semaine"&&{vueSemaine()}}
+      {planMode==="mois"&&{vueMois()}}
     </div>
   );
 }
@@ -1149,7 +1147,7 @@ function Logements({data,onEdit,onOpenTypes,isReadOnly=false}){
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE HISTORIQUE
 // ══════════════════════════════════════════════════════════════════════════════
-function Historique({data,currentUser,isEmp}){
+function Historique({data,currentUser,isEmp,toast_}){
   const now=new Date();
   const [moisSel,setMoisSel]=useState(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`);
   const moisDispo=Array.from({length:12},(_,i)=>{
@@ -1218,7 +1216,7 @@ function Historique({data,currentUser,isEmp}){
               txt+=`   Sous-total : ${taches.length} tâche(s)\n\n`;
             });
             txt+=`TOTAL : ${nbTotal} tâche(s) terminée(s) · ${Object.keys(parLog).length} logement(s)`;
-            navigator.clipboard.writeText(txt).then(()=>alert("📋 Récapitulatif copié !")).catch(()=>alert(txt));
+            navigator.clipboard.writeText(txt).then(()=>toast_("📋 Récapitulatif copié !")).catch(()=>toast_("Copie impossible","err"));
           }}>📋 Copier le récapitulatif (pour facture)</button>
         </div>
       )}
@@ -1325,7 +1323,7 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
   );
 
   // ── Bouton retour ──
-  const Retour=()=>(
+  const retourEl==>(
     <button onClick={()=>setOnglet(null)} style={{display:"flex",alignItems:"center",gap:6,background:"transparent",border:"none",color:GOLD_DARK,fontWeight:700,fontSize:13,cursor:"pointer",padding:"12px 12px 4px"}}>
       ← Retour
     </button>
@@ -1333,7 +1331,7 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
 
   return(
     <div>
-      <Retour/>
+      {retourEl}
 
       {/* ── GESTION ÉQUIPE (Équipe + Droits + PIN fusionnés) ── */}
       {onglet==="gestion_equipe"&&(
@@ -1562,7 +1560,7 @@ function Messages({data,setData,currentUser,toast_}){
   }
 
   // ── Vue liste conversations ──
-  const ListeConversations=()=>{
+  const listeConversations=()=>{
     const allConvsEmployes=isAdmin?data.employes.filter(e=>e.id!==currentUser.id):[];
     const allConvsZones=data.zones;
     return(
@@ -1651,7 +1649,7 @@ function Messages({data,setData,currentUser,toast_}){
   };
 
   // ── Vue conversation ouverte ──
-  const VueConversation=()=>{
+  const vueConversation=()=>{
     const titreConv=convSel?.type==="employe"?emp(convSel.id)?.nom:convSel?.type==="zone"?zone(convSel.id)?.nom:"Admin";
     const parDate={};
     msgsConv.forEach(m=>{const d=m.ts?.split(" ")[0]||"";if(!parDate[d])parDate[d]=[];parDate[d].push(m);});
@@ -1739,7 +1737,7 @@ function Messages({data,setData,currentUser,toast_}){
   };
 
   // ── Vue archives ──
-  const VueArchives=()=>(
+  const vueArchives=()=>(
     <div style={{flex:1,overflowY:"auto",padding:"12px"}}>
       {msgArchives.length===0&&(
         <div style={{textAlign:"center",padding:"48px 20px",color:TXT3}}>
@@ -1783,7 +1781,7 @@ function Messages({data,setData,currentUser,toast_}){
         </div>
       )}
       {/* Contenu */}
-      {convSel?<VueConversation/>:onglet==="conversations"?<ListeConversations/>:<VueArchives/>}
+      {convSel?{vueConversation()}:onglet==="conversations"?{listeConversations()}:{vueArchives()}}
     </div>
   );
 }
@@ -1907,7 +1905,7 @@ export default function App(){
   const bp=useBreakpoint();
   const isDesktop=bp==="desktop";
   const isTablet=bp==="tablet";
-  const [data,setData]=useState(()=>{try{const s=localStorage.getItem("cmg5");if(s){const d=JSON.parse(s);return{...SEED,...d,messages:d.messages||[],notifications:d.notifications||[]};}return SEED;}catch{return SEED;}});
+  const [data,setData]=useState({...SEED});
   const [view,setView]=useState("accueil");
   const [weekOff,setWeekOff]=useState(0);
   const [modal,setModal]=useState(null);
@@ -1916,17 +1914,12 @@ export default function App(){
   const [toast,setToast]=useState(null);
   const [problemeId,setProblemeId]=useState(null);
   const [currentUser,setCurrentUser]=useState(null);
-  const [nightMode,setNightMode]=useState(()=>{try{return localStorage.getItem("cmg_night")==="1";}catch{return false;}});
+  const [nightMode,setNightMode]=useState(false);
 
   const toggleNightMode=useCallback(()=>{
-    setNightMode(n=>{
-      const next=!n;
-      try{localStorage.setItem("cmg_night",next?"1":"0");}catch{}
-      return next;
-    });
+    setNightMode(n=>!n);
   },[]);
 
-  useEffect(()=>{try{localStorage.setItem("cmg5",JSON.stringify(data));}catch{}},[data]);
 
   const toast_=useCallback((m,t="ok")=>{setToast({m,t});setTimeout(()=>setToast(null),2400);},[]);
   const close=useCallback(()=>setModal(null),[]);
@@ -2050,7 +2043,7 @@ export default function App(){
   const isFullscreen=!isDesktop&&!isTablet&&(view==="planning"||view==="messages");
 
   // ── Contenu partagé ──
-  const ContentArea=()=>(
+  const contentArea==>(
     <>
       {view==="accueil"    &&<Accueil    isAdmin={isAdmin} data={isEmp?{...data,employes:data.employes.filter(e=>e.id===currentUser.id)}:data} updateSt={updateSt} onEditTache={isAdmin?openEditTache:null} onToggleCheck={toggleCheck} onSignalerProbleme={setProblemeId} onSignalerMessage={isEmp?(msg)=>{setData(d=>({...d,messages:[...(d.messages||[]),{id:Date.now(),empId:currentUser.id,nom:currentUser.nom,texte:`⚠️ Problème sur "${(data.zones.find(z=>z.id===msg.zoneId)||{}).nom||"logement"}" : ${msg.texte}`,zoneId:msg.zoneId,ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),type:"probleme",photoProbleme:msg.photo||null,archive:false,lu:false}]}));toast_("Problème envoyé ✓");}:null}/>}
       {view==="planning"   &&<Planning   data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} weekOff={weekOff} setWeekOff={setWeekOff} filterEmp={filterEmp} setFilterEmp={setFilterEmp} onEditTache={isAdmin?openEditTache:null} onNewTache={isAdmin?openNewTache:null} isReadOnly={isEmp}/>}
@@ -2062,7 +2055,7 @@ export default function App(){
     </>
   );
 
-  const Modals=()=>(
+  const modals==>(
     <>
       {(modal==="tache"||modal==="tache_edit")&&(
         <ModalTache editMode={modal==="tache_edit"} form={form} setForm={setForm}
@@ -2076,7 +2069,7 @@ export default function App(){
     </>
   );
 
-  const NavItem=({item})=>{
+  const renderNavItem=(item)=>{
     const active=view===item.id;
     const hasBadge=(item.id==="messages"&&nbMsgs>0)||(item.id==="parametres"&&nbNotifs>0);
     const badgeCount=item.id==="messages"?nbMsgs:nbNotifs;
@@ -2129,10 +2122,10 @@ export default function App(){
           </div>
         </div>
         <div style={{flex:1,overflowY:"auto",background:nightMode?"#0a0a0f":"#f0f2f5"}}>
-          <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 24px"}}><ContentArea/></div>
+          <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 24px"}}>{contentArea}</div>
         </div>
       </div>
-      <Modals/>
+      {modals}
     </div>
   );
 
@@ -2182,10 +2175,10 @@ export default function App(){
           </div>
         </div>
         <div style={{flex:1,overflowY:"auto",background:nightMode?"#0a0a0f":"#f0f2f5"}}>
-          <div style={{maxWidth:860,margin:"0 auto",padding:"16px 18px"}}><ContentArea/></div>
+          <div style={{maxWidth:860,margin:"0 auto",padding:"16px 18px"}}>{contentArea}</div>
         </div>
       </div>
-      <Modals/>
+      {modals}
     </div>
   );
 
@@ -2205,12 +2198,12 @@ export default function App(){
       </div>
       {toast&&<div style={S.toast(toast.t)}>{toast.m}</div>}
       <div style={isFullscreen?{flex:1,overflow:"hidden",display:"flex",flexDirection:"column"}:{paddingTop:12,paddingBottom:82}}>
-        <ContentArea/>
+        {contentArea}
       </div>
       {isAdmin&&(view==="accueil"||view==="planning")&&(
         <button style={{...S.fab,bottom:isPlanning?66:92}} onClick={()=>openNewTache()}>＋</button>
       )}
-      <Modals/>
+      {modals}
       <nav style={{...S.nav}}>
         {navItems.map(item=>(
           <button key={item.id} style={S.navBtn(view===item.id)} onClick={()=>setView(item.id)}>
