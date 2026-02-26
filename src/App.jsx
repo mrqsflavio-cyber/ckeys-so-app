@@ -17,6 +17,7 @@ const TXT2        = "#52525b";  // texte secondaire
 const TXT3        = "#a1a1aa";  // texte muted
 const ACCENT      = "#c9a84c";
 const MSG_BLUE    = "#3b82f6";  // couleur messages
+const APP_VERSION = "1.0.0";
 
 const LOGO="data:image/png;base64,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";
 
@@ -65,15 +66,13 @@ function usePhotoPicker(setter){
   const ref=useRef();
   return{ref,pick:()=>ref.current.click(),handle:(e)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setter(ev.target.result);r.readAsDataURL(f);}};
 }
-
-function useIsDesktop(){
-  const [isDesktop,setIsDesktop]=useState(()=>window.innerWidth>=900);
+function useBreakpoint(){
+  const [bp,setBp]=useState(()=>window.innerWidth>=1024?"desktop":window.innerWidth>=640?"tablet":"mobile");
   useEffect(()=>{
-    const handler=()=>setIsDesktop(window.innerWidth>=900);
-    window.addEventListener("resize",handler);
-    return()=>window.removeEventListener("resize",handler);
+    const h=()=>setBp(window.innerWidth>=1024?"desktop":window.innerWidth>=640?"tablet":"mobile");
+    window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);
   },[]);
-  return isDesktop;
+  return bp;
 }
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
@@ -143,7 +142,7 @@ function EcranPin({employes,onLogin}){
 
   if(step==="choix") return(
     <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${NOIR},#141408)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
-      <img src={LOGO} alt="CKeys" style={{width:150,height:150,objectFit:"contain",marginBottom:4,borderRadius:20}}/>
+      <img src={LOGO} alt="CKeys" style={{width:220,height:220,objectFit:"contain",marginBottom:8,borderRadius:28,boxShadow:`0 8px 40px ${GOLD}33`}}/>
       <div style={{color:GOLD,fontSize:11,fontWeight:700,letterSpacing:3,marginBottom:32,textTransform:"uppercase",opacity:.7}}>Qui êtes-vous ?</div>
       <div style={{width:"100%",maxWidth:360,display:"flex",flexDirection:"column",gap:10}}>
         {employes.filter(e=>e.actif).map(e=>(
@@ -492,16 +491,35 @@ function ModalTypes({types,onSave,onClose}){
 // ══════════════════════════════════════════════════════════════════════════════
 function ModalProbleme({tacheId,onConfirm,onClose}){
   const [note,setNote]=useState("");
+  const [photo,setPhoto]=useState(null);
+  const photoRef=useRef();
+  function prendrePhoto(e){
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();r.onload=ev=>setPhoto(ev.target.result);r.readAsDataURL(f);
+  }
   return(
     <div style={S.modal} onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div style={S.mBox}>
         <div style={{...S.mTit,color:"#d9534f"}}>⚠️ Signaler un problème</div>
-        <p style={{fontSize:13,color:"#64748b",marginBottom:14}}>Décrivez le problème rencontré avant de valider.</p>
+        <p style={{fontSize:13,color:"#64748b",marginBottom:14}}>Décrivez le problème et ajoutez une photo si besoin.</p>
         <label style={S.lbl}>Note / Description</label>
         <textarea autoFocus value={note} onChange={e=>setNote(e.target.value)}
           placeholder="Ex : Tache sur le canapé, ampoule grillée..."
-          style={{...S.inp,minHeight:110,resize:"vertical",lineHeight:1.5}}/>
-        <button style={{...S.bPri,background:"linear-gradient(135deg,#b03530,#8a2020)"}} onClick={()=>onConfirm(tacheId,note)}>⚠️ Valider le problème</button>
+          style={{...S.inp,minHeight:90,resize:"vertical",lineHeight:1.5}}/>
+        <label style={S.lbl}>📷 Photo du problème (optionnel)</label>
+        <input ref={photoRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={prendrePhoto}/>
+        {photo?(
+          <div style={{position:"relative",marginBottom:12}}>
+            <img src={photo} alt="problème" style={{width:"100%",borderRadius:12,maxHeight:200,objectFit:"cover"}}/>
+            <button onClick={()=>setPhoto(null)} style={{position:"absolute",top:6,right:6,background:"rgba(0,0,0,.55)",border:"none",borderRadius:20,color:"white",fontSize:12,fontWeight:700,padding:"3px 10px",cursor:"pointer"}}>✕ Supprimer</button>
+          </div>
+        ):(
+          <button type="button" onClick={()=>photoRef.current.click()}
+            style={{...S.bSec,display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:10,borderStyle:"dashed"}}>
+            📷 Prendre / Choisir une photo
+          </button>
+        )}
+        <button style={{...S.bPri,background:"linear-gradient(135deg,#b03530,#8a2020)"}} onClick={()=>onConfirm(tacheId,note,photo)}>⚠️ Valider le problème</button>
         <button style={S.bGhost} onClick={onClose}>Annuler</button>
       </div>
     </div>
@@ -612,6 +630,9 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
                   )}
                   {ai.tache.noteProbleme&&(
                     <div style={{fontSize:11,color:"#d9534f",background:"#fdecea",borderRadius:7,padding:"3px 8px",marginTop:4,fontStyle:"italic"}}>📝 {ai.tache.noteProbleme}</div>
+                  )}
+                  {ai.tache.photoProbleme&&(
+                    <img src={ai.tache.photoProbleme} alt="problème" style={{width:"100%",borderRadius:8,marginTop:4,maxHeight:120,objectFit:"cover"}}/>
                   )}
                 </div>
                 {!isDone&&(
@@ -1390,6 +1411,10 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
           </div>
         </div>
       )}
+      {/* ── Numéro de version ── */}
+      <div style={{textAlign:"center",padding:"20px 0 10px",color:TXT3,fontSize:10,letterSpacing:.5}}>
+        CKeys · v{APP_VERSION}
+      </div>
     </div>
   );
 }
@@ -1398,16 +1423,52 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
 // VUE MESSAGES — chat entre employés et admin
 // ══════════════════════════════════════════════════════════════════════════════
 function Messages({data,setData,currentUser,toast_}){
+  const isAdmin=currentUser.role==="admin"||currentUser.role==="manager";
+  // onglet: "conversations" | "archives"
+  const [onglet,setOnglet]=useState("conversations");
+  // conversation sélectionnée: {type:"employe"|"zone", id}
+  const [convSel,setConvSel]=useState(null);
   const [texte,setTexte]=useState("");
   const [zoneId,setZoneId]=useState("");
   const endRef=useRef(null);
 
-  const messages=(data.messages||[]);
-  const isAdmin=currentUser.role==="admin"||currentUser.role==="manager";
+  const allMsgs=(data.messages||[]);
+  // Messages visibles par l'utilisateur courant (conversations privées)
+  // Un employé ne voit que ses propres échanges avec admin/manager
+  // Un admin voit toutes les conversations
+  const msgVisibles=allMsgs.filter(m=>{
+    if(isAdmin) return true;
+    // employé: voir seulement ses messages ou ceux qui lui sont adressés (destinataire)
+    return m.empId===currentUser.id || m.destinataireId===currentUser.id || (!m.destinataireId&&m.empId===currentUser.id);
+  });
 
-  useEffect(()=>{
-    if(endRef.current) endRef.current.scrollIntoView({behavior:"smooth"});
-  },[messages.length]);
+  const msgActifs=msgVisibles.filter(m=>!m.archive);
+  const msgArchives=msgVisibles.filter(m=>m.archive);
+
+  const emp=id=>data.employes.find(e=>e.id===id);
+  const zone=id=>data.zones.find(z=>z.id===id);
+
+  // Construire liste conversations (par employé pour admin, par zone pour tous)
+  const convEmployes=isAdmin?data.employes.filter(e=>e.id!==currentUser.id&&msgActifs.some(m=>m.empId===e.id||m.destinataireId===e.id)):[];
+  const convZones=data.zones.filter(z=>msgActifs.some(m=>m.zoneId===z.id));
+
+  // Obtenir messages d'une conversation
+  function getMsgsConv(conv){
+    if(!conv) return msgActifs;
+    if(conv.type==="employe"){
+      // messages entre currentUser et cet employé
+      return msgActifs.filter(m=>
+        (m.empId===currentUser.id&&m.destinataireId===conv.id)||
+        (m.empId===conv.id&&(m.destinataireId===currentUser.id||!m.destinataireId))
+      );
+    }
+    if(conv.type==="zone") return msgActifs.filter(m=>m.zoneId===conv.id);
+    return msgActifs;
+  }
+
+  const msgsConv=getMsgsConv(convSel);
+
+  useEffect(()=>{if(endRef.current)endRef.current.scrollIntoView({behavior:"smooth"});},[msgsConv.length,convSel]);
 
   function envoyer(){
     if(!texte.trim()) return;
@@ -1418,11 +1479,29 @@ function Messages({data,setData,currentUser,toast_}){
       texte:texte.trim(),
       ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),
       zoneId:zoneId||null,
+      destinataireId:convSel?.type==="employe"?convSel.id:null,
       type:"message",
+      archive:false,
     };
     setData(d=>({...d,messages:[...(d.messages||[]),msg]}));
-    setTexte("");setZoneId("");
+    setTexte("");
     toast_("Message envoyé ✓");
+  }
+
+  function archiverConv(conv){
+    setData(d=>({...d,messages:(d.messages||[]).map(m=>{
+      const match=conv.type==="employe"
+        ?(m.empId===conv.id||m.destinataireId===conv.id)
+        :(m.zoneId===conv.id);
+      return match?{...m,archive:true}:m;
+    })}));
+    setConvSel(null);
+    toast_("Conversation archivée ✓");
+  }
+
+  function desarchiverMsg(id){
+    setData(d=>({...d,messages:(d.messages||[]).map(m=>m.id===id?{...m,archive:false}:m)}));
+    toast_("Message restauré ✓");
   }
 
   function supprimerMsg(id){
@@ -1430,105 +1509,213 @@ function Messages({data,setData,currentUser,toast_}){
     setData(d=>({...d,messages:(d.messages||[]).filter(m=>m.id!==id)}));
   }
 
-  const emp=id=>data.employes.find(e=>e.id===id);
-  const zone=id=>data.zones.find(z=>z.id===id);
-
-  // Grouper par date
-  const parDate={};
-  messages.forEach(m=>{
-    const d=m.ts?.split(" ")[0]||"";
-    if(!parDate[d]) parDate[d]=[];
-    parDate[d].push(m);
-  });
-
-  return(
-    <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 130px)",overflow:"hidden"}}>
-      {/* Entête */}
-      <div style={{padding:"12px 16px 8px",background:"white",borderBottom:"1px solid #f0f0f0",flexShrink:0}}>
-        <div style={{fontWeight:700,fontSize:15,color:TXT}}>💬 Messages</div>
-        <div style={{fontSize:11,color:TXT3,marginTop:1}}>Communication équipe · {messages.length} message{messages.length>1?"s":""}</div>
-      </div>
-
-      {/* Messages */}
-      <div style={{flex:1,overflowY:"auto",padding:"12px 12px 4px"}}>
-        {messages.length===0&&(
-          <div style={{textAlign:"center",padding:"48px 20px",color:TXT3}}>
-            <div style={{fontSize:40,marginBottom:10}}>💬</div>
-            <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>Aucun message</div>
-            <div style={{fontSize:12}}>Signalez un problème ou envoyez une note à l'équipe</div>
-          </div>
-        )}
-
-        {Object.entries(parDate).map(([date,msgs])=>(
-          <div key={date}>
-            <div style={{textAlign:"center",marginBottom:8}}>
-              <span style={{fontSize:10,color:TXT3,background:"#f4f4f5",borderRadius:20,padding:"3px 10px",fontWeight:600}}>{date}</span>
-            </div>
-            {msgs.map(m=>{
-              const isMe=m.empId===currentUser.id;
-              const e=emp(m.empId);
-              const z=zone(m.zoneId);
-              const isProbleme=m.type==="probleme";
+  // ── Vue liste conversations ──
+  const ListeConversations=()=>{
+    const allConvsEmployes=isAdmin?data.employes.filter(e=>e.id!==currentUser.id):[];
+    const allConvsZones=data.zones;
+    return(
+      <div style={{flex:1,overflowY:"auto"}}>
+        {/* Nouvelle conversation (admin seulement) */}
+        {isAdmin&&(
+          <div style={{padding:"10px 12px 4px"}}>
+            <div style={{fontSize:10,fontWeight:700,color:TXT3,textTransform:"uppercase",letterSpacing:1.2,marginBottom:8}}>💬 Conversations privées</div>
+            {allConvsEmployes.map(e=>{
+              const dernierMsg=msgActifs.filter(m=>m.empId===e.id||m.destinataireId===e.id).slice(-1)[0];
+              const nbNonLus=msgActifs.filter(m=>m.empId===e.id&&m.destinataireId===currentUser.id&&!m.lu).length;
               return(
-                <div key={m.id} style={{display:"flex",flexDirection:"column",alignItems:isMe?"flex-end":"flex-start",marginBottom:10}}>
-                  {!isMe&&<div style={{fontSize:10,color:TXT3,marginBottom:3,marginLeft:10,fontWeight:600}}>{m.nom}</div>}
-                  <div style={{display:"flex",alignItems:"flex-end",gap:6,flexDirection:isMe?"row-reverse":"row"}}>
-                    {!isMe&&<Avatar emp={e} size={28}/>}
-                    <div style={{maxWidth:"75%"}}>
-                      {isProbleme&&(
-                        <div style={{fontSize:9,fontWeight:700,color:"#dc2626",textTransform:"uppercase",letterSpacing:.8,marginBottom:3}}>⚠️ Problème signalé</div>
-                      )}
-                      {z&&(
-                        <div style={{fontSize:9,fontWeight:600,color:isMe?GOLD_BG:GOLD_DARK,marginBottom:2,textAlign:isMe?"right":"left"}}>🏠 {z.nom}</div>
-                      )}
-                      <div style={{
-                        background:isProbleme?"#fef2f2":isMe?GOLD_DARK:"white",
-                        color:isProbleme?"#b91c1c":isMe?"white":TXT,
-                        borderRadius:isMe?"18px 18px 4px 18px":"18px 18px 18px 4px",
-                        padding:"10px 14px",
-                        fontSize:14,
-                        lineHeight:1.4,
-                        boxShadow:"0 1px 3px rgba(0,0,0,.08)",
-                        border:isProbleme?"1px solid #fecaca":isMe?"none":"1px solid #f0f0f0",
-                      }}>
-                        {m.texte}
-                      </div>
-                      <div style={{fontSize:9,color:TXT3,marginTop:3,textAlign:isMe?"right":"left"}}>{m.ts?.split(" ")[1]||""}</div>
+                <div key={e.id} onClick={()=>setConvSel({type:"employe",id:e.id})}
+                  style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:"white",borderRadius:14,marginBottom:6,border:`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 1px 4px rgba(0,0,0,.04)"}}>
+                  <Avatar emp={e} size={44}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <span style={{fontWeight:700,fontSize:14,color:TXT}}>{e.nom}</span>
+                      {dernierMsg&&<span style={{fontSize:10,color:TXT3}}>{dernierMsg.ts?.split(" ")[1]||""}</span>}
                     </div>
-                    {isAdmin&&isMe&&(
-                      <button onClick={()=>supprimerMsg(m.id)} style={{border:"none",background:"none",cursor:"pointer",color:"#f0f0f0",fontSize:14,padding:2,flexShrink:0}} title="Supprimer">×</button>
-                    )}
+                    <div style={{fontSize:12,color:TXT3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:1}}>
+                      {dernierMsg?dernierMsg.texte:"Démarrer une conversation"}
+                    </div>
                   </div>
+                  {nbNonLus>0&&<span style={{background:"#ef4444",color:"white",borderRadius:"50%",minWidth:18,height:18,fontSize:10,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 4px"}}>{nbNonLus}</span>}
+                  <span style={{color:TXT3,fontSize:16}}>›</span>
                 </div>
               );
             })}
           </div>
-        ))}
-        <div ref={endRef}/>
+        )}
+        {/* Conversations par logement */}
+        {allConvsZones.length>0&&(
+          <div style={{padding:"8px 12px 4px"}}>
+            <div style={{fontSize:10,fontWeight:700,color:TXT3,textTransform:"uppercase",letterSpacing:1.2,marginBottom:8}}>🏠 Par logement</div>
+            {allConvsZones.map(z=>{
+              const dernierMsg=msgActifs.filter(m=>m.zoneId===z.id).slice(-1)[0];
+              const nbMsgsZone=msgActifs.filter(m=>m.zoneId===z.id).length;
+              return(
+                <div key={z.id} onClick={()=>setConvSel({type:"zone",id:z.id})}
+                  style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:"white",borderRadius:14,marginBottom:6,border:`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 1px 4px rgba(0,0,0,.04)"}}>
+                  <div style={{width:44,height:44,borderRadius:10,overflow:"hidden",background:"#f1f5f9",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    {z.photo?<img src={z.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:20}}>🏠</span>}
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",justifyContent:"space-between"}}>
+                      <span style={{fontWeight:700,fontSize:14,color:TXT}}>{z.nom}</span>
+                      <span style={{fontSize:10,color:TXT3}}>{nbMsgsZone} msg</span>
+                    </div>
+                    <div style={{fontSize:12,color:TXT3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:1}}>
+                      {dernierMsg?dernierMsg.texte:"Aucun message"}
+                    </div>
+                  </div>
+                  <span style={{color:TXT3,fontSize:16}}>›</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {/* Bouton nouvelle conv pour employé */}
+        {!isAdmin&&(
+          <div style={{padding:"10px 12px"}}>
+            <button onClick={()=>setConvSel({type:"admin",id:"admin"})}
+              style={{...S.bPri,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              💬 Écrire à l'admin / manager
+            </button>
+          </div>
+        )}
+        {msgActifs.length===0&&allConvsZones.length===0&&(
+          <div style={{textAlign:"center",padding:"48px 20px",color:TXT3}}>
+            <div style={{fontSize:40,marginBottom:10}}>💬</div>
+            <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>Aucune conversation</div>
+            <div style={{fontSize:12}}>Les messages apparaîtront ici</div>
+          </div>
+        )}
       </div>
+    );
+  };
 
-      {/* Saisie */}
-      <div style={{background:"white",borderTop:"1px solid #f0f0f0",padding:"10px 12px 12px",flexShrink:0}}>
-        {/* Sélection logement optionnel */}
-        <select style={{...S.sel,marginBottom:8,fontSize:13,padding:"8px 10px",color:zoneId?TXT:TXT3}} value={zoneId} onChange={e=>setZoneId(e.target.value)}>
-          <option value="">🏠 Logement concerné (optionnel)</option>
-          {data.zones.map(z=><option key={z.id} value={z.id}>{z.nom}</option>)}
-        </select>
-        <div style={{display:"flex",gap:8,alignItems:"flex-end"}}>
-          <textarea
-            value={texte}
-            onChange={e=>setTexte(e.target.value)}
-            onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();envoyer();}}}
-            placeholder="Écrivez un message..."
-            style={{...S.inp,marginBottom:0,flex:1,minHeight:44,maxHeight:100,resize:"none",lineHeight:1.4,fontSize:14,padding:"10px 12px",borderRadius:14}}
-            rows={1}
-          />
-          <button onClick={envoyer} disabled={!texte.trim()}
-            style={{width:44,height:44,borderRadius:14,background:texte.trim()?GOLD_DARK:"#e4e4e7",border:"none",cursor:texte.trim()?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
-            <span style={{fontSize:18,color:"white"}}>↑</span>
-          </button>
+  // ── Vue conversation ouverte ──
+  const VueConversation=()=>{
+    const titreConv=convSel?.type==="employe"?emp(convSel.id)?.nom:convSel?.type==="zone"?zone(convSel.id)?.nom:"Admin";
+    const parDate={};
+    msgsConv.forEach(m=>{const d=m.ts?.split(" ")[0]||"";if(!parDate[d])parDate[d]=[];parDate[d].push(m);});
+    return(
+      <div style={{display:"flex",flexDirection:"column",flex:1,overflow:"hidden"}}>
+        {/* Header conversation */}
+        <div style={{padding:"10px 14px",background:"white",borderBottom:"1px solid #f0f0f0",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+          <button onClick={()=>setConvSel(null)} style={{border:"none",background:"transparent",color:GOLD_DARK,fontSize:20,cursor:"pointer",padding:"0 4px",fontWeight:700}}>‹</button>
+          {convSel?.type==="employe"&&<Avatar emp={emp(convSel.id)} size={34}/>}
+          {convSel?.type==="zone"&&<div style={{width:34,height:34,borderRadius:8,overflow:"hidden",background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>{zone(convSel.id)?.photo?<img src={zone(convSel.id).photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:"🏠"}</div>}
+          <div style={{flex:1}}>
+            <div style={{fontWeight:700,fontSize:14,color:TXT}}>{titreConv}</div>
+            <div style={{fontSize:10,color:TXT3}}>{msgsConv.length} message{msgsConv.length>1?"s":""}</div>
+          </div>
+          {isAdmin&&<button onClick={()=>archiverConv(convSel)}
+            style={{border:`1px solid ${BORDER}`,background:"#f8fafc",color:TXT2,borderRadius:9,padding:"5px 10px",fontSize:11,fontWeight:600,cursor:"pointer"}}>
+            🗄️ Archiver
+          </button>}
+        </div>
+        {/* Messages */}
+        <div style={{flex:1,overflowY:"auto",padding:"12px 12px 4px",background:"#f8fafc"}}>
+          {msgsConv.length===0&&(
+            <div style={{textAlign:"center",padding:"40px 20px",color:TXT3}}>
+              <div style={{fontSize:32,marginBottom:8}}>💬</div>
+              <div style={{fontSize:13}}>Aucun message dans cette conversation</div>
+            </div>
+          )}
+          {Object.entries(parDate).map(([date,msgs])=>(
+            <div key={date}>
+              <div style={{textAlign:"center",marginBottom:8}}>
+                <span style={{fontSize:10,color:TXT3,background:"#f0f0f0",borderRadius:20,padding:"3px 10px",fontWeight:600}}>{date}</span>
+              </div>
+              {msgs.map(m=>{
+                const isMe=m.empId===currentUser.id;
+                const e=emp(m.empId);
+                const isProbleme=m.type==="probleme";
+                return(
+                  <div key={m.id} style={{display:"flex",flexDirection:"column",alignItems:isMe?"flex-end":"flex-start",marginBottom:10}}>
+                    {!isMe&&<div style={{fontSize:10,color:TXT3,marginBottom:3,marginLeft:10,fontWeight:600}}>{m.nom}</div>}
+                    <div style={{display:"flex",alignItems:"flex-end",gap:6,flexDirection:isMe?"row-reverse":"row"}}>
+                      {!isMe&&<Avatar emp={e} size={28}/>}
+                      <div style={{maxWidth:"75%"}}>
+                        {isProbleme&&<div style={{fontSize:9,fontWeight:700,color:"#dc2626",textTransform:"uppercase",letterSpacing:.8,marginBottom:3}}>⚠️ Problème signalé</div>}
+                        <div style={{background:isProbleme?"#fef2f2":isMe?GOLD_DARK:"white",color:isProbleme?"#b91c1c":isMe?"white":TXT,borderRadius:isMe?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",fontSize:14,lineHeight:1.4,boxShadow:"0 1px 3px rgba(0,0,0,.08)",border:isProbleme?"1px solid #fecaca":isMe?"none":"1px solid #f0f0f0"}}>
+                          {m.texte}
+                          {m.photoProbleme&&<img src={m.photoProbleme} alt="" style={{display:"block",marginTop:8,width:"100%",borderRadius:8,maxHeight:160,objectFit:"cover"}}/>}
+                        </div>
+                        <div style={{fontSize:9,color:TXT3,marginTop:3,textAlign:isMe?"right":"left"}}>{m.ts?.split(" ")[1]||""}</div>
+                      </div>
+                      {isAdmin&&<button onClick={()=>supprimerMsg(m.id)} style={{border:"none",background:"none",cursor:"pointer",color:"#d0d0d0",fontSize:14,padding:2,flexShrink:0}}>×</button>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          <div ref={endRef}/>
+        </div>
+        {/* Saisie */}
+        <div style={{background:"white",borderTop:"1px solid #f0f0f0",padding:"10px 12px 12px",flexShrink:0}}>
+          {convSel?.type==="zone"&&(
+            <div style={{fontSize:11,color:GOLD_DARK,fontWeight:600,marginBottom:6,padding:"4px 8px",background:GOLD_BG,borderRadius:8}}>🏠 Logement : {zone(convSel.id)?.nom}</div>
+          )}
+          <div style={{display:"flex",gap:8,alignItems:"flex-end"}}>
+            <textarea value={texte} onChange={e=>setTexte(e.target.value)}
+              onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();envoyer();}}}
+              placeholder="Écrivez un message..."
+              style={{...S.inp,marginBottom:0,flex:1,minHeight:44,maxHeight:100,resize:"none",lineHeight:1.4,fontSize:14,padding:"10px 12px",borderRadius:14}} rows={1}/>
+            <button onClick={()=>{setZoneId(convSel?.type==="zone"?convSel.id:"");envoyer();}} disabled={!texte.trim()}
+              style={{width:44,height:44,borderRadius:14,background:texte.trim()?GOLD_DARK:"#e4e4e7",border:"none",cursor:texte.trim()?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
+              <span style={{fontSize:18,color:"white"}}>↑</span>
+            </button>
+          </div>
         </div>
       </div>
+    );
+  };
+
+  // ── Vue archives ──
+  const VueArchives=()=>(
+    <div style={{flex:1,overflowY:"auto",padding:"12px"}}>
+      {msgArchives.length===0&&(
+        <div style={{textAlign:"center",padding:"48px 20px",color:TXT3}}>
+          <div style={{fontSize:36,marginBottom:8}}>🗄️</div>
+          <div style={{fontSize:14,fontWeight:600}}>Aucun message archivé</div>
+        </div>
+      )}
+      {msgArchives.map(m=>{
+        const e=emp(m.empId);const z=zone(m.zoneId);
+        return(
+          <div key={m.id} style={{...S.card,marginBottom:8,opacity:.75}}>
+            <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
+              <Avatar emp={e} size={32}/>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:13}}>{m.nom}</div>
+                {z&&<div style={{fontSize:10,color:GOLD_DARK,marginBottom:2}}>🏠 {z.nom}</div>}
+                <div style={{fontSize:13,color:TXT2,marginTop:2}}>{m.texte}</div>
+                <div style={{fontSize:10,color:TXT3,marginTop:3}}>{m.ts}</div>
+              </div>
+              <button onClick={()=>desarchiverMsg(m.id)}
+                style={{border:`1px solid ${BORDER}`,background:"#f8fafc",color:TXT2,borderRadius:8,padding:"4px 8px",fontSize:10,cursor:"pointer",flexShrink:0}}>
+                Restaurer
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 130px)",overflow:"hidden"}}>
+      {/* Onglets + header */}
+      {!convSel&&(
+        <div style={{padding:"10px 12px 0",background:"white",borderBottom:"1px solid #f0f0f0",flexShrink:0}}>
+          <div style={{fontWeight:700,fontSize:15,color:TXT,marginBottom:8}}>💬 Messagerie</div>
+          <div style={{display:"flex",background:"#f1f5f9",borderRadius:10,padding:3,gap:2}}>
+            <button style={S.tab(onglet==="conversations")} onClick={()=>{setOnglet("conversations");setConvSel(null);}}>Conversations</button>
+            <button style={S.tab(onglet==="archives")} onClick={()=>{setOnglet("archives");setConvSel(null);}}>🗄️ Archives ({msgArchives.length})</button>
+          </div>
+        </div>
+      )}
+      {/* Contenu */}
+      {convSel?<VueConversation/>:onglet==="conversations"?<ListeConversations/>:<VueArchives/>}
     </div>
   );
 }
@@ -1638,6 +1825,9 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
           <span style={{marginLeft:"auto",fontSize:10,background:"#f4f4f5",color:TXT3,borderRadius:20,padding:"2px 8px",fontWeight:600}}>Bientôt</span>
         </div>
       ))}
+      <div style={{textAlign:"center",padding:"20px 0 10px",color:TXT3,fontSize:10,letterSpacing:.5}}>
+        CKeys · v{APP_VERSION}
+      </div>
     </div>
   );
 }
@@ -1646,7 +1836,9 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
 // APP PRINCIPALE
 // ══════════════════════════════════════════════════════════════════════════════
 export default function App(){
-  const isDesktop=useIsDesktop();
+  const bp=useBreakpoint();
+  const isDesktop=bp==="desktop";
+  const isTablet=bp==="tablet";
   const [data,setData]=useState(()=>{try{const s=localStorage.getItem("cmg5");return s?JSON.parse(s):SEED;}catch{return SEED;}});
   const [view,setView]=useState("accueil");
   const [weekOff,setWeekOff]=useState(0);
@@ -1682,9 +1874,9 @@ export default function App(){
     toast_("Statut mis à jour ✓");
   },[toast_]);
 
-  const confirmerProbleme=useCallback((tacheId,note)=>{
+  const confirmerProbleme=useCallback((tacheId,note,photoProbleme=null)=>{
     const t=data.taches.find(x=>x.id===tacheId);
-    setData(d=>({...d,taches:d.taches.map(x=>x.id===tacheId?{...x,statut:"probleme",noteProbleme:note}:x)}));
+    setData(d=>({...d,taches:d.taches.map(x=>x.id===tacheId?{...x,statut:"probleme",noteProbleme:note,photoProbleme:photoProbleme||null}:x)}));
     setProblemeId(null);
     addNotif("probleme",`Problème signalé : ${t?.type||"tâche"}`,t?.employeId,t?.zoneId);
     toast_("Problème signalé ✓");
@@ -1748,9 +1940,8 @@ export default function App(){
 
   const isAdmin=currentUser?.role==="admin"||currentUser?.role==="manager";
   const isEmp=!isAdmin;
-
-  // Badge messages non lus
-  const nbMsgs=(data.messages||[]).filter(m=>m.empId!==currentUser.id).length;
+  const nbMsgs=(data.messages||[]).filter(m=>!m.archive&&m.empId!==currentUser.id&&(isAdmin||(m.destinataireId===currentUser.id))).length;
+  const appBg=nightMode?"#0a0a0f":SURFACE;
 
   const navItems=[
     {id:"accueil",    icon:"◉",label:"Accueil"},
@@ -1758,19 +1949,16 @@ export default function App(){
     ...(isAdmin?[{id:"zones",icon:"⌂",label:"Logements"}]:[]),
     {id:"messages",   icon:"✉",label:"Messages"},
     {id:"historique", icon:"⧗",label:"Historique"},
-    {id:"parametres", icon:"⊞", label:isAdmin?"Admin":"Paramètres"},
+    {id:"parametres", icon:"⊞",label:isAdmin?"Admin":"Paramètres"},
   ];
 
   const isPlanning=view==="planning";
-  const isFullscreen=view==="planning"||view==="messages";
+  const isFullscreen=!isDesktop&&!isTablet&&(view==="planning"||view==="messages");
 
-  // Badge notifs
-  const appBg = nightMode?"#0a0a0f":SURFACE;
-
-  // ── Contenu principal partagé mobile/desktop ──
-  const ContentArea = () => (
+  // ── Contenu partagé ──
+  const ContentArea=()=>(
     <>
-      {view==="accueil"    &&<Accueil    data={isEmp?{...data,employes:data.employes.filter(e=>e.id===currentUser.id)}:data} updateSt={updateSt} onEditTache={isAdmin?openEditTache:null} onToggleCheck={toggleCheck} onSignalerProbleme={setProblemeId} onSignalerMessage={isEmp?(msg)=>{setData(d=>({...d,messages:[...(d.messages||[]),{id:Date.now(),empId:currentUser.id,nom:currentUser.nom,texte:msg.texte,zoneId:msg.zoneId,ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),type:"probleme"}]}));toast_("Message envoyé ✓");}:null}/>}
+      {view==="accueil"    &&<Accueil    data={isEmp?{...data,employes:data.employes.filter(e=>e.id===currentUser.id)}:data} updateSt={updateSt} onEditTache={isAdmin?openEditTache:null} onToggleCheck={toggleCheck} onSignalerProbleme={setProblemeId} onSignalerMessage={isEmp?(msg)=>{setData(d=>({...d,messages:[...(d.messages||[]),{id:Date.now(),empId:currentUser.id,nom:currentUser.nom,texte:msg.texte,zoneId:msg.zoneId,ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),type:"probleme",archive:false}]}));toast_("Message envoyé ✓");}:null}/>}
       {view==="planning"   &&<Planning   data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} weekOff={weekOff} setWeekOff={setWeekOff} filterEmp={filterEmp} setFilterEmp={setFilterEmp} onEditTache={isAdmin?openEditTache:null} onNewTache={isAdmin?openNewTache:null} isReadOnly={isEmp}/>}
       {view==="zones"      &&isAdmin&&<Logements  data={data} onEdit={openEditZone} onOpenTypes={()=>setModal("types")} isReadOnly={false}/>}
       {view==="messages"   &&<Messages   data={data} setData={setData} currentUser={currentUser} toast_={toast_}/>}
@@ -1780,7 +1968,7 @@ export default function App(){
     </>
   );
 
-  const Modals = () => (
+  const Modals=()=>(
     <>
       {(modal==="tache"||modal==="tache_edit")&&(
         <ModalTache editMode={modal==="tache_edit"} form={form} setForm={setForm}
@@ -1794,133 +1982,148 @@ export default function App(){
     </>
   );
 
+  const NavItem=({item})=>{
+    const active=view===item.id;
+    const hasBadge=(item.id==="messages"&&nbMsgs>0)||(item.id==="parametres"&&(data.notifications||[]).filter(n=>n.type==="probleme").length>0);
+    const badgeCount=item.id==="messages"?nbMsgs:(data.notifications||[]).filter(n=>n.type==="probleme").length;
+    return(
+      <button key={item.id} onClick={()=>setView(item.id)}
+        style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",borderRadius:12,border:"none",background:active?`${GOLD}18`:"transparent",color:active?GOLD:"rgba(255,255,255,.5)",cursor:"pointer",transition:"all .15s",width:"100%",fontWeight:active?700:500,fontSize:14,position:"relative"}}>
+        <span style={{fontSize:18,width:22,textAlign:"center"}}>{item.icon}</span>
+        <span>{item.label}</span>
+        {hasBadge&&<span style={{marginLeft:"auto",background:"#ef4444",color:"white",borderRadius:20,minWidth:18,height:18,fontSize:10,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 5px"}}>{badgeCount>9?"9+":badgeCount}</span>}
+        {active&&<div style={{position:"absolute",left:0,top:"50%",transform:"translateY(-50%)",width:3,height:20,background:GOLD,borderRadius:"0 3px 3px 0"}}/>}
+      </button>
+    );
+  };
+
   // ══════════════════════════════════════════════════════
-  // VERSION DESKTOP
+  // DESKTOP (≥1024px) — sidebar + contenu large
   // ══════════════════════════════════════════════════════
   if(isDesktop) return(
-    <div style={{display:"flex",height:"100vh",background:nightMode?"#0a0a0f":"#f0f2f5",fontFamily:"'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",overflow:"hidden"}}>
-
-      {/* ── SIDEBAR GAUCHE ── */}
+    <div style={{display:"flex",height:"100vh",background:nightMode?"#0a0a0f":"#f0f2f5",fontFamily:"'SF Pro Display',-apple-system,sans-serif",overflow:"hidden"}}>
+      {/* Sidebar */}
       <div style={{width:240,background:NOIR3,display:"flex",flexDirection:"column",borderRight:"1px solid rgba(255,255,255,.06)",flexShrink:0}}>
-        {/* Logo */}
-        <div style={{padding:"22px 20px 18px",borderBottom:"1px solid rgba(255,255,255,.06)"}}>
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <img src={LOGO} alt="CKeys" style={{width:42,height:42,objectFit:"contain",borderRadius:10,background:"rgba(255,255,255,.06)",padding:3}}/>
-            <div>
-              <div style={{color:"white",fontWeight:900,fontSize:16,letterSpacing:-.5}}>CKeys</div>
-              <div style={{color:GOLD,fontSize:10,fontWeight:600,opacity:.8}}>{currentUser.nom}</div>
-            </div>
+        <div style={{padding:"22px 20px 16px",borderBottom:"1px solid rgba(255,255,255,.06)",display:"flex",alignItems:"center",gap:12}}>
+          <img src={LOGO} alt="CKeys" style={{width:48,height:48,objectFit:"contain",borderRadius:12,background:"rgba(255,255,255,.06)",padding:3}}/>
+          <div>
+            <div style={{color:"white",fontWeight:900,fontSize:16,letterSpacing:-.5}}>CKeys</div>
+            <div style={{color:GOLD,fontSize:10,fontWeight:600,opacity:.8}}>{currentUser.nom}</div>
           </div>
         </div>
-
-        {/* Navigation */}
-        <nav style={{flex:1,padding:"12px 10px",display:"flex",flexDirection:"column",gap:3}}>
-          {navItems.map(item=>{
-            const active=view===item.id;
-            const hasBadge=(item.id==="messages"&&nbMsgs>0)||(item.id==="parametres"&&(data.notifications||[]).filter(n=>n.type==="probleme").length>0);
-            const badgeCount=item.id==="messages"?nbMsgs:(data.notifications||[]).filter(n=>n.type==="probleme").length;
-            return(
-              <button key={item.id} onClick={()=>setView(item.id)}
-                style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",borderRadius:12,border:"none",background:active?`${GOLD}18`:"transparent",color:active?GOLD:"rgba(255,255,255,.5)",cursor:"pointer",transition:"all .15s",textAlign:"left",fontWeight:active?700:500,fontSize:14,position:"relative"}}>
-                <span style={{fontSize:18,width:22,textAlign:"center"}}>{item.icon}</span>
-                <span>{item.label}</span>
-                {hasBadge&&<span style={{marginLeft:"auto",background:"#ef4444",color:"white",borderRadius:20,minWidth:18,height:18,fontSize:10,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 5px"}}>{badgeCount>9?"9+":badgeCount}</span>}
-                {active&&<div style={{position:"absolute",left:0,top:"50%",transform:"translateY(-50%)",width:3,height:20,background:GOLD,borderRadius:"0 3px 3px 0"}}/>}
-              </button>
-            );
-          })}
+        <nav style={{flex:1,padding:"12px 10px",display:"flex",flexDirection:"column",gap:2}}>
+          {navItems.map(item=><NavItem key={item.id} item={item}/>)}
         </nav>
-
-        {/* Bas sidebar */}
-        <div style={{padding:"14px 10px",borderTop:"1px solid rgba(255,255,255,.06)"}}>
+        <div style={{padding:"12px 10px",borderTop:"1px solid rgba(255,255,255,.06)"}}>
           {isAdmin&&(view==="accueil"||view==="planning")&&(
-            <button onClick={()=>openNewTache()}
-              style={{width:"100%",padding:"12px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:"#1a0d00",fontSize:14,fontWeight:700,cursor:"pointer",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-              ＋ Nouvelle tâche
-            </button>
+            <button onClick={()=>openNewTache()} style={{width:"100%",padding:"11px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:"#1a0d00",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>＋ Nouvelle tâche</button>
           )}
-          <button onClick={()=>setCurrentUser(null)}
-            style={{width:"100%",padding:"10px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.5)",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:600}}>
-            ↩ Déconnexion
-          </button>
+          <button onClick={()=>setCurrentUser(null)} style={{width:"100%",padding:"9px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.5)",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:600}}>↩ Déconnexion</button>
         </div>
       </div>
-
-      {/* ── CONTENU PRINCIPAL ── */}
+      {/* Contenu */}
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
-        {/* Topbar desktop */}
         <div style={{background:"white",borderBottom:"1px solid #e8edf3",padding:"14px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,boxShadow:"0 1px 4px rgba(0,0,0,.04)"}}>
           <div>
-            <div style={{fontWeight:800,fontSize:18,color:TXT,letterSpacing:-.3}}>
-              {navItems.find(n=>n.id===view)?.label||"Accueil"}
-            </div>
+            <div style={{fontWeight:800,fontSize:18,color:TXT,letterSpacing:-.3}}>{navItems.find(n=>n.id===view)?.label}</div>
             <div style={{fontSize:12,color:TXT3,marginTop:1}}>{fmtDate(new Date())}</div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
-            {toast&&<div style={{background:toast.t==="err"?"#dc2626":NOIR3,color:"white",padding:"8px 18px",borderRadius:50,fontSize:13,fontWeight:600,boxShadow:"0 4px 20px rgba(0,0,0,.2)"}}>{toast.m}</div>}
+            {toast&&<div style={{background:toast.t==="err"?"#dc2626":NOIR3,color:"white",padding:"8px 18px",borderRadius:50,fontSize:13,fontWeight:600}}>{toast.m}</div>}
             <Avatar emp={currentUser} size={36}/>
-            <div>
-              <div style={{fontWeight:700,fontSize:13,color:TXT}}>{currentUser.nom}</div>
-              <div style={{fontSize:10,color:TXT3}}>{currentUser.role==="admin"?"Administrateur":currentUser.role==="manager"?"Manager":"Employé"}</div>
-            </div>
+            <div><div style={{fontWeight:700,fontSize:13,color:TXT}}>{currentUser.nom}</div><div style={{fontSize:10,color:TXT3}}>{currentUser.role==="admin"?"Administrateur":currentUser.role==="manager"?"Manager":"Employé"}</div></div>
           </div>
         </div>
-
-        {/* Zone scrollable */}
         <div style={{flex:1,overflowY:"auto",background:nightMode?"#0a0a0f":"#f0f2f5"}}>
-          <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 24px"}}>
-            <ContentArea/>
-          </div>
+          <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 24px"}}><ContentArea/></div>
         </div>
       </div>
-
       <Modals/>
     </div>
   );
 
   // ══════════════════════════════════════════════════════
-  // VERSION MOBILE (inchangée)
+  // TABLETTE (640–1023px) — sidebar icônes + contenu
+  // ══════════════════════════════════════════════════════
+  if(isTablet) return(
+    <div style={{display:"flex",height:"100vh",background:nightMode?"#0a0a0f":"#f0f2f5",fontFamily:"'SF Pro Display',-apple-system,sans-serif",overflow:"hidden"}}>
+      {/* Sidebar icônes */}
+      <div style={{width:70,background:NOIR3,display:"flex",flexDirection:"column",alignItems:"center",borderRight:"1px solid rgba(255,255,255,.06)",flexShrink:0}}>
+        <div style={{padding:"16px 0 12px",borderBottom:"1px solid rgba(255,255,255,.06)",width:"100%",display:"flex",justifyContent:"center"}}>
+          <img src={LOGO} alt="CKeys" style={{width:42,height:42,objectFit:"contain",borderRadius:10,background:"rgba(255,255,255,.06)",padding:3}}/>
+        </div>
+        <nav style={{flex:1,padding:"10px 6px",display:"flex",flexDirection:"column",gap:4,width:"100%",alignItems:"center"}}>
+          {navItems.map(item=>{
+            const active=view===item.id;
+            const hasBadge=(item.id==="messages"&&nbMsgs>0)||(item.id==="parametres"&&(data.notifications||[]).filter(n=>n.type==="probleme").length>0);
+            const badgeCount=item.id==="messages"?nbMsgs:(data.notifications||[]).filter(n=>n.type==="probleme").length;
+            return(
+              <div key={item.id} style={{position:"relative",width:"100%",display:"flex",justifyContent:"center"}}>
+                <button onClick={()=>setView(item.id)}
+                  style={{width:46,height:46,borderRadius:12,border:"none",background:active?`${GOLD}22`:"transparent",color:active?GOLD:"rgba(255,255,255,.45)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,transition:"all .15s"}}>
+                  {item.icon}
+                </button>
+                {hasBadge&&<span style={{position:"absolute",top:4,right:6,background:"#ef4444",color:"white",borderRadius:"50%",width:14,height:14,fontSize:8,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{badgeCount}</span>}
+              </div>
+            );
+          })}
+        </nav>
+        <div style={{padding:"8px 0 14px",borderTop:"1px solid rgba(255,255,255,.06)",width:"100%",display:"flex",justifyContent:"center"}}>
+          <button onClick={()=>setCurrentUser(null)} style={{width:46,height:46,borderRadius:12,border:"none",background:"rgba(255,255,255,.05)",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}} title="Déconnexion">↩</button>
+        </div>
+      </div>
+      {/* Contenu tablette */}
+      <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+        <div style={{background:"white",borderBottom:"1px solid #e8edf3",padding:"12px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{fontWeight:800,fontSize:16,color:TXT}}>{navItems.find(n=>n.id===view)?.label}</div>
+            <div style={{fontSize:11,color:TXT3}}>· {fmtDate(new Date())}</div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            {toast&&<div style={{background:toast.t==="err"?"#dc2626":NOIR3,color:"white",padding:"6px 14px",borderRadius:50,fontSize:12,fontWeight:600}}>{toast.m}</div>}
+            {isAdmin&&(view==="accueil"||view==="planning")&&(
+              <button onClick={()=>openNewTache()} style={{padding:"8px 14px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:10,color:"#1a0d00",fontSize:12,fontWeight:700,cursor:"pointer"}}>＋ Tâche</button>
+            )}
+            <Avatar emp={currentUser} size={32}/>
+          </div>
+        </div>
+        <div style={{flex:1,overflowY:"auto",background:nightMode?"#0a0a0f":"#f0f2f5"}}>
+          <div style={{maxWidth:860,margin:"0 auto",padding:"16px 18px"}}><ContentArea/></div>
+        </div>
+      </div>
+      <Modals/>
+    </div>
+  );
+
+  // ══════════════════════════════════════════════════════
+  // MOBILE — layout original
   // ══════════════════════════════════════════════════════
   return(
     <div style={{...S.app,background:appBg,...(isFullscreen?{height:"100vh",overflow:"hidden",paddingBottom:0}:{})}}>
       <div style={{...S.topbar}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <img src={LOGO} alt="CKeys" style={{width:36,height:36,objectFit:"contain",borderRadius:8,background:"rgba(255,255,255,.06)",padding:2}}/>
-            <div>
-              <div style={{...S.topSub}}>{fmtDate(new Date())} · {currentUser.nom}</div>
-            </div>
+            <img src={LOGO} alt="CKeys" style={{width:44,height:44,objectFit:"contain",borderRadius:10,background:"rgba(255,255,255,.08)",padding:3}}/>
+            <div><div style={{...S.topSub}}>{fmtDate(new Date())} · {currentUser.nom}</div></div>
           </div>
-          <button onClick={()=>setCurrentUser(null)}
-            style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.7)",borderRadius:10,padding:"6px 12px",cursor:"pointer",fontSize:11,fontWeight:600,letterSpacing:.2}}>
-            ↩ Quitter
-          </button>
+          <button onClick={()=>setCurrentUser(null)} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.7)",borderRadius:10,padding:"6px 12px",cursor:"pointer",fontSize:11,fontWeight:600}}>↩ Quitter</button>
         </div>
       </div>
-
       {toast&&<div style={S.toast(toast.t)}>{toast.m}</div>}
-
       <div style={isFullscreen?{flex:1,overflow:"hidden",display:"flex",flexDirection:"column"}:{paddingTop:12,paddingBottom:82}}>
         <ContentArea/>
       </div>
-
       {isAdmin&&(view==="accueil"||view==="planning")&&(
         <button style={{...S.fab,bottom:isPlanning?66:92}} onClick={()=>openNewTache()}>＋</button>
       )}
-
       <Modals/>
-
       <nav style={{...S.nav}}>
         {navItems.map(item=>(
           <button key={item.id} style={S.navBtn(view===item.id)} onClick={()=>setView(item.id)}>
             <div style={{position:"relative",display:"inline-flex",alignItems:"center",justifyContent:"center",width:28,height:28,borderRadius:10,background:view===item.id?`${GOLD}22`:"transparent",transition:"all .2s"}}>
               <span style={{fontSize:17,lineHeight:1}}>{item.icon}</span>
-              {item.id==="messages"&&nbMsgs>0&&(
-                <span style={{position:"absolute",top:-3,right:-3,background:"#ef4444",color:"white",borderRadius:"50%",width:14,height:14,fontSize:8,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{nbMsgs>9?"9+":nbMsgs}</span>
-              )}
-              {item.id==="parametres"&&(data.notifications||[]).filter(n=>n.type==="probleme").length>0&&(
-                <span style={{position:"absolute",top:-3,right:-3,background:"#ef4444",color:"white",borderRadius:"50%",width:14,height:14,fontSize:8,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{(data.notifications||[]).filter(n=>n.type==="probleme").length}</span>
-              )}
+              {item.id==="messages"&&nbMsgs>0&&(<span style={{position:"absolute",top:-3,right:-3,background:"#ef4444",color:"white",borderRadius:"50%",width:14,height:14,fontSize:8,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{nbMsgs>9?"9+":nbMsgs}</span>)}
+              {item.id==="parametres"&&(data.notifications||[]).filter(n=>n.type==="probleme").length>0&&(<span style={{position:"absolute",top:-3,right:-3,background:"#ef4444",color:"white",borderRadius:"50%",width:14,height:14,fontSize:8,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{(data.notifications||[]).filter(n=>n.type==="probleme").length}</span>)}
             </div>
             <span style={{marginTop:1}}>{item.label}</span>
           </button>
