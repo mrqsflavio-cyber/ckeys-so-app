@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { db } from "./firebase";
-import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 
 // ─── Palette CKeys — Nouvelle ère ────────────────────────────────────────────
 const GOLD        = "#c9a84c";  // or principal
@@ -1638,8 +1636,7 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
 // APP PRINCIPALE
 // ══════════════════════════════════════════════════════════════════════════════
 export default function App(){
-  const [data,setData]=useState(SEED);
-  const [loading,setLoading]=useState(true);
+  const [data,setData]=useState(()=>{try{const s=localStorage.getItem("cmg5");return s?JSON.parse(s):SEED;}catch{return SEED;}});
   const [view,setView]=useState("accueil");
   const [weekOff,setWeekOff]=useState(0);
   const [modal,setModal]=useState(null);
@@ -1648,37 +1645,17 @@ export default function App(){
   const [toast,setToast]=useState(null);
   const [problemeId,setProblemeId]=useState(null);
   const [currentUser,setCurrentUser]=useState(null);
-  const [nightMode,setNightMode]=useState(false);
+  const [nightMode,setNightMode]=useState(()=>{try{return localStorage.getItem("cmg_night")==="1";}catch{return false;}});
 
-  const toggleNightMode=useCallback(()=>setNightMode(n=>!n),[]);
-
-  // ── Chargement initial depuis Firestore + écoute en temps réel ──
-  useEffect(()=>{
-    const ref=doc(db,"app","data");
-    // Écoute en temps réel → toute modification par n'importe quel appareil se synchronise
-    const unsub=onSnapshot(ref,(snap)=>{
-      if(snap.exists()){
-        setData(snap.data());
-      } else {
-        // Première utilisation : on envoie le SEED dans Firestore
-        setDoc(ref,SEED);
-      }
-      setLoading(false);
-    },(err)=>{
-      console.error("Firestore error:",err);
-      setLoading(false);
+  const toggleNightMode=useCallback(()=>{
+    setNightMode(n=>{
+      const next=!n;
+      try{localStorage.setItem("cmg_night",next?"1":"0");}catch{}
+      return next;
     });
-    return ()=>unsub();
   },[]);
 
-  // ── Sauvegarde dans Firestore à chaque modification ──
-  const isMounted=useRef(false);
-  useEffect(()=>{
-    if(!isMounted.current){isMounted.current=true;return;}
-    if(loading) return;
-    const ref=doc(db,"app","data");
-    setDoc(ref,data).catch(e=>console.error("Save error:",e));
-  },[data,loading]);
+  useEffect(()=>{try{localStorage.setItem("cmg5",JSON.stringify(data));}catch{}},[data]);
 
   const toast_=useCallback((m,t="ok")=>{setToast({m,t});setTimeout(()=>setToast(null),2400);},[]);
   const close=useCallback(()=>setModal(null),[]);
@@ -1752,16 +1729,6 @@ export default function App(){
   const openEditTache=(t)=>{setForm({...t,checkItems:t.checkItems||[],checkDone:t.checkDone||[]});setModal("tache_edit");};
   const openEditEmp=(e)=>{setForm(e?{...e}:{actif:true,photo:null,tel:"",email:"",pin:"",role:"employe"});setModal("employe");};
   const openEditZone=(z)=>{setForm(z?{...z}:{});setModal("zone");};
-
-  // ── Écran de chargement Firestore ──
-  if(loading) return(
-    <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${NOIR},#141408)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:20}}>
-      <img src={LOGO} alt="CKeys" style={{width:100,height:100,objectFit:"contain",borderRadius:20,opacity:.8}}/>
-      <div style={{color:GOLD,fontSize:13,fontWeight:700,letterSpacing:2,opacity:.7}}>Chargement des données...</div>
-      <div style={{width:40,height:40,border:`3px solid ${GOLD}33`,borderTop:`3px solid ${GOLD}`,borderRadius:"50%",animation:"spin 1s linear infinite"}}/>
-      <style>{`@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
 
   // Écran PIN si pas connecté
   if(!currentUser){
