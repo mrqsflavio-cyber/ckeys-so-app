@@ -17,7 +17,7 @@ const TXT2        = "#52525b";  // texte secondaire
 const TXT3        = "#a1a1aa";  // texte muted
 const ACCENT      = "#c9a84c";
 const MSG_BLUE    = "#3b82f6";  // couleur messages
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.6.0";
 
 const LOGO="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAIAAgADASIAAhEBAxEB/8QAHQABAAIDAQEBAQAAAAAAAAAAAAYHBAUIAwECCf/EAEsQAAEDAwIDBgQCBwQGCAcAAAABAgMEBQYHERIhMQgTQVFhcRQiMoFCkRUWIzNiobEkUoLBCRdDcnOSJTQ1N1Oy0fBjdKKztOHx/8QAGgEBAAIDAQAAAAAAAAAAAAAAAAMEAQIFBv/EADQRAQACAQIDBQYGAgIDAAAAAAABAgMEESExQQUSEzJRYXGBkaHwFCKxwdHhFTMjJDRCYv/aAAwDAQACEQMRAD8A4yAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABn2CzXO/XSG2WiimrKuVdmRxt3X3XyT1OndPNDcXw20Jkuo1VTTzxJ3jopHbU8Ppt+Nf8A3sU9XrsWlj83GZ5RHOU2HBfLPDl6udsUwbLspXew2CtrGdO9RnDH/wA7tm/zJ9S9nHUmaPjfBbIF234ZKrn7cmqTXUHtHxUbX2rT+2QxQsTgbVzRoif4GdPzKQyLP8yyCd011yK4T7r9HfK1iezU5IVsd9fn/NtFI9vGUtq6enDebT9G3yzR7ULGoHVFdYJp6dqbumpHJMiJ6onzJ+RAV5LspJ8bz/MceqWz2vIK6LhXnG6VXRu9HNXkqe5YM1JZdY7NV19roYLVnNFEs09NCnDFco06uanhJ/79rHjZsP8Au2mPWOnvj90fcpfyc/SVLg/UjHRvcx7Va5q7Ki9UU/JdQAAAAAAAAAAAAAASnTHCLrnuURWS2bRoqcc87k3bCxOrl/yQi7Wuc5GtRVcq7IieKnb3ZswRmFYIysro0Zc7i1J6hzusbNt2t/Lmc7tPW/hMPejzTyWdLg8a+08nN+uWklRpq6hqG3VlxoqxVY16x929j0TfZU3XdPUrAtXtMZ43M87dT0UvHa7XxQU6ovJ7t/nf91RE+3qVUTaGc04Kzm8yPPFIyTFOQAC2iAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJPpxg19zu+stdlp1VE2Weocn7OFv95y/5eJ90zwm753ksVntUeyfVPO5PkhZ4uU7Mo6XD9FdOnyKrYaeBu8sione1cu3JPVVXongcrtHtH8PtjxxveeULem03ifmtwrDVWm0YPoTgz66pc19SrdpJ3Inf1Um30t8k9PA5b1b1NvuoN2dLWSup7dG5fh6NjvkYnmvmvqYWqWfXnP8ikudzkVkDVVtLStX5IWeCJ5r5r4kRGg7O8KfGzTvkn6Go1Pf/JThUAB1VQNxhl+q8Yym3X6icrZqOdsmyLtxt3+Zq+ipun3NODW1YtE1nlLMTMTvCx+0TZ6O2ajz1luRqUV2hjuEKNTZP2ibu29OLcrgsvXF7327AVkXeT9VqXi369Xbfy2K0K+jmfArv04fLgkzbeJOwAC0iAAAAAAAAADItlFU3G4U9BRxOlqKiRscbE6q5V2QxM7cZFq9mDAVy7NW3Ouh4rXa1SWTdOUkn4W/5l3dqbURMVxX9X7ZMjLrcmKzdi84Yuiu9FXohKMIs1p0l0p/tj2MSlgWorJeiySKm6p+fJDizULKK3Mctrr9XOcrp3r3bFXlGxPpan2PN4a/5LWTlnyU5e375unefw2HuR5pR9ea7qAD0rmAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGwxyz1+QXuls9sgdNV1UiRxtRPPxX0Nede9lLTVlgsaZfdoE/Sdez+ztenOCFfH0Vf6FLX6yukwzeefT3p9PhnNfupxp1iVg0mwKR1RNFG6OLv7jWv5cbkTn9k8EOStbtSK/UPJ3z8ckVopnK2iplXkif33J/eX+ScvMnPar1PW/3Z2H2Wo3tdFJ/a5GLynlT8P+63+vsUMUOytFaP+zm43t9FjV54/wBVOUAAO4oAAAGXZ7fU3W7Ulso2cdRVzMhib5ucqIn9TELo7OVkpLRRXnVS+xItvsMLm0TX8kmqVTZNvbiRPd/oV9Tn8HHN+vT2z0SYqd+0Qj/aKqKdNRHWekci01mpIKCP07tiI5Ps7crcy7xX1F0utXcqt6yVFVM6aRy9Vc5d1X+ZiG+DH4WKtPSGMlu9aZAAStAAAAAAAAA6K7HuAfHXGXN7lBvT0yrFQo5OTpPxP+3T33KQwbHK7LcqoLBb2qs1XKjVdtukbOrnr6Im6nbGZ3a0aRaS7UTGMSjgSmoovGSVU2RV8/FVOL2xqbRWNPj81/0/te0WKJmcluUKX7YGoK1lxjwi2T/sKZUkrnNX6pPBn2OdDIuVbU3G4VFfWSulqKiRZJHuXdVcq7qY50NHpq6bDGOv3KtmyzlvNpAAWkQAAAM2itF1rkRaK2VtSi9Fhgc/+iHhWUlVRTrBWU01NMnWOViscn2XmY70TO27O0vEAGWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWR2esEXOM8giqGKttodp6tduTkRflZ91/odKdo/Po8FwdLdbXtjudexYKZrf8AZM22V32Tkh6dnPEIcH0zjrK9rYqytZ8ZVvdyVjdt0avshyrrVmU+bZ7XXRz1+FjcsNIzfk2Nq7J+fU81Ef5LXTM+Sn39f0dOf+tg/wDqyFPc571e9yuc5d1VV5qp8APSuYAAAAbnDsZvGWXyGz2WkfUVEq7LsnysTxc5fBDW1orE2tO0MxEzO0MvTfD7lm+V0titrFRZXbzS7bthjT6nL7J+alkdo3JLZbaSg0sxTaO0WTZatzV/fVHiir4qm6qv8Sr5E7ySWy6A6bOtVpljqMturNnT7fM3lzf6Nb4J4qctzyyTzPmmkdJLI5XPe5d1cq81VTm4LTrcvjT5K+X2z6/wtZI8Cnc/9p5/w/AAOoqAAAAAAAAABM9GcKnzvPKKzI1yUbXd9WyJ+CFq/Nz816J6qaZMlcVJvblDatZtMVh0H2QMC/ROPS5ncYeGsuTeCkRyc2U6L9X+JU39kQqjtRZ9+tubOtdDNx2q1KsUfCvyySfjf/knohf/AGiM0p9P9OEttrVkFfXR/CUUbOXdRomznInhsnJPVUOInOVzlc5VVVXdVXxOD2Xjtqc1tZk68I+/p81/V2jFSMNfi+AEwwTTXL8zna2z2mXuFX5qmVOCJv3Xr9jvZMlMde9edoUK1m07RCHm3xnGb/ktYlJYrVVV8qrsvdM+Vvu7on3U6i0/7NePWxI6rKat92qU2VYGfJCi/wBV+5PMjzbTrTO2pSOnoqRY27MoqNiLIu3hsnT7nFzdt1m3c01ZtP0XaaGYjvZZ2hSuB9mO5VXd1OX3VtHGvNaWk+Z/srl5J+S+5b9BgWlGndAlZVUFrpuBN/ia9ySSKvort1+yFK552mL9cO8psWoY7XAvJJ5fnlVP6IUjfr7eb9WOq7xcqmumcu6umkVxFGi1+r46i/dj0j7/AJbzn0+HhjrvPq6iu/aWxSgvraK2WCestzF4X1TXJGvu1m3NPdUIH2os7wnNLXY5McelRXsc580vdKx0Uap+7dv477Ly36FDgv4eydPhyVyU33j28/er31mS9ZrblIADpqoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATfQ7FXZfqVa7W5nFTRyfEVPLkkbOa7+67J9yEHUvYmx1sdrvOUSx/PNKlJCqp0a1OJyp7q5E/wlHtLUfh9Na8c+UfFPpsfiZYhMe1PlX6r6Zut1HJ3VVc3fDRoi7KkaJ8yp9tk+5xSXP2u8jdd9TVtUcnFT2uFsSIi8uNebvvuu32KYIOx9P4OliZ524pNbk7+WfYAA6qoAACZ6T6eXjUO+uoLarIYIUR1TUP6RtVfLxX0OpapuE6B4G+WCJstfK3hartu+qpNv5N/ocn6cZ1fsCvS3SxysRz28EsMqbskb5Kh46gZnfM3vrrtfKhJJNuGONibRxN8mocnV6PNqs0VvbbHHSOcrmHNTFTeI/Mxs0yW6ZbkVVfLvMslRO7fbfkxvg1PRDTAHUrWKxFaxwhUmZmd5AAbMAAAAAAAAPqIqqiIm6qdq9mrCoMG08derq1kFfcY0qal8nLuYUTdrVXw5buX39CgezTp5JmeZx19bAq2e2uSWoVU5SP/DH9/H0OpNbLLkWR4NLjeMpHHNcZGwTzPfwMhg6vVfFUXZG7JuvzHm+2tVF710sW2ifNP383T0WKa1nLMe5x3rbnE2eZ5V3VrnJQRL3FDGv4YmryXbzXmq+58090tzDNpmra7a+KkVdnVc6KyNPuvX7HTOm/Z8xLGkjrL3/05cG895W7QsX0Z4/f8jfag6t4RgVOtE+qjqa2JvCygokRXN8kXbk37ie1tojBoqb7cPv+yNJxnJntsj2nHZ7xTG0jrb6v6arm8/2ibQsX0b4/ckOeas4LgNKtGtTFPVRt2ZQ0SIqp6Ltyb9zmnUfXfMssWSlo5/0Nbncu5pnLxuT+J/X8tiqXuc96ve5XOcu6qq7qqmcfZGbUW8TWX39kff6MW1lMcd3DHxW9qJ2gMxyXvKW2SJZaB26cMC7yOT1d/wChUc801RM6aeV8sjl3c97lc5V9VU8wd3BpsWCvdx12UL5L5J3tO4ACZoAAAAAAAAAAAAAAB6tp53Ju2CVyejFA8gfXNc13C5qtVPBUPgAAAAAAAAAAAAAAAAAAAAAAAAAAADu7s8UEVi0TsbpPlbJSurJHL5PVZN/yX+Rwid4Xyf8AQfZ5ldE7g7jH2xNVPDeJGJ/U4Hb29qY8cdZ+/wBXQ7P4Wtb0hxLmNzkvOV3S6TKqvqqqSRVVd+rlNSfVVVVVVd1U+HdrWKxER0UJnedwAGzAAAAAAAAAAAAAAAGdYrTcr5dIbZaaOWsq5l2ZFG3dV9fRPUxMxEbyRG/CGCTbSnTbINQLwymt0DoaBjk+JrXt/ZxJ5Ivi70QvfS/s2WyjiguOazrXVXJ3wUTuGFi+Tl6u/khf1qoKC2UUdFbaWClpok4WRQsRrW/ZDz2t7epSJpg4z69P7dLBoLW45OENZguLWnDsbprFZ4eCCFPmev1SP8XO9VI/qRq1huCxviuVwSquCJ8tDSbSS7/xc9mf4lT03K77VmqNbj0UWJY9Vvp6+pZ3lXPG7Z8Ua9Govgq+fkcmyPfJI6SR7nvcu7nOXdVUp9n9kTqo8fPPCfnKbUayMU+HjjktnUrXvMcsWSkt8v6Btjt07mlevevT+KTkv/Lt9ypXOc5yuc5XOVd1VV3VT4D1GDT4sFe7jrtDlXyWyTvadwA+oiqqIibqpM0fC0NK9BdS9Ro46qzWNaS2PTdtwuCrBA5PNu6K56erWqh0J2R+zXQrbqPO9QaBtTLMiS2+1zN3ja1ebZJGr9Sr1Rq8k6r6W1rtrbBgc7MSw2yyZHl0sad1Q00avjpEX6VlRnP2by5c1VE23CjJexBem2V0zM9oHXNGbtp/gHJCrvLvePfb14DljLMfuuLZFW2C90rqWvopVimjXwVPFF8U9TuvBqPMrRBNq32gsrlpoKVqyUFjSRGwwuXoqxtXhdJ4InPzVfLjPWvNV1C1MvGVJT/DxVc37GPxbGnJu/rsBDADPorLea63VNxorTX1NFSpvUVEVO98cX+85E2b9wMAAAAfqNj5HtZG1z3uXZrWpuqr5IZ15sl6sr4mXi0V9udK3jjSqp3xK9vmnEiboBrwAALm0d7P+QZpalyjIa+nxPEYm8clzr9mrI3zjaqpun8SqieW5k9i7AbFn2r3w2RRsqKK20bq34V3Sd7Xta1HJ4tTi3VPHl4bnr2vNT8kyjUG5YjLxW6w2OrfTU1vj+VrlYvD3jk8VXbl4InQDdV+cdn3ThX0OEYI/OblCvCt1vb/AOzuVPFse2zk/wALfc1re1DqPNWwUths2K2iJ0jWMpaG1IiPRV24F4lXr05bFBltdlBcLp9XqG65xdKegoLcx1TD36KrJJm/Si7IvRefrsBd/bqwuyxaZ4xnMlnorPktRNDT18dMxGNkc+Fz3tVE6q1zeSrz23ONi9+17rVBqnktLbrEkjcetTndw56bLUSLyWRU8E25InqvmUQAAAAAAAAAAAAAAAAAAAAAAAAAAAA7d1Jm+K7MVTUQ/Mktnpnpt5Ksa/0OIjtHB5EyvsrNpo14pG2eWm28eKFFaif/AEIcPtqNpw5J5Rb7/Rf0U79+vrDi4H17Va5WuTZUXZT4dxQAAAAAAAAAAAAAH6ijfLI2KNjnvcuzWtTdVXyPa4UdVb6ySjrYH09REuz43ps5q7b80Li0pxy3YZicuqGWQtc5iKlmopE5zS+D9l8Cor7c6u9Xmru1dJx1NXK6WRfVV/oV8WfxclorHCOvt/pJbH3axM85YR2H2UMas9i0wTL52x/F1qSyzVDk3WKKNzk4UXwTZqqvuceHSPZUz63SWap03v8AK2OOpSRKJzl2R7ZEXjj991VU91KPbVMl9LPc9ePuWNFatcvH4Nbqj2g8gvlwksuFtdb6R8ndMnRP28yquybL+Hf0OgcY4MF0ogqbzUvfJR0ff1csrt3PkVN13VfHfkUrpdofXWrWWplu8PeWi1u7+llVPlnVV+T8vE2XbNzB1LbKHD6SXZ9V+3qtl/An0tX3XmcfNiwZ8mPS6aOHOZ+/YuY75MdbZcnPlDnDNb/V5RlNwvta5Vlq5leiKv0t/C37JsaYA9ZWsViKxyhyJmZneQAGzAW72SsBiz/WO3UVbEkttoP7ZWNXo5rOjV9FXZCojsP/AEbMdElwy2d3D8Y2GJrfPu991/nsB0LrPrbhGk8cFJeZZZ7hKzihoKVqK/gTkir4NQ5oyPthpC6qfhmBW+3VNQ9XuqqpySSK5ervlRN19yj+0ZklRlOtWT3Ooke5rK6SmiR34WRLwIienyqv3K+AlupGo+Y6hXP4/Kr1PWub+7i34Yo08msTkhEgSnCcEvuUq+opomUdsgTiqbjVL3dPC3zVy9V9EA3Ogul921UzeGyUKOio49pK6q25Qxb8/uvREO1Nb77hugOhr8asVBTJVV0DqWjpnIiule5NnSyee3Vfshsez7jeF6Q6Iy5LFXd7TVEC1tZcJWcKyoiLtsngnkhwnrnqNc9Ts/rchrXvbTcSx0MCryhhReSbea9VAghtMXx+8ZPeYLPY6CatrJl2ayNOieKqvRETzUkul2md7zmaarY+K12GjTjr7tVrwU9OxOvP8TvJE5khy/UCx41Z58N0rjlpaB6cFfepE2q7gvjsv4I/JqASPGazCdHK6GKjoqXN9QHPSNir81FQyKuyNb/4j9+W5Y/bauM0OkOH2zKnU9VltXItXK9kaN7hu3NrUTo3ntsQPsM6cLmGpi5LcYVktdi2lVXpukk6/Snrt1/Ii/a9zVc01ruskMvHQ21fgqbZeWzPqVPdQKfPqIqqiIiqq9EQsrSbRXNNQ1Wro6Vtts8fOe51v7OFieKoq/V9iw62/wCj2jDVpcRoYc7y6Pk+51jd6Smf48DejlT/APoGv7NWF59iuU0GpU/cYzYKJVWqrLq5YmTwL9bGs+pyqnNPVEUtHtkab2jNsOpdZsG4Kvjia+vWBOU8W3KXbzTopy5qFqLmGe1/xWTXmeqan7uBq8EMSeTWJyRDrr/R41t3uuAZDYbtTvqLFDMjabvm7sXjT9pGm/VPH7gcMm7xXEslymrbS49Y665SuXb9hEqtT3d0T7qdca16e9njSa6yXq70dXcbjO5ZaaxR1HyKq+Kp4M9yhc214y68Uj7RjzKXFLHtwsorWxI1Vvk56c3AZEGiCWaNtRqHm9hxdnjTd78TU/7vAz6V91PG7v0DstHJTW6myrJ6vhVqVMszaWNrtuSo1E5puVRUTTVEzpqiWSaR3Nz3uVzl91U8wPrtuJdk2Tfkh8AAAAAAAAAAAAAAAAAAAAAAAAAAHUnYqyKOos95xKpejnRSfFQtd4senC5E9EVN/wDEctkr0my2XCs8t1+Yru4jf3dS1PxRO5OT7dfdEKXaOm/E6e1I59PfCfTZfCyRaX3V3HJMV1EvFncxWxx1Dnw7/ijcu7V/JSJnVPazxGLIsXt+oFkRs6QRIlQ6Pnxwu5tf9lX+hysY7O1P4jBW3WOE++DU4vDyTHQABeQAAAAAAAABZGjGBw5BUz5HkMnwmMWr9rVzP5JKqc0jb5qp4aP6aV+cVslbVSfo7HqP562vk+VqNTmrWqvJXbfl4mw1l1AobpBBhuHxfB4rbV4Y0ZyWqenWR3mnlv7lHPmtkv4GKePWfSP59E+OkVjxL8unt/ppdX88nze/o+Fnwtno07m30reTY2JyRdvNSEAFrFiripFKxwhFa03neQ/cEssEzJoXujljcjmOauytVOiofgnWhWJOzHUm2218fFSQv+Jq+XLu2Ki7L7rsn3GXJXFSb25QUrNrRWHbunk9wqsFslRdt/j5KKN1Run41am5y32xLBdabUNt+likfbqunZHFKibta5qc2r5Fm9rHPazFceocesVY+jrq75nyQu4Xxwt5Jsqc03Xlv6FIYTrDdaOkfYszhXKbBP8ALLDVu4po0/vMevPf3X7oeY7K0ues/i6RG078PZ7HV1eWk/8ADafiq4FwZDpTb8htcuS6U3H9NUCJxT2x67VlN6cP4v6+W5UdRDNTzvgqInxSxuVr2ParXNVOqKi9FPS4dRTNH5Z4xzjrHvhy747U5vMAEzQJ1ohqXd9Lc3hyK1sSeNW91V0zl2bPEvVvv4p6kFAHSOc2fRDVe5z5Tj2c0+F3esXvKy33aJWQ96vVyPTlzXrtuQ3/AFSYdROdJddasMWBv1fAvkqJFT0ajeZUAAt99w0PxBvFaaC751cWJuyWub8JRovqz612+xDM61ByPL+Cnrp4qW2w/uLdRx9zTRJ6MTqvqu6kTAHd+P3Cya79mGmwSx5LRWa+0sEUc9PUP4eca+KdVY7zQo2t0p0500qHVOpWdUd5qoV3ZZLE5Xyyr4I96onAnqUGxzmORzXK1U6Ki7KfF5ruoFg6n6pXbMKaKx0NLDYcWpF/sdno/liaidHPXrI/1UgVNBNU1MVNTxulmlejI2NTdXOVdkRPXc8zojsMaZuzHUn9aLhTq6z2BUk3c35Zalfob68P1L5fL5gdVaWYFctM+zs+zWKh+JySoo3SyNYqIr6mRNuvk3f8kOfItLdO9GKf9atZbtDfchmVZqex0ruJHPVd/m8+fjyT3LY7UnaSo9P3T4piXdV2S8PDNMvzRUW/n/ef6eHj5HBOR3y7ZFeJ7vfLhPX11Q7ikmmfxOX/ANE9ALF1h1zyzUBv6LhcyxY7F8sFrofkj4fDjVNuL26FaWi3V93uUFttlHNWVlQ9GQwwsVz3uXoiIh+bXQVd0uVNbqCB89VUytihjYm6vc5dkRDv7S7A8F7NGm0mZ5tPTyX+SNO+qEaj3te5OVPTp4r5qnXmqqjUArvSHspWy0WtuVax3KGipompK63pMjGMT/4snT7J+Ze+nmqGn02P5LDglFHHYcWpFe6eGNI4JXo1yq1ni7onzeO/icNa/wCt+T6sXp61Mj7fYYX/ANktkb/lang6Rfxv9eieHrZlzlbpP2OoLLUIsOQZxMtQ+Lo+On5Kir4p8qMTb1UDnzUDKLnmeX3HI7tUPnqayZz93L9Ld/lankiIaEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADozsw6nUfwa6eZXIx9FUIsdFJMu7dndYnb+C+H5EL1+0lrsFu8lztsT58fqXqsUjU3+HVfwO9PJSqGOcxyOaqtci7oqdUOhtH9daZbY3FNRIkrbe9ndMq3t41RvTaRPFPXqcfPp8ulyzqNPG8T5q/vHtXMeSmWnh5J225S54B0lnfZ+t17p1v2md1pZ6aX5/hHS7s89mOTp7L/Io3I8LyrHZ3Q3iw11KrV5uWJXM/5k3QuafXYNRH5bcfSeaHJgvj5wj4ALiEBsrXYL5dHsZbrRXVavXZvdQOcn57bFmYroDmFwYlXf5KXHaBE3fLVyJxIntvt+akGXVYcMfntEJKYr38sKiY1z3I1rVc5V2RETdVUufTfRfit3616k1X6Ax6FEk7mV3BNOnkqdWovl9S+CJ1N7HfNItJmr+gKf8AW3I2ckqpdljid6Ltsn+FOfmVLqJqBk2dXH4q+VznRMVe5po/liiT0b/n1Kk5c+q4Yo7lfWefwj95Td3Hi424z6dPilmsOqzb/QsxLEaRLPilL8kcEacDqjbortuieO33XcqgAuYMFMFO5SEGTJbJO9gAEzQOu+x1ibbThVVlNXGjKi6P2ic7lwwM3RPbd3EvtscrYtZ6rIMjt9ko0VZ62oZCzlvtxLsqr6Im6/Y7Q1ou9JpxonJQW1UhetOy20TU6pu3ZV+zUXn57HD7ayWtFNNTnefp9/ov6KsRM5bcocr665WuX6lXO5MkV1LHJ3FMnh3bOSL9+pBT6qqqqqruq81U+HYxY64qRSvKFK9pvabT1bHHr3dsfucdzstwqKGrjX5ZIXq1fZfNPReRaseoeF5/Cyi1QsiUly4UYy/2xiMlTyWRicnJ+aeSFMgjzaamWe9PCY6xwltTLanDp6LLy3SC9UFAt7xasp8rsa821VB80jE8nx81Rfbf12K1c1zXK1zVa5F2VFTZUNzieVZBitelbYbpUUUqfUjHfK9PJzeip6KWQ3NsCz1qQZ9Y0tN0cmyXi2N4d185GdFIu/nw+eO9HrHP4x1+Hyb93Hfy8J+nzU6Cyco0hvdHQuu+M1dPk9n24kqKFd3sT+JnVFK4kY+KR0cjHMe1dnNcmyovqhYxZseWN6TujvS1J2tD8gAlaAAAAEv0m09v+pGWQWGxQdV4qipen7Onj8XuX/LxA+aT6e5DqVl9PjuPUyukeqOqKhyL3dNHvze9fLyTqq8jv/LpLB2cezpPBY+Fs1ND3FK9+3HU1kn+0d5r1dt02bt0PXsx0OA49S3jEMDhdWttCxMud62RW1lU7i4mI7x4UROnJOJDmft+ajfrFqFDhdvn4rfYUVJ+FeT6l31f8qbN9F4gObbjWVNxr56+tmfPU1EjpJZHrurnKu6qqmOABcHY3Zb39onGUuXd92kkixcf/iox3d7evFsb3t1ZVfb1rfW2O4LLFbrNGyOhgXdGqj2Ne6T1VVXbf+FEKLtldV2y4U9woKiSmqqeRJIZY3bOY5F3RUUv2n7VmUS0UC3zEMWvV0p2IyK41VKve8vFdlRN/sBptI9LaS1Wxmpuq0b7XidE5JKWimbtUXaVObY2MXnwL4qvVPTmQXWPUG66k5rU5Bcv2UX7qjpWr8lNCn0sb9uvmu6nlqdqNlmo14S5ZPc31KxorYIGpwQwN8mMTkhEQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADfYnmOS4rUpPYrvU0a782NevA73b0LasnaXySOFsF/stturE+p6t4HL9uhQ4KubRYM/HJWJlLTPkx+WXRjtfcHqd3V2m0Mki/Ure723/Ixpte8Sp2/9GabULHeHeo3b+SHPgK8dk6aOk/Of5Sfi8vr9IXRdu0Zl8sax2a22mztXl+xhRyon3K3ybM8pyWVX3q+VtWir9D5F4U+3Qj4LOLR4MPGlIhHfNkv5pAAWUQAAAAAvvsZYt+ks1rcmqI94LVDwQqqf7aTdN09mo7/AJkPDtiZb+l85gxyml4qa0R7SIi8lmfsrvyThT3RS4dHKWl007PqXy4MRkjqZ9zqEXkr3OT9m33VqMT3U42vVxqbvd6u6VsiyVNXM6aVy+LnLuv9Tg6SPxWuvnnlXhH3983QzT4Wnrj6zxlhgA7zngAAAADc4tlF+xiubWWO51FHIi80Y75Xeip0UsiLPsIzeNtNqHj7aKuVOFLvbW8Lt/N7U6lPAr5dLjyT3p4T6xwlJTLasbdFo5Do7cvgXXjC7lTZRatuLipXJ3zE/iZ1KyqYJ6aZ0FRDJDKxdnMe1WuT3RTPx3IL1jtc2tslyqaGdq78UT9t/dOi/cs6m1PxjLoW0OpuNRTSqnCl2t7e7nb6uTx/mRd7UYecd+PZwn5cp+DfbHflwn6KeBbd20dS6UT7tpzfaXJKLqtOjkZUx+isXqv8ysqu0XOkuSW2qoKmGsV6RpC+NUerlXbbYmw6jHm8s8fTr8kd8dqc4Z+B4rd80yijx+yU6zVVS/bf8MbfFzl8EROe5c2oub2rTzF3aS6W1He1Myoy+3qH95Vy9FijVOaNReRrb5co9GMHfilnkYua3qBHXisYvzUELk3SnYvg5U6mZ2JdOFzjVWO83GBZbTYlSqmVybtkm3/ZsX78/ZFJ2jqHGI6Ps79lZa+sYxt0jpVqZmu6zV023CxfPZVai+jFU/nVdK6qudyqbjWzOmqamV0s0jl3VznLuqr91Om/9IBqWl+zGmwG2VHFQWVe9rFavJ9U5OSf4Gr+bl8jlsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABJNMscmyvO7TYomuVKmoakqp+GNOb3fZqKpGywtBM7tmn2ZyXq626athfTOhTuduONVVF4kRdkXpt1TqQambxitOON7bcG+KKzeO9yXL2zMpjt2PWrB6ByR/E7VFQxq/TCzlG3byV3P/AcsEn1Ry6ozjN7hkU7HRMncjYIldv3UTU2a3/NfVVIwQ9nab8Np60nnzn3pNTl8XJNugAC6gAAAAAAAAAABmWi6XG0VrK2111RRVLF+WSGRWu/kdH6b6osgwz9c9ULTRXVKaoSmstQ2nalXLMifM9N9kVrE8fPwOd8VslbkmSW+w25ivqq+oZBGm3RXL1X0RN1X0QkesN1pqnJW2K0uVLNYo0oaJqLujuH65Pdzt1UhyYMeSYm0cY69W9clq8IlOrtptZtR6+ovWnmYx3S41ciyzW25v7uq4lXddlX6vyRPU6ctcNv7MfZlkqapsT7/AFDeNzd/31ZImzWbp+FqdfZylU9hbSD4mt/1pZNA2O3UW62xkybI96dZuf4W+HqanXjtKPveoNbaqOy2i+4dSr3Daesh4u/cn1Std4b9E5LyTfxI60y4aztPf9N+E/NtM0vMcNnNF0rqu6XOquVfO6erqpXTTSOXm97lVVVfupjFuy2rR/NmLLZbrU4Pdnc/g6/eajc7ybJ1anqqp7FY3+1y2a71FtmqKSpfA7bvqSds0T023RWubyVFT/8AZvi1Fck93aYn0mPuJ+DF8c1477wwAATowAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAW32VrXWXLUO5PtcKS3WjsNbUUDOW6z8KMbw+uz12N92dtA8hz7NJKnK7dW2ux0MqvrpKmJYnTORd1Y3fz8VKdxDJL1iWQU1+x+ukorhTO3jlYv5ovmi+RYmbdovVbLLO6019/bTUkjeGVtFC2BZE8eJW81AuXtZa62ugsS6V6ayxw0UEfw9dVU3JjWJy7mNU/mpx+fXKrlVzlVVXmqr4nwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWPkdoodPces7Km309fkl2pErZFqm8cdFC7fgY1nRz12VVV26J4J4lcFr6+VDckp8bzS3J3tBVWuOmmVvPuKiPdHRu8l5oqeZVzzPiUrPKd9/2j79EuOI7tp6tFYa2wXfG8jfdrZSx3qGh46OeFqRMd86cW8abN4kToqInt4kFM+32/4ihra2V7ooaeP5XbcnSKqbM/LdTAJcdYrM7T/TS0zMRuk2meKTZnmFJY45e5ifxSTy7b93E1OJy++yLt6n7u2R0MF3khsdltrbRC9WRRVECSvnYi7cUki/Oiu6/Irdt+RIOznfKGy6jxNuMrYaevp5aTvXLsjHPaqNVV8E32ILfbVWWa91dorInMqaaZYnNVOqovJU9F6p7kO83z2rblERt9d/29yTljiY9Um1KxejtdvsWT2Vr2Wa/0yzQxPdxOp5WrtLDxfiRruirz2X0IUWtq3URWnTLBcIkVP0lQQTVlbH+KBZ38bY3eTkRV3T2KpNtJe1sW9vWdvdvO30YzREW4J1pRVY4yrqYsosdNX25kSukk3e2aNFXbiaqOROW+/Q9b3jkeFahwUdRRUl5tNWrZaOSfj7ueB68lRWuRd06LzI7i7Hut97VrXKjaJVVUTpzQsDS2upM0sUODXidkdxoJPibHUyL0VOboFXyXw9SDPvjtbJvw6x+8e7r7G+Pa0RXr0/hW2VzQTZBWfDUFNQwxzPjZDT8XCiI5UT6lVd/uaszb9/25X/8AzMn/AJlMIvUjasIJ5rDdY7fh+n9ryS6UMVwu97Vz6Cnn3WGmgb/tHNRU43O35IvLbqh5YRcbFea6thyW10XfpRTOo5oI2wNSRG8kcxuzXJ5ckX3NxqRO3JdJMMvFu/ats1L+jK+NvNYHN24XOTwRydFK4s1v+OkmfI90VPTxLJLIifT5J7qpSxR4uO1rztO8/Djw++qe0920RHLgwDOsdTHS3KKSWipqxiuRqxVCOVq7r/CqL/MwT1o/+tw/8Rv9S9aN4QRzT/tB0FpsepVzx2yWekt9FROi7vuler3cULHrxK5y783L02K7LK7Tv/fjkXvT/wD48RWpX0UzOnxzPWI/RJn4ZLR7VnaL0NluttyOO62Ggrn2+3PqoJZVkR/Gi8t+F6IqfY1GO3e1unilvOH2ZbZO50DpmOmY5juFdlavedU680VDf9nuaSnjzCeLbjZZXuTdqOTffyXkReS93fMKS143JTpNLFUq6NYIWsXhd15NROnXcrzEzmyR04dZ4cOiTeIpWeqJyt4JXsRyO4XKm6LyX1PSinSmqo51ginRi793Kiqx3ouyov8AM/VygZTXGppo38bIpnsa7+8iKqIpjnQ5wr8lr6tusmOXCwR27E7L3VdY6WtnY9Jl3kkRVdsqSIqJ9zSavYta8ffYq+1cdPFebbHWuoZH8T6Vzurd15qnlvzJPrLfKmzXrDZYaS3T93jVBJw1VFHLv8q8t3NVduXgvI0uv9ifbs9fUU0lVU09bRxVrXSyOlVjXNTdOJd14UXkn2OXpbW3x7zzieu+61liNrcPRWxMNK8Riyy91CV076e1W6mdWV8rPqSJvgnqq8t/Uh5aGgFxpe/yTGamZkEl+tUlJTSPXZO96om/rtt7l3V3tTDaa80GGIm8RKK1+U0slW6Ojxy009qRdm0qw8T3N/ilVe84vVHIm/gemp0VhivdEuNwLBb5LZSyIxz0c9HrGiv4lTq7i336Gmp6WKhvD6K90NbxRvWOSCN6RSNfvtturXf0JRrVi1mw3LWWK0LcHoymjmkkq5WuVVe1HIiI1rdtt9vE1juVy1rG/KfdPJn800mZQYs3Sylstfg+Y1Vxx63VlTZreyppZpFlRyvc/ZeLheiKm3ohWRauiNRLSYRqPUwcPeR2iJW8TEcm/e+S8lMa3eMW8esfrDODz8fb+jQ2O52qR0Ud6xKzRUVeySOGqY6VjonIm3GirIqclVOSoQgmD7jdc7msdjkhR0tJ3reOGFrE4HKjlVUaiIm23VSJTpGk8iQqro0cvAq9VTfkSYY2md+fpvv67fNred3pQ1CUtXHULTw1CMXfu5kVWO99lRf5lo6wrY8ZyG3UluxOyrTz2ynqZY3pNze9u7uaSIqIVOXPrVfqiyZvj80dHbqhsVnonq2poo5VX5E3Tic1VT7Ly8CHURPjUiPSeu3o3x+SfgieseK2zGblapbU6SOG6W9lYtJI/ifSq7qxV6qnim/PYghYuvuPyWrUWrSnkqqqCopo6xr5ZFkc1rmoqpxLuqoirtzK6JdJbvYazM78GmaNrzGywtBKG03nPqSx3mz0dwpKlsjnd6r0c3hY5U2Vrk8UIdkU8U95qVhoqajjZI5jYoEcjURFX+8qrv8Acm/Zs/73rV/w5v8A7TiA3b/tWr/47/8AzKaU/wDJtHsj9ZZn/VHvn9mKWrPFY4dFKHJm4vaFuUlyfSve7vtnMROXLvOpVRb1Pc6u1dnG3z0axI9b1Im8kLZE6eTkVDGr3/Jt6x7PVnDt+bf0RKuq7bPjddQ12N2y2XRGxVFJUQPka5zFXm1Wue5F3T0RSHEtu09ZmlZcshqoXRNpaJqzSMaiM7xERGpyTZN/IiRNhjaJiefX2NL8ZAATNAAAAAAAAAAAAAAAAAAAAAAAAAAADZ2W/Xazsljt9bJFFNyli33Y/wB2ryU1gMWrFo2lmJmOTPut3uFzRjaufijZ9EbURrG+yJyMAARERG0EzvzfUVUXdF2VDexZfkEaQu+Pc+WBvDDNI1HSRInRGuXmhoQYtStucETMcnrV1E9XUyVNTM+aaRyue97t3OVfFVPIA2Ybez5Lf7PSS0lru1XRwS/vI4pOFHe5roaqpgq21cM8kdQ1/GkjV2cjvPc8QaxSsTM7c2d5fqR75JHSSOVz3qrnOXqqr1U/IBsw2FlvN0s0z5bZWy0znpwvRjuT08lToqH7ut9uVyiSGpnRIUXi7qNqMZv57J4msBr3K797biz3p22DKtlwrrZVJVW+qlpp2pskka7KhigzMRMbSxybW/5Hfb/I2S9XWruD2rujp5FcqctuqmqAFaxWNojZmZmeMt1ZMrySyUj6S0XutoYJEVHxwyq1HIvXc96fN8up1csGQ3CJXNVrlbKqKqL4EeBpOLHM7zWPkz37R1fXKrnK5yqqqu6qp60dTPR1LKmlldFNGu7HtXZWqeIJNt2rcX3KMivsMcN5vNZXxx7cDZ5Fcjdt9tt/dRWZNe6y2RW6qr5JoIYu5j4+bmx778CL14d/A04NIx0jaIjk270+ofpj3Mej2OVrmruiouyop+QbtUgkzLIpWN724OllY3hZO9qLK1PJH9TT11bV10rZa2plqJGsbG10jlcqNRNkTn4IY4NK4615QzNpnnIby0Zdk1ooH0FsvldSUr02fFFKrWuT1TxNGDNqVtG1o3ImY5JDFm2WxRyMiyG4MbI1WPRsqpxIvVFI8AK0rXyxsTaZ5vaiqqiiqmVVJM+GaNd2Pauyp4Gxv2T5Dfo2R3m8Vle1m3Ak8iu226bbmoAmlZneY4m8xGzcV+TXuvt8VDWV8k8UUaQsV/NyRou6M4uvD6GnAFaxXlBMzPNtbBkV9sD3Pst1q6BzvqdBIrVXw8DEulxrrpVuq7hVS1M7k2WSRd1UxQO5WJ723E3nbYJE3OMvbQMoEyK4pSxruyHvl4UX0QjoFqVt5o3ItMcm7rssyWutj7ZV3utmopFRz4HSrwOVOiqhpABWta+WNiZmeYADZgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAf/9k=";
 
@@ -67,10 +67,15 @@ function usePhotoPicker(setter){
   return{ref,pick:()=>ref.current.click(),handle:(e)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setter(ev.target.result);r.readAsDataURL(f);}};
 }
 function useBreakpoint(){
-  const [bp,setBp]=useState(()=>window.innerWidth>=1024?"desktop":window.innerWidth>=640?"tablet":"mobile");
+  const getW=()=>Math.max(document.documentElement.clientWidth||0,window.innerWidth||0);
+  const getBp=()=>getW()>=1024?"desktop":getW()>=640?"tablet":"mobile";
+  const [bp,setBp]=useState(getBp);
   useEffect(()=>{
-    const h=()=>setBp(window.innerWidth>=1024?"desktop":window.innerWidth>=640?"tablet":"mobile");
-    window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);
+    const h=()=>setBp(getBp());
+    h(); // appel immédiat au montage
+    window.addEventListener("resize",h);
+    window.addEventListener("orientationchange",()=>setTimeout(h,100));
+    return()=>{window.removeEventListener("resize",h);window.removeEventListener("orientationchange",h);};
   },[]);
   return bp;
 }
@@ -533,6 +538,8 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
   const [open,setOpen]=useState(false);
   const [showProbleme,setShowProbleme]=useState(false);
   const [noteProbleme,setNoteProbleme]=useState("");
+  const [photoProblemeLog,setPhotoProblemeLog]=useState(null);
+  const photoRefLog=useRef();
   const emp=id=>employes.find(e=>e.id===id);
 
   const nbTotal=tachesZone.length;
@@ -647,7 +654,7 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
           {onSignalerMessage&&(
             <div style={{marginTop:8,borderTop:"1px solid #f4f4f5",paddingTop:10}}>
               <div style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",padding:"8px 0"}}
-                onClick={()=>{setShowProbleme(s=>!s);setNoteProbleme("");}}>
+                onClick={()=>{setShowProbleme(s=>!s);setNoteProbleme("");setPhotoProblemeLog(null);}}>
                 <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${showProbleme?"#dc2626":"#e4e4e7"}`,background:showProbleme?"#fef2f2":"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
                   {showProbleme&&<span style={{color:"#dc2626",fontSize:12,lineHeight:1}}>✓</span>}
                 </div>
@@ -662,20 +669,35 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
                     placeholder="Décrivez le problème observé dans ce logement..."
                     style={{width:"100%",padding:"10px 12px",borderRadius:10,border:"1px solid #fecaca",fontSize:13,resize:"vertical",minHeight:80,fontFamily:"inherit",boxSizing:"border-box",background:"white",color:TXT,outline:"none"}}
                   />
+                  <input ref={photoRefLog} type="file" accept="image/*" capture="environment" style={{display:"none"}}
+                    onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setPhotoProblemeLog(ev.target.result);r.readAsDataURL(f);}}/>
+                  {photoProblemeLog?(
+                    <div style={{position:"relative",marginTop:8,marginBottom:4}}>
+                      <img src={photoProblemeLog} alt="photo" style={{width:"100%",borderRadius:10,maxHeight:160,objectFit:"cover"}}/>
+                      <button onClick={()=>setPhotoProblemeLog(null)} style={{position:"absolute",top:6,right:6,background:"rgba(0,0,0,.55)",border:"none",borderRadius:20,color:"white",fontSize:11,fontWeight:700,padding:"3px 10px",cursor:"pointer"}}>✕</button>
+                    </div>
+                  ):(
+                    <button type="button" onClick={()=>photoRefLog.current.click()}
+                      style={{width:"100%",padding:"8px",background:"white",border:"1px dashed #fecaca",borderRadius:10,color:"#dc2626",fontSize:12,fontWeight:600,cursor:"pointer",marginTop:6,marginBottom:4}}>
+                      📷 Ajouter une photo
+                    </button>
+                  )}
                   <div style={{display:"flex",gap:8,marginTop:8}}>
                     <button onClick={()=>{
                       if(!noteProbleme.trim()) return;
-                      onSignalerMessage({texte:`[${zone.nom}] ${noteProbleme.trim()}`,zoneId:zone.id});
-                      setShowProbleme(false);setNoteProbleme("");
+                      onSignalerMessage({texte:noteProbleme.trim(),zoneId:zone.id,photo:photoProblemeLog||null});
+                      setShowProbleme(false);setNoteProbleme("");setPhotoProblemeLog(null);
                     }} style={{flex:1,padding:"9px",background:"#dc2626",border:"none",borderRadius:10,color:"white",fontSize:13,fontWeight:700,cursor:"pointer"}}>
                       📤 Envoyer à l'admin
                     </button>
-                    <button onClick={()=>{setShowProbleme(false);setNoteProbleme("");}} style={{padding:"9px 14px",background:"#f4f4f5",border:"none",borderRadius:10,color:TXT2,fontSize:13,cursor:"pointer"}}>
+                    <button onClick={()=>{setShowProbleme(false);setNoteProbleme("");setPhotoProblemeLog(null);}} style={{padding:"9px 14px",background:"#f4f4f5",border:"none",borderRadius:10,color:TXT2,fontSize:13,cursor:"pointer"}}>
                       Annuler
                     </button>
                   </div>
                 </div>
               )}
+            </div>
+          )}
             </div>
           )}
         </div>
@@ -687,7 +709,7 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE ACCUEIL
 // ══════════════════════════════════════════════════════════════════════════════
-function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onSignalerMessage}){
+function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onSignalerMessage,isAdmin}){
   const tAuj=data.taches.filter(t=>t.date===TODAY);
   const tFin=tAuj.filter(t=>t.statut==="termine").length;
   const pb=tAuj.filter(t=>t.statut==="probleme").length;
@@ -705,8 +727,6 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
     <div style={S.sgrid}>
       <div style={S.scard("linear-gradient(135deg,#1a1408,#c9a84c)")}><div style={S.snum}>{tAuj.length}</div><div style={S.slbl}>Tâches aujourd'hui</div></div>
       <div style={S.scard("linear-gradient(135deg,#2d7a2d,#1a5c1a)")}><div style={S.snum}>{tFin}</div><div style={S.slbl}>Terminées</div></div>
-      <div style={S.scard("linear-gradient(135deg,#c9a84c,#9a7530)")}><div style={S.snum}>{data.zones.length}</div><div style={S.slbl}>Logements</div></div>
-      <div style={S.scard("linear-gradient(135deg,#b03530,#8a2020)")}><div style={S.snum}>{pb}</div><div style={S.slbl}>Problèmes</div></div>
     </div>
 
     <div style={S.sec}>
@@ -1247,6 +1267,12 @@ function PinRow({emp,onSavePin}){
 function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
   const [onglet,setOnglet]=useState(null); // null = menu principal
 
+  // Mark notifications as read when opening notifs tab
+  function ouvrirNotifs(){
+    setData(d=>({...d,notifications:(d.notifications||[]).map(n=>({...n,lu:true}))}));
+    setOnglet("notifs");
+  }
+
   const ROLES=[
     {id:"admin",   label:"Administrateur", desc:"Accès complet",   color:GOLD, bg:"#f3f0ff"},
     {id:"manager", label:"Manager",         desc:"Crée et gère les tâches", color:GOLD_DARK, bg:GOLD_BG},
@@ -1265,24 +1291,30 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
     toast_("Statut mis à jour ✓");
   }
 
+  const nbNotifsBadge=(data.notifications||[]).filter(n=>n.type==="probleme"&&!n.lu).length;
+
   const menuItems=[
     {id:"gestion_equipe", icon:"👥", label:"Gestion Équipe",   desc:"Membres, rôles, droits et PIN"},
-    {id:"notifs",         icon:"🔔", label:"Notifications",    desc:"Activité récente"},
+    {id:"notifs",         icon:"🔔", label:"Notifications",    desc:"Activité récente", badge:nbNotifsBadge},
     {id:"nuit",           icon:"🌙", label:"Mode nuit",        desc:"Interface sombre"},
   ];
 
   // ── Menu principal vertical ──
   if(!onglet) return(
     <div style={{padding:"14px 12px"}}>
-      <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:14}}>⚙️ Paramètres</div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+        <div style={{fontWeight:900,fontSize:16,color:TXT}}>⚙️ Admin</div>
+        <div style={{fontSize:11,color:GOLD_DARK,fontWeight:700,background:GOLD_BG,borderRadius:20,padding:"3px 10px",border:`1px solid ${GOLD}44`}}>v{APP_VERSION}</div>
+      </div>
       {menuItems.map((item,i)=>(
-        <div key={item.id} onClick={()=>setOnglet(item.id)}
+        <div key={item.id} onClick={()=>item.id==="notifs"?ouvrirNotifs():setOnglet(item.id)}
           style={{display:"flex",alignItems:"center",gap:14,background:CARD,borderRadius:14,padding:"14px 16px",marginBottom:10,border:`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}>
           <div style={{width:44,height:44,borderRadius:12,background:GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{item.icon}</div>
           <div style={{flex:1}}>
             <div style={{fontWeight:700,fontSize:14,color:TXT}}>{item.label}</div>
             <div style={{fontSize:12,color:TXT2,marginTop:2}}>{item.desc}</div>
           </div>
+          {item.badge>0&&<span style={{background:"#ef4444",color:"white",borderRadius:20,minWidth:20,height:20,fontSize:11,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 5px"}}>{item.badge}</span>}
           <span style={{color:TXT3,fontSize:20}}>›</span>
         </div>
       ))}
@@ -1433,16 +1465,31 @@ function Messages({data,setData,currentUser,toast_}){
   const endRef=useRef(null);
 
   const allMsgs=(data.messages||[]);
-  // Messages visibles par l'utilisateur courant (conversations privées)
-  // Un employé ne voit que ses propres échanges avec admin/manager
-  // Un admin voit toutes les conversations
+  // Zones où l'employé a des tâches (pour accéder aux conv de logement)
+  const mesZoneIds=isAdmin
+    ? data.zones.map(z=>z.id)
+    : [...new Set(data.taches.filter(t=>t.employeId===currentUser.id).map(t=>t.zoneId))];
+  // Messages visibles: admin=tout, employé=ses msgs + msgs adressés + msgs de ses zones
   const msgVisibles=allMsgs.filter(m=>{
     if(isAdmin) return true;
-    // employé: voir seulement ses messages ou ceux qui lui sont adressés (destinataire)
-    return m.empId===currentUser.id || m.destinataireId===currentUser.id || (!m.destinataireId&&m.empId===currentUser.id);
+    return m.empId===currentUser.id
+      || m.destinataireId===currentUser.id
+      || (m.zoneId&&mesZoneIds.includes(m.zoneId));
   });
 
   const msgActifs=msgVisibles.filter(m=>!m.archive);
+  function ouvrirConversation(conv){
+    // mark messages in this conversation as read
+    setData(d=>({...d,messages:(d.messages||[]).map(m=>{
+      if(m.lu) return m;
+      const match=conv.type==="employe"
+        ?(m.empId===conv.id&&(m.destinataireId===currentUser.id||!m.destinataireId))
+        :conv.type==="zone"?(m.zoneId===conv.id)
+        :(m.empId!==currentUser.id);
+      return match?{...m,lu:true}:m;
+    })}));
+    setConvSel(conv);
+  }
   const msgArchives=msgVisibles.filter(m=>m.archive);
 
   const emp=id=>data.employes.find(e=>e.id===id);
@@ -1523,7 +1570,7 @@ function Messages({data,setData,currentUser,toast_}){
               const dernierMsg=msgActifs.filter(m=>m.empId===e.id||m.destinataireId===e.id).slice(-1)[0];
               const nbNonLus=msgActifs.filter(m=>m.empId===e.id&&m.destinataireId===currentUser.id&&!m.lu).length;
               return(
-                <div key={e.id} onClick={()=>setConvSel({type:"employe",id:e.id})}
+                <div key={e.id} onClick={()=>ouvrirConversation({type:"employe",id:e.id})}
                   style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:"white",borderRadius:14,marginBottom:6,border:`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 1px 4px rgba(0,0,0,.04)"}}>
                   <Avatar emp={e} size={44}/>
                   <div style={{flex:1,minWidth:0}}>
@@ -1547,23 +1594,31 @@ function Messages({data,setData,currentUser,toast_}){
           <div style={{padding:"8px 12px 4px"}}>
             <div style={{fontSize:10,fontWeight:700,color:TXT3,textTransform:"uppercase",letterSpacing:1.2,marginBottom:8}}>🏠 Par logement</div>
             {allConvsZones.map(z=>{
-              const dernierMsg=msgActifs.filter(m=>m.zoneId===z.id).slice(-1)[0];
-              const nbMsgsZone=msgActifs.filter(m=>m.zoneId===z.id).length;
+              const msgsZone=msgActifs.filter(m=>m.zoneId===z.id);
+              const dernierMsg=msgsZone.slice(-1)[0];
+              const nbNonLusZone=msgsZone.filter(m=>!m.lu&&m.empId!==currentUser.id).length;
+              const aProblemeNonLu=msgsZone.some(m=>m.type==="probleme"&&!m.lu&&m.empId!==currentUser.id);
+              const borderCol=aProblemeNonLu?"#fecaca":BORDER;
+              const bgCol=aProblemeNonLu?"#fff8f8":"white";
               return(
-                <div key={z.id} onClick={()=>setConvSel({type:"zone",id:z.id})}
-                  style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:"white",borderRadius:14,marginBottom:6,border:`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 1px 4px rgba(0,0,0,.04)"}}>
-                  <div style={{width:44,height:44,borderRadius:10,overflow:"hidden",background:"#f1f5f9",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    {z.photo?<img src={z.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:20}}>🏠</span>}
+                <div key={z.id} onClick={()=>ouvrirConversation({type:"zone",id:z.id})}
+                  style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:bgCol,borderRadius:14,marginBottom:6,border:`1.5px solid ${borderCol}`,cursor:"pointer",boxShadow:"0 1px 4px rgba(0,0,0,.04)"}}>
+                  <div style={{position:"relative",flexShrink:0}}>
+                    <div style={{width:44,height:44,borderRadius:10,overflow:"hidden",background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      {z.photo?<img src={z.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:20}}>🏠</span>}
+                    </div>
+                    {aProblemeNonLu&&<span style={{position:"absolute",top:-4,right:-4,fontSize:14}}>⚠️</span>}
                   </div>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{display:"flex",justifyContent:"space-between"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                       <span style={{fontWeight:700,fontSize:14,color:TXT}}>{z.nom}</span>
-                      <span style={{fontSize:10,color:TXT3}}>{nbMsgsZone} msg</span>
+                      {dernierMsg&&<span style={{fontSize:10,color:TXT3}}>{dernierMsg.ts?.split(" ")[1]||""}</span>}
                     </div>
-                    <div style={{fontSize:12,color:TXT3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:1}}>
+                    <div style={{fontSize:12,color:aProblemeNonLu?"#dc2626":TXT3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:1,fontWeight:aProblemeNonLu?600:400}}>
                       {dernierMsg?dernierMsg.texte:"Aucun message"}
                     </div>
                   </div>
+                  {nbNonLusZone>0&&<span style={{background:"#ef4444",color:"white",borderRadius:"50%",minWidth:18,height:18,fontSize:10,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 4px"}}>{nbNonLusZone}</span>}
                   <span style={{color:TXT3,fontSize:16}}>›</span>
                 </div>
               );
@@ -1573,7 +1628,7 @@ function Messages({data,setData,currentUser,toast_}){
         {/* Bouton nouvelle conv pour employé */}
         {!isAdmin&&(
           <div style={{padding:"10px 12px"}}>
-            <button onClick={()=>setConvSel({type:"admin",id:"admin"})}
+            <button onClick={()=>ouvrirConversation({type:"admin",id:"admin"})}
               style={{...S.bPri,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
               💬 Écrire à l'admin / manager
             </button>
@@ -1633,11 +1688,19 @@ function Messages({data,setData,currentUser,toast_}){
                     {!isMe&&<div style={{fontSize:10,color:TXT3,marginBottom:3,marginLeft:10,fontWeight:600}}>{m.nom}</div>}
                     <div style={{display:"flex",alignItems:"flex-end",gap:6,flexDirection:isMe?"row-reverse":"row"}}>
                       {!isMe&&<Avatar emp={e} size={28}/>}
-                      <div style={{maxWidth:"75%"}}>
-                        {isProbleme&&<div style={{fontSize:9,fontWeight:700,color:"#dc2626",textTransform:"uppercase",letterSpacing:.8,marginBottom:3}}>⚠️ Problème signalé</div>}
-                        <div style={{background:isProbleme?"#fef2f2":isMe?GOLD_DARK:"white",color:isProbleme?"#b91c1c":isMe?"white":TXT,borderRadius:isMe?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",fontSize:14,lineHeight:1.4,boxShadow:"0 1px 3px rgba(0,0,0,.08)",border:isProbleme?"1px solid #fecaca":isMe?"none":"1px solid #f0f0f0"}}>
-                          {m.texte}
-                          {m.photoProbleme&&<img src={m.photoProbleme} alt="" style={{display:"block",marginTop:8,width:"100%",borderRadius:8,maxHeight:160,objectFit:"cover"}}/>}
+                      <div style={{maxWidth:"82%"}}>
+                        {isProbleme&&<div style={{fontSize:9,fontWeight:800,color:"#dc2626",textTransform:"uppercase",letterSpacing:.8,marginBottom:4,display:"flex",alignItems:"center",gap:4}}><span>⚠️</span>Problème signalé</div>}
+                        <div style={{background:isProbleme?"#fef2f2":isMe?GOLD_DARK:"white",color:isProbleme?"#b91c1c":isMe?"white":TXT,borderRadius:isMe?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",fontSize:14,lineHeight:1.4,boxShadow:"0 2px 8px rgba(0,0,0,.10)",border:isProbleme?"1.5px solid #fecaca":isMe?"none":"1px solid #f0f0f0"}}>
+                          <span style={{fontWeight:isProbleme?600:400}}>{m.texte}</span>
+                          {m.photoProbleme&&(
+                            <div style={{marginTop:10}}>
+                              <img src={m.photoProbleme} alt="photo problème"
+                                style={{display:"block",width:"100%",borderRadius:10,maxHeight:260,objectFit:"cover",cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.15)"}}
+                                onClick={()=>window.open(m.photoProbleme,"_blank")}
+                              />
+                              <div style={{fontSize:9,color:"#dc2626",marginTop:4,fontWeight:600,opacity:.7}}>📷 Appuyez pour agrandir</div>
+                            </div>
+                          )}
                         </div>
                         <div style={{fontSize:9,color:TXT3,marginTop:3,textAlign:isMe?"right":"left"}}>{m.ts?.split(" ")[1]||""}</div>
                       </div>
@@ -1866,7 +1929,7 @@ export default function App(){
   // Notif helper
   function addNotif(type,msg,empId,zoneId){
     const ts=new Date().toLocaleString("fr-FR");
-    setData(d=>({...d,notifications:[...(d.notifications||[]),{type,msg,empId,zoneId,ts}].slice(-50)}));
+    setData(d=>({...d,notifications:[...(d.notifications||[]),{type,msg,empId,zoneId,ts,lu:false}].slice(-50)}));
   }
 
   const updateSt=useCallback((id,st)=>{
@@ -1876,11 +1939,29 @@ export default function App(){
 
   const confirmerProbleme=useCallback((tacheId,note,photoProbleme=null)=>{
     const t=data.taches.find(x=>x.id===tacheId);
-    setData(d=>({...d,taches:d.taches.map(x=>x.id===tacheId?{...x,statut:"probleme",noteProbleme:note,photoProbleme:photoProbleme||null}:x)}));
+    const emp=data.employes.find(e=>e.id===t?.employeId);
+    const zone=data.zones.find(z=>z.id===t?.zoneId);
+    const msgProbleme={
+      id:Date.now(),
+      empId:t?.employeId||currentUser.id,
+      nom:emp?.nom||currentUser.nom,
+      texte:`⚠️ Problème signalé sur "${t?.type||"tâche"}"${note?` : ${note}`:""}`,
+      ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),
+      zoneId:t?.zoneId||null,
+      type:"probleme",
+      photoProbleme:photoProbleme||null,
+      archive:false,
+      lu:false,
+    };
+    setData(d=>({
+      ...d,
+      taches:d.taches.map(x=>x.id===tacheId?{...x,statut:"probleme",noteProbleme:note,photoProbleme:photoProbleme||null}:x),
+      messages:[...(d.messages||[]),msgProbleme],
+      notifications:[...(d.notifications||[]),{type:"probleme",msg:`Problème signalé : ${t?.type||"tâche"}`,empId:t?.employeId,zoneId:t?.zoneId,ts:new Date().toLocaleString("fr-FR"),lu:false}].slice(-50),
+    }));
     setProblemeId(null);
-    addNotif("probleme",`Problème signalé : ${t?.type||"tâche"}`,t?.employeId,t?.zoneId);
     toast_("Problème signalé ✓");
-  },[data.taches,toast_]);
+  },[data.taches,data.employes,data.zones,currentUser,toast_]);
 
   const toggleCheck=useCallback((tacheId,item)=>{
     setData(d=>({...d,taches:d.taches.map(t=>{
@@ -1940,7 +2021,15 @@ export default function App(){
 
   const isAdmin=currentUser?.role==="admin"||currentUser?.role==="manager";
   const isEmp=!isAdmin;
-  const nbMsgs=(data.messages||[]).filter(m=>!m.archive&&m.empId!==currentUser.id&&(isAdmin||(m.destinataireId===currentUser.id))).length;
+  // Zones de l'utilisateur courant (pour badge messages)
+  const myZoneIds=isAdmin
+    ? (data.zones||[]).map(z=>z.id)
+    : [...new Set((data.taches||[]).filter(t=>t.employeId===currentUser.id).map(t=>t.zoneId))];
+  const nbMsgs=(data.messages||[]).filter(m=>
+    !m.archive&&m.empId!==currentUser.id&&!m.lu&&
+    (isAdmin||(m.destinataireId===currentUser.id)||(m.zoneId&&myZoneIds.includes(m.zoneId)))
+  ).length;
+  const nbNotifs=(data.notifications||[]).filter(n=>n.type==="probleme"&&!n.lu).length;
   const appBg=nightMode?"#0a0a0f":SURFACE;
 
   const navItems=[
@@ -1958,7 +2047,7 @@ export default function App(){
   // ── Contenu partagé ──
   const ContentArea=()=>(
     <>
-      {view==="accueil"    &&<Accueil    data={isEmp?{...data,employes:data.employes.filter(e=>e.id===currentUser.id)}:data} updateSt={updateSt} onEditTache={isAdmin?openEditTache:null} onToggleCheck={toggleCheck} onSignalerProbleme={setProblemeId} onSignalerMessage={isEmp?(msg)=>{setData(d=>({...d,messages:[...(d.messages||[]),{id:Date.now(),empId:currentUser.id,nom:currentUser.nom,texte:msg.texte,zoneId:msg.zoneId,ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),type:"probleme",archive:false}]}));toast_("Message envoyé ✓");}:null}/>}
+      {view==="accueil"    &&<Accueil    isAdmin={isAdmin} data={isEmp?{...data,employes:data.employes.filter(e=>e.id===currentUser.id)}:data} updateSt={updateSt} onEditTache={isAdmin?openEditTache:null} onToggleCheck={toggleCheck} onSignalerProbleme={setProblemeId} onSignalerMessage={isEmp?(msg)=>{setData(d=>({...d,messages:[...(d.messages||[]),{id:Date.now(),empId:currentUser.id,nom:currentUser.nom,texte:`⚠️ Problème sur "${(data.zones.find(z=>z.id===msg.zoneId)||{}).nom||"logement"}" : ${msg.texte}`,zoneId:msg.zoneId,ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),type:"probleme",photoProbleme:msg.photo||null,archive:false,lu:false}]}));toast_("Problème envoyé ✓");}:null}/>}
       {view==="planning"   &&<Planning   data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} weekOff={weekOff} setWeekOff={setWeekOff} filterEmp={filterEmp} setFilterEmp={setFilterEmp} onEditTache={isAdmin?openEditTache:null} onNewTache={isAdmin?openNewTache:null} isReadOnly={isEmp}/>}
       {view==="zones"      &&isAdmin&&<Logements  data={data} onEdit={openEditZone} onOpenTypes={()=>setModal("types")} isReadOnly={false}/>}
       {view==="messages"   &&<Messages   data={data} setData={setData} currentUser={currentUser} toast_={toast_}/>}
@@ -1984,8 +2073,8 @@ export default function App(){
 
   const NavItem=({item})=>{
     const active=view===item.id;
-    const hasBadge=(item.id==="messages"&&nbMsgs>0)||(item.id==="parametres"&&(data.notifications||[]).filter(n=>n.type==="probleme").length>0);
-    const badgeCount=item.id==="messages"?nbMsgs:(data.notifications||[]).filter(n=>n.type==="probleme").length;
+    const hasBadge=(item.id==="messages"&&nbMsgs>0)||(item.id==="parametres"&&nbNotifs>0);
+    const badgeCount=item.id==="messages"?nbMsgs:nbNotifs;
     return(
       <button key={item.id} onClick={()=>setView(item.id)}
         style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",borderRadius:12,border:"none",background:active?`${GOLD}18`:"transparent",color:active?GOLD:"rgba(255,255,255,.5)",cursor:"pointer",transition:"all .15s",width:"100%",fontWeight:active?700:500,fontSize:14,position:"relative"}}>
@@ -2008,7 +2097,7 @@ export default function App(){
           <img src={LOGO} alt="CKeys" style={{width:48,height:48,objectFit:"contain",borderRadius:12,background:"rgba(255,255,255,.06)",padding:3}}/>
           <div>
             <div style={{color:"white",fontWeight:900,fontSize:16,letterSpacing:-.5}}>CKeys</div>
-            <div style={{color:GOLD,fontSize:10,fontWeight:600,opacity:.8}}>{currentUser.nom}</div>
+            <div style={{color:GOLD,fontSize:10,fontWeight:600,opacity:.8}}>{currentUser.nom}{isAdmin&&<span style={{marginLeft:6,color:GOLD_LIGHT}}>v{APP_VERSION}</span>}</div>
           </div>
         </div>
         <nav style={{flex:1,padding:"12px 10px",display:"flex",flexDirection:"column",gap:2}}>
@@ -2055,8 +2144,8 @@ export default function App(){
         <nav style={{flex:1,padding:"10px 6px",display:"flex",flexDirection:"column",gap:4,width:"100%",alignItems:"center"}}>
           {navItems.map(item=>{
             const active=view===item.id;
-            const hasBadge=(item.id==="messages"&&nbMsgs>0)||(item.id==="parametres"&&(data.notifications||[]).filter(n=>n.type==="probleme").length>0);
-            const badgeCount=item.id==="messages"?nbMsgs:(data.notifications||[]).filter(n=>n.type==="probleme").length;
+            const hasBadge=(item.id==="messages"&&nbMsgs>0)||(item.id==="parametres"&&nbNotifs>0);
+            const badgeCount=item.id==="messages"?nbMsgs:nbNotifs;
             return(
               <div key={item.id} style={{position:"relative",width:"100%",display:"flex",justifyContent:"center"}}>
                 <button onClick={()=>setView(item.id)}
@@ -2123,7 +2212,7 @@ export default function App(){
             <div style={{position:"relative",display:"inline-flex",alignItems:"center",justifyContent:"center",width:28,height:28,borderRadius:10,background:view===item.id?`${GOLD}22`:"transparent",transition:"all .2s"}}>
               <span style={{fontSize:17,lineHeight:1}}>{item.icon}</span>
               {item.id==="messages"&&nbMsgs>0&&(<span style={{position:"absolute",top:-3,right:-3,background:"#ef4444",color:"white",borderRadius:"50%",width:14,height:14,fontSize:8,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{nbMsgs>9?"9+":nbMsgs}</span>)}
-              {item.id==="parametres"&&(data.notifications||[]).filter(n=>n.type==="probleme").length>0&&(<span style={{position:"absolute",top:-3,right:-3,background:"#ef4444",color:"white",borderRadius:"50%",width:14,height:14,fontSize:8,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{(data.notifications||[]).filter(n=>n.type==="probleme").length}</span>)}
+              {item.id==="parametres"&&nbNotifs>0&&(<span style={{position:"absolute",top:-3,right:-3,background:"#ef4444",color:"white",borderRadius:"50%",width:14,height:14,fontSize:8,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{nbNotifs}</span>)}
             </div>
             <span style={{marginTop:1}}>{item.label}</span>
           </button>
