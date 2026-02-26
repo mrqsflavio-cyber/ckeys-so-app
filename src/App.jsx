@@ -54,6 +54,9 @@ const SEED={
   ],
   typesPerso:DEFAULT_TYPES,
   notifications:[],
+  messages:[
+    {id:1,empId:1,nom:"Sofia",texte:'⚠️ Problème signalé sur "Aspirateur" : Tache sur le canapé',ts:"01/01 08:30",zoneId:1,type:"probleme",photoProbleme:null,archive:false,lu:false},
+  ],
 };
 
 function getWeek(off=0){const d=new Date();d.setDate(d.getDate()-d.getDay()+1+off*7);return Array.from({length:7},(_,i)=>{const x=new Date(d);x.setDate(d.getDate()+i);return x;});}
@@ -1519,16 +1522,18 @@ function Messages({data,setData,currentUser,toast_}){
 
   function envoyer(){
     if(!texte.trim()) return;
+    const curZoneId=convSel?.type==="zone"?convSel.id:null;
     const msg={
       id:Date.now(),
       empId:currentUser.id,
       nom:currentUser.nom,
       texte:texte.trim(),
       ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),
-      zoneId:zoneId||null,
+      zoneId:curZoneId,
       destinataireId:convSel?.type==="employe"?convSel.id:null,
       type:"message",
       archive:false,
+      lu:false,
     };
     setData(d=>({...d,messages:[...(d.messages||[]),msg]}));
     setTexte("");
@@ -1723,7 +1728,7 @@ function Messages({data,setData,currentUser,toast_}){
               onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();envoyer();}}}
               placeholder="Écrivez un message..."
               style={{...S.inp,marginBottom:0,flex:1,minHeight:44,maxHeight:100,resize:"none",lineHeight:1.4,fontSize:14,padding:"10px 12px",borderRadius:14}} rows={1}/>
-            <button onClick={()=>{setZoneId(convSel?.type==="zone"?convSel.id:"");envoyer();}} disabled={!texte.trim()}
+            <button onClick={()=>envoyer()} disabled={!texte.trim()}
               style={{width:44,height:44,borderRadius:14,background:texte.trim()?GOLD_DARK:"#e4e4e7",border:"none",cursor:texte.trim()?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
               <span style={{fontSize:18,color:"white"}}>↑</span>
             </button>
@@ -1902,7 +1907,7 @@ export default function App(){
   const bp=useBreakpoint();
   const isDesktop=bp==="desktop";
   const isTablet=bp==="tablet";
-  const [data,setData]=useState(()=>{try{const s=localStorage.getItem("cmg5");return s?JSON.parse(s):SEED;}catch{return SEED;}});
+  const [data,setData]=useState(()=>{try{const s=localStorage.getItem("cmg5");if(s){const d=JSON.parse(s);return{...SEED,...d,messages:d.messages||[],notifications:d.notifications||[]};}return SEED;}catch{return SEED;}});
   const [view,setView]=useState("accueil");
   const [weekOff,setWeekOff]=useState(0);
   const [modal,setModal]=useState(null);
