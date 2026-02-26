@@ -34,6 +34,7 @@ const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 const MOIS_LONG=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 const MOIS_COURT=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
 const TODAY=new Date().toISOString().split("T")[0];
+const TOMORROW=(()=>{const d=new Date();d.setDate(d.getDate()+1);return d.toISOString().split("T")[0];})();
 const NOW_Y=new Date().getFullYear();
 const NOW_M=new Date().getMonth()+1;
 
@@ -53,6 +54,7 @@ const SEED={
     {id:3,zoneId:2,employeId:2,type:"Salle de bain",heure:"10:00",recurrence:"ponctuel", statut:"termine",  checkItems:["Lavabo","Douche","WC"],checkDone:["Lavabo","Douche","WC"]},
   ],
   typesPerso:DEFAULT_TYPES,
+  piecesPerso:["Salon","Cuisine","Chambre 1","Chambre 2","Salle de bain","WC","Entrée","Couloir","Terrasse","Cave","Grenier","Garage"],
   notifications:[],
   messages:[
     {id:1,empId:1,nom:"Sofia",texte:'⚠️ Problème signalé sur "Aspirateur" : Tache sur le canapé',ts:"01/01 08:30",zoneId:1,type:"probleme",photoProbleme:null,archive:false,lu:false},
@@ -365,6 +367,16 @@ function ModalTache({editMode,form,setForm,employes,zones,types,onSave,onDelete,
           {RECURRENCES.map(r=><option key={r.v} value={r.v}>{r.l}</option>)}
         </select>
 
+        {form.recurrence==="ponctuel"&&(
+          <div style={{background:"#f0f9ff",borderRadius:12,padding:"12px",marginBottom:10,border:"1.5px solid #bae6fd"}}>
+            <label style={{...S.lbl,color:"#0369a1"}}>📅 Date de la tâche</label>
+            <input type="date" style={{...S.inp,marginBottom:0,fontSize:14}}
+              value={form.date||""} onChange={e=>setForm(f=>({...f,date:e.target.value}))}
+              min={new Date().toISOString().split("T")[0]}/>
+            {!form.date&&<div style={{fontSize:11,color:"#dc2626",marginTop:4}}>⚠️ Choisissez une date pour cette tâche ponctuelle</div>}
+          </div>
+        )}
+
         {editMode&&(<>
           <label style={S.lbl}>Statut</label>
           <select style={S.sel} value={form.statut||"planifie"} onChange={e=>setForm(f=>({...f,statut:e.target.value}))}>
@@ -535,24 +547,24 @@ function ModalProbleme({tacheId,onConfirm,onClose}){
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// CARTE LOGEMENT — accueil avec heure + code boîte affichés
+// CARTE LOGEMENT — accueil avec onglet signalement intégré
 // ══════════════════════════════════════════════════════════════════════════════
-function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSignalerProbleme,onSignalerMessage}){
+function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSignalerProbleme,onSignalerMessage,pieces}){
   const [open,setOpen]=useState(false);
-  const [showProbleme,setShowProbleme]=useState(false);
+  const [showSignalement,setShowSignalement]=useState(false);
   const [noteProbleme,setNoteProbleme]=useState("");
-  const [photoProblemeLog,setPhotoProblemeLog]=useState(null);
+  const [piecesSelectionnees,setPiecesSelectionnees]=useState([]);
+  const [photos,setPhotos]=useState([]); // tableau de photos
   const photoRefLog=useRef();
   const emp=id=>employes.find(e=>e.id===id);
 
   const nbTotal=tachesZone.length;
   const nbFin=tachesZone.filter(t=>t.statut==="termine").length;
-  const prog=nbTotal>0?Math.round(nbFin/nbTotal*100):0;
   const toutFini=nbTotal>0&&nbFin===nbTotal;
   const aProbleme=tachesZone.some(t=>t.statut==="probleme");
 
-  const borderColor=toutFini?GOLD:aProbleme?"#e07070":"#e2e8f0";
-  const bgColor=toutFini?`linear-gradient(135deg,${GOLD_BG},${GOLD_BG2})`:aProbleme?"#fff0f0":"white";
+  const borderColor=toutFini?"#22c55e":aProbleme?"#e07070":"#e2e8f0";
+  const bgColor=toutFini?"linear-gradient(135deg,#f0fdf4,#dcfce7)":aProbleme?"#fff0f0":"white";
 
   const allItems=[];
   tachesZone.forEach(t=>{
@@ -566,12 +578,37 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
 
   const nbItemsFin=allItems.filter(i=>i.checked).length;
   const nbItemsTotal=allItems.length;
-
-  // Prochaine heure d'intervention
   const prochaine=tachesZone.filter(t=>t.statut!=="termine").sort((a,b)=>a.heure?.localeCompare(b.heure))[0];
+
+  function togglePiece(p){
+    setPiecesSelectionnees(prev=>prev.includes(p)?prev.filter(x=>x!==p):[...prev,p]);
+  }
+  function ajouterPhoto(e){
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>setPhotos(prev=>[...prev,ev.target.result]);
+    r.readAsDataURL(f);
+  }
+  function supprimerPhoto(idx){setPhotos(prev=>prev.filter((_,i)=>i!==idx));}
+  function resetSignalement(){
+    setNoteProbleme("");setPiecesSelectionnees([]);setPhotos([]);setShowSignalement(false);
+  }
+  function envoyerSignalement(){
+    if(!noteProbleme.trim()&&piecesSelectionnees.length===0&&photos.length===0) return;
+    const piecesTxt=piecesSelectionnees.length>0?` | Pièces : ${piecesSelectionnees.join(", ")}`:"";
+    onSignalerMessage({
+      texte:(noteProbleme.trim()||"Problème signalé")+piecesTxt,
+      zoneId:zone.id,
+      photo:photos[0]||null,
+      photosSupp:photos.slice(1),
+      pieces:piecesSelectionnees,
+    });
+    resetSignalement();
+  }
 
   return(
     <div style={{borderRadius:18,margin:"0 12px 10px",overflow:"hidden",border:`1.5px solid ${borderColor}`,background:bgColor,boxShadow:"0 3px 14px rgba(0,0,0,.06)"}}>
+      {/* ── Header cliquable ── */}
       <div style={{padding:"14px 16px",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}} onClick={()=>setOpen(o=>!o)}>
         <div style={{width:54,height:54,borderRadius:11,overflow:"hidden",background:"#f1f5f9",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid #e8edf3"}}>
           {zone.photo?<img src={zone.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:24}}>🏠</span>}
@@ -579,10 +616,9 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
         <div style={{flex:1,minWidth:0}}>
           <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:2}}>
             <span style={{fontWeight:900,fontSize:16,color:"#1e293b"}}>{zone.nom}</span>
-            {toutFini&&<span style={{fontSize:10,background:GOLD_BG2,color:GOLD_DARK,borderRadius:20,padding:"2px 8px",fontWeight:700}}>✅ Tout fait</span>}
+            {toutFini&&<span style={{fontSize:10,background:"#dcfce7",color:"#15803d",borderRadius:20,padding:"2px 8px",fontWeight:700}}>✅ Terminé</span>}
             {aProbleme&&<span style={{fontSize:10,background:"#fdecea",color:"#d9534f",borderRadius:20,padding:"2px 8px",fontWeight:700}}>⚠️ Problème</span>}
           </div>
-          {/* Heure + code boîte sur la même ligne */}
           <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:4}}>
             {prochaine&&(
               <span style={{display:"inline-flex",alignItems:"center",gap:4,background:GOLD_BG,borderRadius:7,padding:"2px 9px",border:"1px solid #c7d7ff"}}>
@@ -597,7 +633,6 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
               </span>
             )}
           </div>
-          {/* Adresse avec lien Maps */}
           {zone.adresse&&(
             <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:2}}>
               <span style={{fontSize:10}}>📍</span>
@@ -608,7 +643,7 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
             </div>
           )}
           <div style={{display:"flex",alignItems:"center",gap:7}}>
-            <div style={{...S.bar,flex:1,height:5}}><div style={{...S.barF(toutFini?GOLD:GOLD_DARK),width:(nbItemsTotal>0?Math.round(nbItemsFin/nbItemsTotal*100):0)+"%"}}></div></div>
+            <div style={{...S.bar,flex:1,height:5}}><div style={{...S.barF(toutFini?"#22c55e":GOLD_DARK),width:(nbItemsTotal>0?Math.round(nbItemsFin/nbItemsTotal*100):0)+"%"}}></div></div>
             <span style={{fontSize:10,color:"#94a3b8",whiteSpace:"nowrap",fontWeight:700}}>{nbItemsFin}/{nbItemsTotal}</span>
             <span style={{fontSize:13,color:"#94a3b8",transform:open?"rotate(180deg)":"rotate(0)",transition:"transform .2s",flexShrink:0}}>▾</span>
           </div>
@@ -616,7 +651,9 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
       </div>
 
       {open&&(
-        <div style={{borderTop:"1px solid rgba(0,0,0,.06)",padding:"6px 14px 14px"}}>
+        <div style={{borderTop:"1px solid rgba(0,0,0,.06)",padding:"6px 14px 6px"}}>
+
+          {/* ── Liste des tâches à cocher ── */}
           {allItems.length===0&&<div style={{textAlign:"center",color:"#94a3b8",fontSize:13,padding:"14px"}}>Aucune tâche aujourd'hui</div>}
           {allItems.map((ai,idx)=>{
             const isProb=ai.statut==="probleme";
@@ -645,58 +682,121 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
                     <img src={ai.tache.photoProbleme} alt="problème" style={{width:"100%",borderRadius:8,marginTop:4,maxHeight:120,objectFit:"cover"}}/>
                   )}
                 </div>
-                {!isDone&&(
-                  <button onClick={()=>onSignalerProbleme(ai.tacheId)}
-                    style={{border:`1px solid ${isProb?"#fecaca":"#e4e4e7"}`,background:isProb?"#fef2f2":"#f4f4f5",color:isProb?"#dc2626":"#a1a1aa",borderRadius:8,padding:"4px 8px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>⚠️</button>
-                )}
               </div>
             );
           })}
 
-          {/* ── Case signalement problème logement ── */}
+          {/* ── ONGLET SIGNALER UN PROBLÈME ── */}
           {onSignalerMessage&&(
-            <div style={{marginTop:8,borderTop:"1px solid #f4f4f5",paddingTop:10}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",padding:"8px 0"}}
-                onClick={()=>{setShowProbleme(s=>!s);setNoteProbleme("");setPhotoProblemeLog(null);}}>
-                <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${showProbleme?"#dc2626":"#e4e4e7"}`,background:showProbleme?"#fef2f2":"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .15s"}}>
-                  {showProbleme&&<span style={{color:"#dc2626",fontSize:12,lineHeight:1}}>✓</span>}
+            <div style={{marginTop:10,borderTop:"1px solid #f0f0f0",paddingTop:4,paddingBottom:8}}>
+              {/* Bouton accordéon */}
+              <div
+                onClick={()=>{setShowSignalement(s=>!s);if(showSignalement)resetSignalement();}}
+                style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px",borderRadius:12,cursor:"pointer",
+                  background:showSignalement?"#fef2f2":"#fff8f0",
+                  border:`1.5px solid ${showSignalement?"#fecaca":"#fde68a"}`,
+                  transition:"all .2s",marginTop:4}}>
+                <div style={{width:30,height:30,borderRadius:9,background:showSignalement?"#dc2626":"#f59e0b",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:16,transition:"all .2s"}}>
+                  {showSignalement?"✕":"⚠️"}
                 </div>
-                <span style={{fontSize:13,fontWeight:600,color:showProbleme?"#dc2626":TXT2}}>⚠️ Signaler un problème sur ce logement</span>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:700,fontSize:13,color:showSignalement?"#dc2626":"#92400e"}}>
+                    {showSignalement?"Annuler le signalement":"⚠️ Signaler un problème"}
+                  </div>
+                  {!showSignalement&&<div style={{fontSize:11,color:"#a16207",marginTop:1}}>Envoyer un rapport à l'admin</div>}
+                </div>
+                <span style={{fontSize:16,color:showSignalement?"#dc2626":"#f59e0b",transform:showSignalement?"rotate(180deg)":"rotate(0)",transition:"transform .25s"}}>▾</span>
               </div>
-              {showProbleme&&(
-                <div style={{background:"#fef2f2",borderRadius:12,padding:12,border:"1px solid #fecaca"}}>
-                  <textarea
-                    autoFocus
-                    value={noteProbleme}
-                    onChange={e=>setNoteProbleme(e.target.value)}
-                    placeholder="Décrivez le problème observé dans ce logement..."
-                    style={{width:"100%",padding:"10px 12px",borderRadius:10,border:"1px solid #fecaca",fontSize:13,resize:"vertical",minHeight:80,fontFamily:"inherit",boxSizing:"border-box",background:"white",color:TXT,outline:"none"}}
-                  />
-                  <input ref={photoRefLog} type="file" accept="image/*" capture="environment" style={{display:"none"}}
-                    onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setPhotoProblemeLog(ev.target.result);r.readAsDataURL(f);}}/>
-                  {photoProblemeLog?(
-                    <div style={{position:"relative",marginTop:8,marginBottom:4}}>
-                      <img src={photoProblemeLog} alt="photo" style={{width:"100%",borderRadius:10,maxHeight:160,objectFit:"cover"}}/>
-                      <button onClick={()=>setPhotoProblemeLog(null)} style={{position:"absolute",top:6,right:6,background:"rgba(0,0,0,.55)",border:"none",borderRadius:20,color:"white",fontSize:11,fontWeight:700,padding:"3px 10px",cursor:"pointer"}}>✕</button>
+
+              {/* Contenu déroulant */}
+              {showSignalement&&(
+                <div style={{background:"#fef9f0",border:"1.5px solid #fde68a",borderRadius:14,padding:"14px 14px 12px",marginTop:8}}>
+
+                  {/* Pièces concernées */}
+                  {(pieces||[]).length>0&&(
+                    <div style={{marginBottom:14}}>
+                      <div style={{fontSize:11,fontWeight:800,color:"#92400e",textTransform:"uppercase",letterSpacing:.8,marginBottom:8}}>
+                        🏠 Pièces concernées
+                      </div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                        {(pieces||[]).map(p=>{
+                          const sel=piecesSelectionnees.includes(p);
+                          return(
+                            <div key={p} onClick={()=>togglePiece(p)}
+                              style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:20,cursor:"pointer",
+                                background:sel?"#dc2626":"white",
+                                border:`1.5px solid ${sel?"#dc2626":"#fde68a"}`,
+                                color:sel?"white":"#92400e",
+                                fontSize:12,fontWeight:sel?700:500,
+                                transition:"all .15s"}}>
+                              {sel&&<span style={{fontSize:12,fontWeight:900}}>✓</span>}
+                              {p}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {piecesSelectionnees.length>0&&(
+                        <div style={{fontSize:11,color:"#dc2626",fontWeight:600,marginTop:6}}>
+                          {piecesSelectionnees.length} pièce{piecesSelectionnees.length>1?"s":""} sélectionnée{piecesSelectionnees.length>1?"s":""}
+                        </div>
+                      )}
                     </div>
-                  ):(
-                    <button type="button" onClick={()=>photoRefLog.current.click()}
-                      style={{width:"100%",padding:"8px",background:"white",border:"1px dashed #fecaca",borderRadius:10,color:"#dc2626",fontSize:12,fontWeight:600,cursor:"pointer",marginTop:6,marginBottom:4}}>
-                      📷 Ajouter une photo
-                    </button>
                   )}
-                  <div style={{display:"flex",gap:8,marginTop:8}}>
-                    <button onClick={()=>{
-                      if(!noteProbleme.trim()) return;
-                      onSignalerMessage({texte:noteProbleme.trim(),zoneId:zone.id,photo:photoProblemeLog||null});
-                      setShowProbleme(false);setNoteProbleme("");setPhotoProblemeLog(null);
-                    }} style={{flex:1,padding:"9px",background:"#dc2626",border:"none",borderRadius:10,color:"white",fontSize:13,fontWeight:700,cursor:"pointer"}}>
-                      📤 Envoyer à l'admin
-                    </button>
-                    <button onClick={()=>{setShowProbleme(false);setNoteProbleme("");setPhotoProblemeLog(null);}} style={{padding:"9px 14px",background:"#f4f4f5",border:"none",borderRadius:10,color:TXT2,fontSize:13,cursor:"pointer"}}>
-                      Annuler
+
+                  {/* Description */}
+                  <div style={{marginBottom:12}}>
+                    <div style={{fontSize:11,fontWeight:800,color:"#92400e",textTransform:"uppercase",letterSpacing:.8,marginBottom:6}}>
+                      📝 Description du problème
+                    </div>
+                    <textarea
+                      value={noteProbleme}
+                      onChange={e=>setNoteProbleme(e.target.value)}
+                      placeholder="Décrivez le problème observé (ex: fuite sous l'évier, ampoule grillée, tache sur canapé...)"
+                      style={{width:"100%",padding:"10px 12px",borderRadius:10,border:"1.5px solid #fde68a",fontSize:13,
+                        resize:"vertical",minHeight:80,fontFamily:"inherit",boxSizing:"border-box",
+                        background:"white",color:TXT,outline:"none",lineHeight:1.5}}
+                    />
+                  </div>
+
+                  {/* Photos multiples */}
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:11,fontWeight:800,color:"#92400e",textTransform:"uppercase",letterSpacing:.8,marginBottom:8}}>
+                      📷 Photos ({photos.length})
+                    </div>
+                    <input ref={photoRefLog} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={ajouterPhoto}/>
+                    {photos.length>0&&(
+                      <div style={{display:"flex",gap:8,overflowX:"auto",marginBottom:8,paddingBottom:4}}>
+                        {photos.map((ph,idx)=>(
+                          <div key={idx} style={{position:"relative",flexShrink:0}}>
+                            <img src={ph} alt={`photo ${idx+1}`}
+                              style={{width:90,height:90,borderRadius:10,objectFit:"cover",border:"2px solid #fde68a",display:"block"}}/>
+                            <button onClick={()=>supprimerPhoto(idx)}
+                              style={{position:"absolute",top:-6,right:-6,width:20,height:20,borderRadius:"50%",background:"#dc2626",border:"2px solid white",color:"white",fontSize:11,fontWeight:900,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,lineHeight:1}}>
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <button type="button" onClick={()=>photoRefLog.current.click()}
+                      style={{width:"100%",padding:"9px",background:"white",border:"1.5px dashed #f59e0b",borderRadius:10,
+                        color:"#92400e",fontSize:12,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                      📷 {photos.length>0?"Ajouter une autre photo":"Ajouter une photo"}
                     </button>
                   </div>
+
+                  {/* Bouton envoyer */}
+                  <button
+                    onClick={envoyerSignalement}
+                    disabled={!noteProbleme.trim()&&piecesSelectionnees.length===0&&photos.length===0}
+                    style={{width:"100%",padding:"12px",
+                      background:(!noteProbleme.trim()&&piecesSelectionnees.length===0&&photos.length===0)?"#e5e7eb":"linear-gradient(135deg,#b91c1c,#dc2626)",
+                      border:"none",borderRadius:12,
+                      color:(!noteProbleme.trim()&&piecesSelectionnees.length===0&&photos.length===0)?"#9ca3af":"white",
+                      fontSize:14,fontWeight:700,cursor:(!noteProbleme.trim()&&piecesSelectionnees.length===0&&photos.length===0)?"default":"pointer",
+                      display:"flex",alignItems:"center",justifyContent:"center",gap:8,transition:"all .15s"}}>
+                    📤 Envoyer le signalement à l'admin
+                  </button>
                 </div>
               )}
             </div>
@@ -706,14 +806,49 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
     </div>
   );
 }
-
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE ACCUEIL
 // ══════════════════════════════════════════════════════════════════════════════
-function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onSignalerMessage,isAdmin}){
-  const tAuj=data.taches.filter(t=>t.date===TODAY);
+function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onSignalerMessage,isAdmin,currentUserId}){
+  const [jourOffset,setJourOffset]=useState(0); // 0=aujourd'hui, 1=demain
+  const swipeStartX=useRef(null);
+  const swipeStartY=useRef(null);
+
+  function handleTouchStart(e){
+    swipeStartX.current=e.touches[0].clientX;
+    swipeStartY.current=e.touches[0].clientY;
+  }
+  function handleTouchEnd(e){
+    if(swipeStartX.current===null)return;
+    const dx=e.changedTouches[0].clientX-swipeStartX.current;
+    const dy=e.changedTouches[0].clientY-swipeStartY.current;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){
+      if(dx<0&&jourOffset===0)setJourOffset(1);
+      else if(dx>0&&jourOffset===1)setJourOffset(0);
+    }
+    swipeStartX.current=null;
+    swipeStartY.current=null;
+  }
+
+  const dateAffichee=jourOffset===0?TODAY:TOMORROW;
+  const isAujourdhui=jourOffset===0;
+
+  function tacheMatchJour(t,dateStr){
+    if(!t.date) return false;
+    const d=new Date(dateStr+"T12:00:00");
+    const orig=new Date(t.date+"T12:00:00");
+    if(isNaN(d)||isNaN(orig)) return false;
+    const rec=t.recurrence||"ponctuel";
+    if(rec==="ponctuel") return t.date===dateStr;
+    if(rec==="quotidien") return d>=orig;
+    if(rec==="hebdo"){const diff=Math.round((d-orig)/(1000*60*60*24));return d>=orig&&diff%7===0;}
+    if(rec==="mensuel") return d>=orig&&d.getDate()===orig.getDate();
+    return t.date===dateStr;
+  }
+
+  const tAuj=data.taches.filter(t=>tacheMatchJour(t,TODAY));
+  const tJour=data.taches.filter(t=>tacheMatchJour(t,dateAffichee));
   const tFin=tAuj.filter(t=>t.statut==="termine").length;
-  const pb=tAuj.filter(t=>t.statut==="probleme").length;
 
   const logsMoisEmp=id=>new Set(data.taches.filter(t=>{
     if(!t.date) return false;
@@ -721,84 +856,152 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
     return parseInt(y)===NOW_Y&&parseInt(m)===NOW_M&&t.employeId===id&&t.statut==="termine";
   }).map(t=>t.zoneId)).size;
 
-  const logsAvecTaches=data.zones.filter(z=>tAuj.some(t=>t.zoneId===z.id));
-  const logsSansTaches=data.zones.filter(z=>!tAuj.some(t=>t.zoneId===z.id));
+  const logsAvecTaches=data.zones.filter(z=>tJour.some(t=>t.zoneId===z.id));
+  const logsSansTaches=isAdmin&&isAujourdhui?data.zones.filter(z=>!tJour.some(t=>t.zoneId===z.id)):[];
 
-  return(<>
-    <div style={S.sgrid}>
-      <div style={S.scard("linear-gradient(135deg,#1a1408,#c9a84c)")}><div style={S.snum}>{tAuj.length}</div><div style={S.slbl}>Tâches aujourd'hui</div></div>
-      <div style={S.scard("linear-gradient(135deg,#2d7a2d,#1a5c1a)")}><div style={S.snum}>{tFin}</div><div style={S.slbl}>Terminées</div></div>
-    </div>
+  const dateLabel=new Date(dateAffichee+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
 
-    <div style={S.sec}>
-      <div style={S.secTit}>Logements — {new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}</div>
-    </div>
-
-    {data.zones.length===0&&(
-      <div style={{...S.card,color:"#94a3b8",textAlign:"center",fontSize:14,padding:"28px 16px"}}>
-        🏠 Aucun logement — Ajoutez-en dans l'onglet Logements
+  return(
+    <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{userSelect:"none"}}>
+      {/* Stats */}
+      <div style={S.sgrid}>
+        <div style={S.scard("linear-gradient(135deg,#1a1408,#c9a84c)")}><div style={S.snum}>{tAuj.length}</div><div style={S.slbl}>Tâches aujourd'hui</div></div>
+        <div style={S.scard("linear-gradient(135deg,#2d7a2d,#1a5c1a)")}><div style={S.snum}>{tFin}</div><div style={S.slbl}>Terminées</div></div>
       </div>
-    )}
 
-    {logsAvecTaches.map(z=>(
-      <CarteLogement key={z.id} zone={z}
-        tachesZone={tAuj.filter(t=>t.zoneId===z.id)}
-        employes={data.employes}
-        onToggleCheck={onToggleCheck} onUpdateSt={updateSt}
-        onSignalerProbleme={onSignalerProbleme}
-        onSignalerMessage={onSignalerMessage}/>
-    ))}
-
-    {logsSansTaches.length>0&&(
-      <>
-        <div style={{...S.sec,paddingTop:8}}>
-          <div style={{...S.secTit,opacity:.5}}>Libres aujourd'hui</div>
+      {/* Sélecteur Aujourd'hui / Demain */}
+      <div style={{padding:"8px 12px 4px"}}>
+        <div style={{display:"flex",background:"#f1f5f9",borderRadius:14,padding:3,gap:2,marginBottom:8,position:"relative"}}>
+          <button onClick={()=>setJourOffset(0)} style={{...S.tab(isAujourdhui),flex:1,borderRadius:11,fontSize:13,padding:"9px 4px"}}>
+            📅 Aujourd'hui
+          </button>
+          <button onClick={()=>setJourOffset(1)} style={{...S.tab(!isAujourdhui),flex:1,borderRadius:11,fontSize:13,padding:"9px 4px"}}>
+            🌅 Demain
+          </button>
         </div>
-        {logsSansTaches.map(z=>(
-          <div key={z.id} style={{margin:"0 12px 8px",borderRadius:14,border:"1px dashed #e2e8f0",background:"#fafbfc",padding:"12px 14px",display:"flex",alignItems:"center",gap:12,opacity:.7}}>
-            <div style={{width:38,height:38,borderRadius:9,overflow:"hidden",background:"#f1f5f9",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-              {z.photo?<img src={z.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:18}}>🏠</span>}
-            </div>
-            <div style={{flex:1}}>
-              <div style={{fontWeight:700,fontSize:13,color:"#64748b"}}>{z.nom}</div>
-              {z.adresse&&<a href={mapsUrl(z.adresse)} target="_blank" rel="noreferrer" style={{fontSize:11,color:GOLD_DARK,textDecoration:"none"}}>📍 {z.adresse}</a>}
-              {z.codeBoite&&<div style={{fontSize:11,color:"#94a3b8"}}>🔑 {z.codeBoite}</div>}
-            </div>
-            <span style={{fontSize:10,background:"#f1f5f9",color:"#94a3b8",borderRadius:20,padding:"2px 9px",fontWeight:700}}>Libre</span>
-          </div>
-        ))}
-      </>
-    )}
+        <div style={{fontSize:10,fontWeight:700,color:TXT3,textTransform:"uppercase",letterSpacing:1.5,marginBottom:4,textAlign:"center",opacity:.7}}>
+          {dateLabel}
+        </div>
+        {/* Indicateur swipe */}
+        <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:8}}>
+          <div style={{width:20,height:3,borderRadius:10,background:isAujourdhui?GOLD:"#d1d5db",transition:"all .3s"}}/>
+          <div style={{width:20,height:3,borderRadius:10,background:!isAujourdhui?GOLD:"#d1d5db",transition:"all .3s"}}/>
+        </div>
+      </div>
 
-    <div style={S.sec}>
-      <div style={S.secTit}>Suivi de l'équipe — {MOIS_LONG[NOW_M-1]}</div>
-    </div>
-    <div style={S.card}>
-      {data.employes.filter(e=>e.actif).map((e,i,arr)=>{
-        const tot=tAuj.filter(t=>t.employeId===e.id).length;
-        const done=tAuj.filter(t=>t.employeId===e.id&&t.statut==="termine").length;
-        const p=tot>0?Math.round(done/tot*100):0;
-        const logsM=logsMoisEmp(e.id);
-        return(
-          <div key={e.id} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"12px 0",borderBottom:i<arr.length-1?"1px solid #f1f5f9":"none"}}>
-            <Avatar emp={e} size={46}/>
-            <div style={{flex:1}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
-                <span style={{fontWeight:700,fontSize:14}}>{e.nom}</span>
-                <span style={{fontSize:10,background:GOLD_BG,color:GOLD,borderRadius:20,padding:"2px 9px",fontWeight:700}}>🏠 {logsM} ce mois</span>
+      {data.zones.length===0&&(
+        <div style={{...S.card,color:"#94a3b8",textAlign:"center",fontSize:14,padding:"28px 16px"}}>
+          🏠 Aucun logement — Ajoutez-en dans l'onglet Logements
+        </div>
+      )}
+
+      {/* Logements du jour sélectionné */}
+      {isAujourdhui?(
+        <>
+          {logsAvecTaches.map(z=>(
+            <CarteLogement key={z.id} zone={z}
+              tachesZone={tJour.filter(t=>t.zoneId===z.id)}
+              employes={data.employes}
+              pieces={data.piecesPerso||[]}
+              onToggleCheck={onToggleCheck} onUpdateSt={updateSt}
+              onSignalerProbleme={onSignalerProbleme}
+              onSignalerMessage={onSignalerMessage}/>
+          ))}
+          {logsSansTaches.length>0&&(
+            <>
+              <div style={{...S.sec,paddingTop:8}}>
+                <div style={{...S.secTit,opacity:.5}}>Libres aujourd'hui</div>
               </div>
-              <div style={{...S.bar,marginBottom:3}}><div style={{...S.barF(e.couleur),width:p+"%"}}></div></div>
-              <div style={{fontSize:11,color:"#94a3b8",marginBottom:6}}>{done}/{tot} tâches · {p}%</div>
-              <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-                {e.tel&&<a href={`tel:${e.tel}`} style={{fontSize:11,background:GOLD_BG,color:GOLD_DARK,borderRadius:8,padding:"4px 10px",textDecoration:"none",fontWeight:700}}>📞 Appeler</a>}
-                {e.email&&<a href={`mailto:${e.email}`} style={{fontSize:11,background:GOLD_BG,color:GOLD_DARK,borderRadius:8,padding:"4px 10px",textDecoration:"none",fontWeight:700}}>✉️ Email</a>}
+              {logsSansTaches.map(z=>(
+                <div key={z.id} style={{margin:"0 12px 8px",borderRadius:14,border:"1px dashed #e2e8f0",background:"#fafbfc",padding:"12px 14px",display:"flex",alignItems:"center",gap:12,opacity:.7}}>
+                  <div style={{width:38,height:38,borderRadius:9,overflow:"hidden",background:"#f1f5f9",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    {z.photo?<img src={z.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:18}}>🏠</span>}
+                  </div>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:700,fontSize:13,color:"#64748b"}}>{z.nom}</div>
+                    {z.adresse&&<a href={mapsUrl(z.adresse)} target="_blank" rel="noreferrer" style={{fontSize:11,color:GOLD_DARK,textDecoration:"none"}}>📍 {z.adresse}</a>}
+                    {z.codeBoite&&<div style={{fontSize:11,color:"#94a3b8"}}>🔑 {z.codeBoite}</div>}
+                  </div>
+                  <span style={{fontSize:10,background:"#f1f5f9",color:"#94a3b8",borderRadius:20,padding:"2px 9px",fontWeight:700}}>Libre</span>
+                </div>
+              ))}
+            </>
+          )}
+        </>
+      ):(
+        /* Vue DEMAIN — logements complets avec CarteLogement */
+        <>
+          {logsAvecTaches.length===0&&(
+            <div style={{...S.card,color:"#94a3b8",textAlign:"center",fontSize:14,padding:"28px 16px"}}>
+              🌅 Aucune tâche planifiée pour demain
+            </div>
+          )}
+          {logsAvecTaches.map(z=>(
+            <CarteLogement key={z.id} zone={z}
+              tachesZone={tJour.filter(t=>t.zoneId===z.id)}
+              employes={data.employes}
+              pieces={data.piecesPerso||[]}
+              onToggleCheck={onToggleCheck} onUpdateSt={updateSt}
+              onSignalerProbleme={onSignalerProbleme}
+              onSignalerMessage={onSignalerMessage}/>
+          ))}
+        </>
+      )}
+
+      {/* ── Section équipe (admin) ou suivi perso (employé) ── */}
+      {isAdmin?(<>
+        <div style={S.sec}>
+          <div style={S.secTit}>Suivi de l'équipe — {MOIS_LONG[NOW_M-1]}</div>
+        </div>
+        <div style={S.card}>
+          {data.employes.filter(e=>e.actif).map((e,i,arr)=>{
+            const tot=tAuj.filter(t=>t.employeId===e.id).length;
+            const done=tAuj.filter(t=>t.employeId===e.id&&t.statut==="termine").length;
+            const p=tot>0?Math.round(done/tot*100):0;
+            const logsM=logsMoisEmp(e.id);
+            return(
+              <div key={e.id} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"12px 0",borderBottom:i<arr.length-1?"1px solid #f1f5f9":"none"}}>
+                <Avatar emp={e} size={46}/>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
+                    <span style={{fontWeight:700,fontSize:14}}>{e.nom}</span>
+                    <span style={{fontSize:10,background:GOLD_BG,color:GOLD,borderRadius:20,padding:"2px 9px",fontWeight:700}}>🏠 {logsM} ce mois</span>
+                  </div>
+                  <div style={{...S.bar,marginBottom:3}}><div style={{...S.barF(e.couleur),width:p+"%"}}></div></div>
+                  <div style={{fontSize:11,color:"#94a3b8",marginBottom:6}}>{done}/{tot} tâches · {p}%</div>
+                  <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+                    {e.tel&&<a href={`tel:${e.tel}`} style={{fontSize:11,background:GOLD_BG,color:GOLD_DARK,borderRadius:8,padding:"4px 10px",textDecoration:"none",fontWeight:700}}>📞 Appeler</a>}
+                    {e.email&&<a href={`mailto:${e.email}`} style={{fontSize:11,background:GOLD_BG,color:GOLD_DARK,borderRadius:8,padding:"4px 10px",textDecoration:"none",fontWeight:700}}>✉️ Email</a>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </>):(()=>{
+        // Vue employé : suivi personnel du mois — seulement "terminées"
+        const empCourant=data.employes.find(e=>e.id===currentUserId);
+        const totMois=data.taches.filter(t=>{if(!t.date)return false;const[y,m]=t.date.split("-");return parseInt(y)===NOW_Y&&parseInt(m)===NOW_M&&t.employeId===currentUserId;});
+        const doneMois=totMois.filter(t=>t.statut==="termine").length;
+        const progMois=totMois.length>0?Math.round(doneMois/totMois.length*100):0;
+        return(<>
+          <div style={S.sec}><div style={S.secTit}>Mon bilan — {MOIS_LONG[NOW_M-1]}</div></div>
+          <div style={S.card}>
+            <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:14}}>
+              <Avatar emp={empCourant} size={54}/>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:800,fontSize:15,color:TXT,marginBottom:4}}>{empCourant?.nom}</div>
+                <span style={{fontSize:11,background:"#e8fdf0",color:"#166534",borderRadius:20,padding:"3px 10px",fontWeight:700}}>✅ {doneMois} terminée{doneMois>1?"s":""}</span>
               </div>
             </div>
+            <div style={{fontSize:11,color:TXT2,marginBottom:6,fontWeight:600}}>{doneMois}/{totMois.length} tâches ce mois · {progMois}%</div>
+            <div style={{...S.bar,height:8,marginBottom:4}}><div style={{...S.barF(empCourant?.couleur||GOLD),width:progMois+"%"}}></div></div>
+            {tAuj.length>0&&<div style={{fontSize:11,color:"#94a3b8",marginTop:6}}>Aujourd'hui : {tAuj.length} tâche{tAuj.length>1?"s":""} · {tFin} terminée{tFin>1?"s":""}</div>}
           </div>
-        );
-      })}
+        </>);
+      })()}
     </div>
-  </>);
+  );
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -823,9 +1026,31 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
   const nbJours=getDaysInMonth(moisY,moisM);
   const premierJour=getFirstDayOfMonth(moisY,moisM);
 
-  function filtrerTaches(taches){
-    if(filterEmp==="tous") return taches;
-    return taches.filter(t=>t.employeId===parseInt(filterEmp));
+  // Vérifie si une tâche s'applique à une date donnée selon sa récurrence
+  function tacheMatchDate(t,dateStr){
+    if(!t.date) return false;
+    const d=new Date(dateStr+"T12:00:00");
+    const orig=new Date(t.date+"T12:00:00");
+    if(isNaN(d)||isNaN(orig)) return false;
+    const rec=t.recurrence||"ponctuel";
+    if(rec==="ponctuel") return t.date===dateStr;
+    if(rec==="quotidien") return d>=orig;
+    if(rec==="hebdo") {
+      if(d<orig) return false;
+      const diff=Math.round((d-orig)/(1000*60*60*24));
+      return diff%7===0;
+    }
+    if(rec==="mensuel") {
+      if(d<orig) return false;
+      return d.getDate()===orig.getDate();
+    }
+    return t.date===dateStr;
+  }
+
+  function filtrerTaches(taches,dateStr){
+    let res=dateStr?taches.filter(t=>tacheMatchDate(t,dateStr)):taches;
+    if(filterEmp!=="tous") res=res.filter(t=>t.employeId===parseInt(filterEmp));
+    return res;
   }
 
   const isPlanning=true;
@@ -834,7 +1059,7 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
   // MODE JOUR
   // ──────────────────────────────────────────────────────
   const vueJour=()=>{
-    const taches=filtrerTaches(data.taches.filter(t=>t.date===curDayStr))
+    const taches=filtrerTaches(data.taches,curDayStr)
       .sort((a,b)=>a.heure?.localeCompare(b.heure));
     const isToday=curDayStr===TODAY;
     return(
@@ -864,8 +1089,8 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <Avatar emp={e} size={38}/>
                 <div style={{flex:1}}>
-                  <div style={{fontWeight:700,fontSize:14}}>{t.type}</div>
-                  <div style={{fontSize:12,color:"#64748b"}}>🏠 {zone?.nom||"?"} · ⏰ {t.heure}</div>
+                  <div style={{fontWeight:800,fontSize:14,color:"#1e293b"}}>🏠 {zone?.nom||"?"}</div>
+                  <div style={{fontSize:12,color:"#64748b",marginTop:1}}>⏰ {t.heure} · {t.type}</div>
                   {zone?.codeBoite&&<div style={{fontSize:11,color:GOLD,fontWeight:700,marginTop:2}}>🔑 {zone.codeBoite}</div>}
                 </div>
                 <span style={S.badge(st.c,st.bg)}>{st.l}</span>
@@ -890,7 +1115,7 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
       {week.map((date,i)=>{
         const ds=date.toISOString().split("T")[0];
         const isToday=ds===TODAY;
-        const taches=filtrerTaches(data.taches.filter(t=>t.date===ds));
+        const taches=filtrerTaches(data.taches,ds);
         return(
           <div key={i} style={{flex:1,display:"flex",flexDirection:"column",background:isToday?"linear-gradient(180deg,#1a1408 0%,#0d0d0d 100%)":"white",borderRight:i<6?"1px solid #e8edf3":"none",minWidth:0,overflow:"hidden"}}>
             <div style={{padding:"8px 4px 6px",textAlign:"center",background:isToday?"rgba(255,255,255,.08)":"#f8fafc",borderBottom:`2px solid ${isToday?"rgba(255,255,255,.2)":"#e8edf3"}`,flexShrink:0}}>
@@ -909,7 +1134,7 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
                   <div key={t.id} onClick={()=>onEditTache(t)}
                     style={{background:isToday?"rgba(255,255,255,.13)":isTer?GOLD_BG2:((e?.couleur||"#ccc")+"28"),borderLeft:`3px solid ${isToday?"rgba(255,255,255,.6)":isTer?GOLD:e?.couleur||"#ccc"}`,borderRadius:"0 6px 6px 0",padding:"4px 4px 4px 5px",marginBottom:4,cursor:"pointer",opacity:(isTer&&!isToday)?0.75:1}}>
                     <div style={{fontSize:9,fontWeight:900,color:isToday?"white":"#1e293b",lineHeight:1.2,marginBottom:1}}>{t.heure}</div>
-                    <div style={{fontSize:9,fontWeight:700,color:isToday?"rgba(255,255,255,.9)":"#1e293b",lineHeight:1.2,wordBreak:"break-word",textDecoration:isTer?"line-through":"none"}}>{t.type}</div>
+                    <div style={{fontSize:9,fontWeight:700,color:isToday?"rgba(255,255,255,.9)":"#1e293b",lineHeight:1.2,wordBreak:"break-word",textDecoration:isTer?"line-through":"none"}}>{zone?.nom||t.type}</div>
                     <div style={{fontSize:8,color:isToday?"rgba(255,255,255,.55)":"#94a3b8",marginTop:1}}>{e?.nom?.split(" ")[0]||"?"}</div>
                     {zone?.codeBoite&&<div style={{fontSize:7,color:isToday?"rgba(255,255,255,.6)":GOLD,fontWeight:800,marginTop:1}}>🔑{zone.codeBoite}</div>}
                     <div style={{marginTop:2,display:"inline-block",background:isTer?GOLD_DARK:isToday?"rgba(255,255,255,.2)":st.bg,color:isTer?"white":isToday?"white":st.c,borderRadius:6,padding:"1px 4px",fontSize:7,fontWeight:700}}>{st.l}</div>
@@ -943,7 +1168,7 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
           {cells.map((d,idx)=>{
             if(!d) return <div key={idx}/>;
             const ds=`${moisY}-${String(moisM).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-            const taches=filtrerTaches(data.taches.filter(t=>t.date===ds));
+            const taches=filtrerTaches(data.taches,ds);
             const isToday=ds===TODAY;
             const hasFin=taches.some(t=>t.statut==="termine");
             const hasPb=taches.some(t=>t.statut==="probleme");
@@ -956,7 +1181,7 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
                   return(
                     <div key={t.id} onClick={ev=>{ev.stopPropagation();if(onEditTache)onEditTache(t);}}
                       style={{fontSize:8,fontWeight:700,color:isToday?"rgba(255,255,255,.85)":"#1e293b",background:isToday?"rgba(255,255,255,.15)":(e?.couleur||"#ccc")+"33",borderRadius:4,padding:"1px 4px",marginBottom:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-                      {t.heure} {t.type}
+                      {t.heure} {data.zones.find(z=>z.id===t.zoneId)?.nom||t.type}
                     </div>
                   );
                 })}
@@ -993,10 +1218,12 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
             style={{border:"none",background:"#f1f5f9",borderRadius:9,width:34,height:34,cursor:"pointer",fontSize:18,fontWeight:700,color:GOLD_DARK,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
         </div>
 
-        <select style={{...S.sel,marginBottom:0,fontSize:13,padding:"7px 10px"}} value={filterEmp} onChange={e=>setFilterEmp(e.target.value)}>
-          <option value="tous">👥 Tous les employés</option>
-          {data.employes.map(e=><option key={e.id} value={e.id}>{e.nom}</option>)}
-        </select>
+        {!isReadOnly&&(
+          <select style={{...S.sel,marginBottom:0,fontSize:13,padding:"7px 10px"}} value={filterEmp} onChange={e=>setFilterEmp(e.target.value)}>
+            <option value="tous">👥 Tous les employés</option>
+            {data.employes.map(e=><option key={e.id} value={e.id}>{e.nom}</option>)}
+          </select>
+        )}
       </div>
 
       {/* Contenu selon mode */}
@@ -1086,18 +1313,9 @@ function StreetViewThumb({adresse}){
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE LOGEMENTS
 // ══════════════════════════════════════════════════════════════════════════════
-function Logements({data,onEdit,onOpenTypes,isReadOnly=false}){
+function Logements({data,onEdit,isReadOnly=false}){
   return(
     <div style={S.sec}>
-      {!isReadOnly&&(
-      <div style={{background:"linear-gradient(135deg,#1a1408,#c9a84c)",borderRadius:14,padding:"12px 16px",marginBottom:14,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}} onClick={onOpenTypes}>
-        <div>
-          <div style={{fontWeight:700,fontSize:13,color:"white"}}>⚙️ Types de tâches personnalisés</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.6)",marginTop:2}}>{(data.typesPerso||[]).length} types · Appuyez pour modifier</div>
-        </div>
-        <span style={{color:"rgba(255,255,255,.5)",fontSize:20}}>›</span>
-      </div>
-      )}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
         <div style={S.secTit}>Logements ({data.zones.length})</div>
         {!isReadOnly&&onEdit&&<button onClick={()=>onEdit(null)} style={{...S.bPri,width:"auto",padding:"7px 14px",fontSize:12}}>+ Ajouter</button>}
@@ -1345,10 +1563,69 @@ function PinRow({emp,onSavePin}){
   );
 }
 
+// ── GestionTypes — sous-composant pour éviter hooks dans condition ───────────
+function GestionTypes({data,setData,toast_}){
+  const [list,setList]=useState([...(data.typesPerso||[])]);
+  const [nv,setNv]=useState("");
+  function add(){const t=nv.trim();if(!t||list.includes(t))return;setList(l=>[...l,t]);setNv("");}
+  function save(){setData(d=>({...d,typesPerso:list}));toast_("Types mis à jour ✓");}
+  return(
+    <div style={{padding:"0 12px 14px"}}>
+      <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:4}}>🗂️ Types de tâches</div>
+      <p style={{fontSize:12,color:"#94a3b8",marginBottom:14}}>Personnalisez les types proposés lors de la création d'une tâche.</p>
+      <div style={{display:"flex",gap:8,marginBottom:14}}>
+        <input style={{...S.inp,marginBottom:0,flex:1}} placeholder="Nouveau type..." value={nv}
+          onChange={e=>setNv(e.target.value)} onKeyDown={e=>e.key==="Enter"&&add()}/>
+        <button style={{...S.bPri,marginTop:0,width:"auto",padding:"0 18px",fontSize:22,borderRadius:12}} onClick={add}>+</button>
+      </div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}}>
+        {list.map(t=>(
+          <div key={t} style={{display:"flex",alignItems:"center",gap:6,background:"#f1f5f9",borderRadius:20,padding:"6px 12px",border:"1px solid #e2e8f0"}}>
+            <span style={{fontSize:13,fontWeight:600,color:TXT}}>{t}</span>
+            <button onClick={()=>setList(l=>l.filter(x=>x!==t))} style={{border:"none",background:"none",cursor:"pointer",color:"#d9534f",fontSize:18,padding:0,lineHeight:1}}>×</button>
+          </div>
+        ))}
+      </div>
+      {list.length===0&&<div style={{textAlign:"center",color:"#94a3b8",fontSize:13,padding:"20px 0"}}>Aucun type — Ajoutez-en ci-dessus</div>}
+      <button style={S.bPri} onClick={save}>💾 Enregistrer les types</button>
+    </div>
+  );
+}
+
+// ── GestionPieces — sous-composant pour éviter hooks dans condition ──────────
+function GestionPieces({data,setData,toast_}){
+  const [list,setList]=useState([...(data.piecesPerso||[])]);
+  const [nv,setNv]=useState("");
+  function add(){const p=nv.trim();if(!p||list.includes(p))return;setList(l=>[...l,p]);setNv("");}
+  function save(){setData(d=>({...d,piecesPerso:list}));toast_("Pièces mises à jour ✓");}
+  return(
+    <div style={{padding:"0 12px 14px"}}>
+      <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:4}}>🏠 Pièces du logement</div>
+      <p style={{fontSize:12,color:"#94a3b8",marginBottom:14}}>Liste des pièces proposées lors d'un signalement de problème par un employé.</p>
+      <div style={{display:"flex",gap:8,marginBottom:14}}>
+        <input style={{...S.inp,marginBottom:0,flex:1}} placeholder="Ex: Chambre 3, Véranda..." value={nv}
+          onChange={e=>setNv(e.target.value)} onKeyDown={e=>e.key==="Enter"&&add()}/>
+        <button style={{...S.bPri,marginTop:0,width:"auto",padding:"0 18px",fontSize:22,borderRadius:12}} onClick={add}>+</button>
+      </div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}}>
+        {list.map(p=>(
+          <div key={p} style={{display:"flex",alignItems:"center",gap:6,background:"#fff8e1",borderRadius:20,padding:"6px 12px",border:"1.5px solid #fde68a"}}>
+            <span style={{fontSize:13,fontWeight:600,color:"#92400e"}}>{p}</span>
+            <button onClick={()=>setList(l=>l.filter(x=>x!==p))} style={{border:"none",background:"none",cursor:"pointer",color:"#d9534f",fontSize:18,padding:0,lineHeight:1}}>×</button>
+          </div>
+        ))}
+      </div>
+      {list.length===0&&<div style={{textAlign:"center",color:"#94a3b8",fontSize:13,padding:"20px 0"}}>Aucune pièce — Ajoutez-en ci-dessus</div>}
+      <button style={S.bPri} onClick={save}>💾 Enregistrer les pièces</button>
+    </div>
+  );
+}
+
+
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE PARAMÈTRES — avec onglets : Équipe + Gestion droits + PIN + Général
 // ══════════════════════════════════════════════════════════════════════════════
-function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
+function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pushEnabled,setPushEnabled,pushPermission,demanderNotifPush}){
   const [onglet,setOnglet]=useState(null); // null = menu principal
   const [notifDetail,setNotifDetail]=useState(null);
 
@@ -1380,8 +1657,11 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
 
   const menuItems=[
     {id:"gestion_equipe", icon:"👥", label:"Gestion Équipe",   desc:"Membres, rôles, droits et PIN"},
+    {id:"types_taches",   icon:"🗂️", label:"Types de tâches",  desc:"Personnaliser la liste des tâches"},
+    {id:"pieces",         icon:"🏠", label:"Pièces du logement", desc:"Liste des pièces pour signalements"},
     {id:"historique",     icon:"⧗", label:"Historique",       desc:"Tâches terminées & récapitulatif"},
     {id:"notifs",         icon:"🔔", label:"Notifications",    desc:"Activité récente", badge:nbNotifsBadge},
+    {id:"notifications",  icon:"🔔", label:"Notifications push", desc:"Alertes en temps réel"},
     {id:"nuit",           icon:"🌙", label:"Mode nuit",        desc:"Interface sombre"},
   ];
 
@@ -1408,7 +1688,7 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
   );
 
   // ── Bouton retour ──
-  const retourEl==>(
+  const retourEl=()=>(
     <button onClick={()=>setOnglet(null)} style={{display:"flex",alignItems:"center",gap:6,background:"transparent",border:"none",color:GOLD_DARK,fontWeight:700,fontSize:13,cursor:"pointer",padding:"12px 12px 4px"}}>
       ← Retour
     </button>
@@ -1416,7 +1696,7 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
 
   return(
     <div>
-      {retourEl}
+      {retourEl()}
 
       {/* ── GESTION ÉQUIPE (Équipe + Droits + PIN fusionnés) ── */}
       {onglet==="gestion_equipe"&&(
@@ -1476,6 +1756,12 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
         </div>
       )}
 
+
+      {/* ── TYPES DE TÂCHES ── */}
+      {onglet==="types_taches"&&<GestionTypes data={data} setData={setData} toast_={toast_}/>}
+
+      {/* ── PIÈCES DU LOGEMENT ── */}
+      {onglet==="pieces"&&<GestionPieces data={data} setData={setData} toast_={toast_}/>}
 
       {/* ── HISTORIQUE ── */}
       {onglet==="historique"&&(
@@ -1613,6 +1899,62 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
       )}
 
 
+      {/* ── NOTIFICATIONS PUSH ── */}
+      {onglet==="notifications"&&(
+        <div style={{padding:"0 12px 14px"}}>
+          <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:6}}>🔔 Notifications push</div>
+          <p style={{fontSize:12,color:"#94a3b8",marginBottom:16}}>Recevez des alertes instantanées lors de signalements de problèmes ou de tâches urgentes.</p>
+          <div style={{...S.card,padding:"18px 16px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+              <div style={{width:44,height:44,borderRadius:12,background:pushPermission==="granted"?"#dcfce7":"#fef3c7",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>
+                {pushPermission==="granted"?"🔔":"🔕"}
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:14,color:TXT}}>
+                  {pushPermission==="granted"?"Notifications activées":pushPermission==="denied"?"Notifications bloquées":"Notifications désactivées"}
+                </div>
+                <div style={{fontSize:12,color:"#94a3b8",marginTop:1}}>
+                  {pushPermission==="granted"?"Vous recevrez des alertes en temps réel":pushPermission==="denied"?"Autorisez dans les réglages du navigateur":"Activez pour recevoir des alertes"}
+                </div>
+              </div>
+              {pushPermission==="granted"&&(
+                <div style={{width:52,height:28,borderRadius:14,background:pushEnabled?GOLD:"#e2e8f0",cursor:"pointer",position:"relative",flexShrink:0}}
+                  onClick={()=>setPushEnabled(e=>!e)}>
+                  <div style={{width:22,height:22,borderRadius:"50%",background:"white",position:"absolute",top:3,left:pushEnabled?27:3,transition:"left .3s",boxShadow:"0 2px 6px rgba(0,0,0,.25)"}}/>
+                </div>
+              )}
+            </div>
+            {pushPermission!=="granted"&&(
+              <button onClick={demanderNotifPush}
+                style={{width:"100%",padding:"12px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:"#1a0d00",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                🔔 Activer les notifications push
+              </button>
+            )}
+            {pushPermission==="denied"&&(
+              <div style={{background:"#fef2f2",borderRadius:10,padding:"10px 12px",fontSize:12,color:"#dc2626",fontWeight:500}}>
+                ⚠️ Notifications bloquées. Allez dans les paramètres de votre navigateur pour les autoriser pour ce site.
+              </div>
+            )}
+          </div>
+          <div style={{...S.card,padding:"14px 16px",marginTop:0}}>
+            <div style={{fontSize:12,fontWeight:700,color:TXT,marginBottom:10}}>Alertes activées :</div>
+            {[
+              {icon:"⚠️",label:"Signalement de problème",active:true},
+              {icon:"✅",label:"Tâche terminée",active:pushEnabled&&pushPermission==="granted"},
+              {icon:"💬",label:"Nouveau message",active:pushEnabled&&pushPermission==="granted"},
+            ].map((a,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:i<2?"1px solid #f1f5f9":"none"}}>
+                <span style={{fontSize:16}}>{a.icon}</span>
+                <span style={{flex:1,fontSize:13,color:TXT2}}>{a.label}</span>
+                <span style={{fontSize:11,fontWeight:700,color:a.active?"#15803d":"#94a3b8",background:a.active?"#dcfce7":"#f1f5f9",borderRadius:20,padding:"2px 9px"}}>
+                  {a.active?"Activé":"Inactif"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── MODE NUIT ── */}
       {onglet==="nuit"&&(
         <div style={{padding:"0 12px 14px"}}>
@@ -1645,7 +1987,7 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE MESSAGES — chat entre employés et admin
 // ══════════════════════════════════════════════════════════════════════════════
-function Messages({data,setData,currentUser,toast_}){
+function Messages({data,setData,currentUser,toast_,envoyerNotifPush}){
   const isAdmin=currentUser.role==="admin"||currentUser.role==="manager";
   // onglet: "conversations" | "archives"
   const [onglet,setOnglet]=useState("conversations");
@@ -1726,6 +2068,15 @@ function Messages({data,setData,currentUser,toast_}){
     setData(d=>({...d,messages:[...(d.messages||[]),msg]}));
     setTexte("");
     toast_("Message envoyé ✓");
+    // Notif push si message envoyé par employé vers admin
+    if(envoyerNotifPush&&!isAdmin){
+      const zone=convSel?.type==="zone"?(data.zones||[]).find(z=>z.id===convSel.id):null;
+      envoyerNotifPush(
+        `💬 Message de ${currentUser.nom}`,
+        zone?`Logement ${zone.nom} : ${texte.trim()}`:texte.trim(),
+        "message"
+      );
+    }
   }
 
   function archiverConv(conv){
@@ -2013,7 +2364,7 @@ function Messages({data,setData,currentUser,toast_}){
         </div>
       )}
       {/* Contenu */}
-      {convSel?{vueConversation()}:onglet==="conversations"?{listeConversations()}:{vueArchives()}}
+      {convSel?vueConversation():onglet==="conversations"?listeConversations():vueArchives()}
     </div>
   );
 }
@@ -2021,14 +2372,23 @@ function Messages({data,setData,currentUser,toast_}){
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE PARAMÈTRES EMPLOYÉ — Pin + Mode nuit
 // ══════════════════════════════════════════════════════════════════════════════
-function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightMode}){
-  const [step,setStep]=useState("menu"); // menu | changer
+function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightMode,pushPermission,demanderNotifPush}){
+  const [onglet,setOnglet]=useState(null); // null=menu | profil | pin | nuit | notifs
+  // PIN state
   const [oldPin,setOldPin]=useState("");
   const [newPin,setNewPin]=useState("");
   const [confirmPin,setConfirmPin]=useState("");
-  const [show,setShow]=useState(false);
+  const [showPin,setShowPin]=useState(false);
+  // Profil state
+  const {ref:photoRef,pick:pickPhoto,handle:handlePhoto}=usePhotoPicker(img=>{
+    setData(d=>({...d,employes:d.employes.map(e=>e.id===emp.id?{...e,photo:img}:e)}));
+    setCurrentUser(u=>({...u,photo:img}));
+    toast_("Photo mise à jour ✓");
+  });
+  const [tel,setTel]=useState(emp.tel||"");
+  const [email,setEmail]=useState(emp.email||"");
 
-  function sauvegarder(){
+  function sauvegarderPin(){
     if(emp.pin&&emp.pin.trim()!==""){
       if(oldPin!==emp.pin) return toast_("Ancien PIN incorrect","err");
     }
@@ -2037,99 +2397,165 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
     setData(d=>({...d,employes:d.employes.map(e=>e.id===emp.id?{...e,pin:newPin}:e)}));
     setCurrentUser(u=>({...u,pin:newPin}));
     toast_("PIN mis à jour ✓");
-    setStep("menu");setOldPin("");setNewPin("");setConfirmPin("");
+    setOldPin("");setNewPin("");setConfirmPin("");
+  }
+
+  function sauvegarderProfil(){
+    setData(d=>({...d,employes:d.employes.map(e=>e.id===emp.id?{...e,tel,email}:e)}));
+    setCurrentUser(u=>({...u,tel,email}));
+    toast_("Profil mis à jour ✓");
   }
 
   const menuItems=[
-    {id:"pin",  icon:"🔢", label:"Mon code PIN",    desc:"Modifier votre PIN de connexion"},
-    {id:"nuit", icon:"🌙", label:"Mode nuit",        desc:nightMode?"Interface sombre activée":"Interface claire activée"},
+    {id:"profil", icon:"👤", label:"Mon profil",        desc:"Photo, téléphone, email"},
+    {id:"pin",    icon:"🔢", label:"Code PIN",           desc:emp.pin&&emp.pin.trim()!==""?"PIN défini — Modifier":"Aucun PIN — Accès libre"},
+    {id:"nuit",   icon:"🌙", label:"Mode nuit",          desc:nightMode?"Interface sombre activée":"Interface claire"},
+    {id:"notifs", icon:"🔔", label:"Notifications push", desc:pushPermission==="granted"?"Alertes activées":"Appuyer pour activer"},
   ];
 
-  return(
+  const retourEl=()=>(
+    <button onClick={()=>setOnglet(null)} style={{display:"flex",alignItems:"center",gap:6,background:"transparent",border:"none",color:GOLD_DARK,fontWeight:700,fontSize:13,cursor:"pointer",padding:"12px 12px 4px"}}>
+      ← Retour
+    </button>
+  );
+
+  // ── Menu principal ──
+  if(!onglet) return(
     <div style={{padding:"14px 12px"}}>
-      <div style={{fontWeight:800,fontSize:16,color:TXT,marginBottom:4}}>⚙️ Paramètres</div>
-      <div style={{fontSize:13,color:TXT2,marginBottom:16}}>Connecté en tant que <b>{emp.nom}</b></div>
-
-      {/* Mode nuit toggle card */}
-      <div style={{...S.card,marginBottom:10,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 16px"}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <div style={{width:42,height:42,borderRadius:12,background:nightMode?"#0f0e00":"#f4f4f5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{nightMode?"🌙":"☀️"}</div>
-          <div>
-            <div style={{fontWeight:700,fontSize:14,color:TXT}}>Mode nuit</div>
-            <div style={{fontSize:12,color:TXT3,marginTop:1}}>{nightMode?"Interface sombre":"Interface claire"}</div>
-          </div>
+      {/* Header utilisateur */}
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
+        <div style={{position:"relative",cursor:"pointer"}} onClick={pickPhoto}>
+          <input ref={photoRef} type="file" accept="image/*" style={{display:"none"}} onChange={handlePhoto}/>
+          <Avatar emp={emp} size={54}/>
+          <div style={{position:"absolute",bottom:-2,right:-2,width:20,height:20,borderRadius:"50%",background:GOLD,border:"2px solid white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10}}>✏️</div>
         </div>
-        <div onClick={toggleNightMode}
-          style={{width:50,height:28,borderRadius:14,background:nightMode?GOLD:"#e4e4e7",cursor:"pointer",position:"relative",transition:"background .3s",flexShrink:0}}>
-          <div style={{width:22,height:22,borderRadius:"50%",background:"white",position:"absolute",top:3,left:nightMode?25:3,transition:"left .3s",boxShadow:"0 2px 6px rgba(0,0,0,.2)"}}/>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:900,fontSize:16,color:TXT}}>{emp.nom}</div>
+          <div style={{fontSize:12,color:TXT3}}>{emp.role==="manager"?"Manager":"Employé"}</div>
         </div>
+        <div style={{fontSize:11,color:GOLD_DARK,fontWeight:700,background:GOLD_BG,borderRadius:20,padding:"3px 10px",border:`1px solid ${GOLD}44`}}>v{APP_VERSION}</div>
       </div>
-
-      {/* PIN */}
-      <div style={S.card} onClick={()=>setStep(step==="changer"?"menu":"changer")}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <Avatar emp={emp} size={44}/>
+      {menuItems.map(item=>(
+        <div key={item.id} onClick={()=>{
+            if(item.id==="nuit"){toggleNightMode();return;}
+            if(item.id==="notifs"&&pushPermission!=="granted"){demanderNotifPush();return;}
+            setOnglet(item.id);
+          }}
+          style={{display:"flex",alignItems:"center",gap:14,background:CARD,borderRadius:14,padding:"14px 16px",marginBottom:10,border:`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}>
+          <div style={{width:44,height:44,borderRadius:12,background:GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{item.icon}</div>
           <div style={{flex:1}}>
-            <div style={{fontWeight:700,fontSize:14,color:TXT}}>{emp.nom}</div>
-            <div style={{fontSize:12,color:TXT2,marginTop:2}}>
-              {emp.pin&&emp.pin.trim()!==""
-                ?<span style={{letterSpacing:4,color:GOLD,fontWeight:700}}>● ● ● ●</span>
-                :<span style={{color:TXT3}}>🔓 Sans PIN</span>}
+            <div style={{fontWeight:700,fontSize:14,color:TXT}}>{item.label}</div>
+            <div style={{fontSize:12,color:TXT2,marginTop:2}}>{item.desc}</div>
+          </div>
+          {item.id==="nuit"?(
+            <div style={{width:46,height:26,borderRadius:13,background:nightMode?GOLD:"#e4e4e7",position:"relative",flexShrink:0,transition:"background .3s"}}>
+              <div style={{width:20,height:20,borderRadius:"50%",background:"white",position:"absolute",top:3,left:nightMode?23:3,transition:"left .3s",boxShadow:"0 2px 6px rgba(0,0,0,.2)"}}/>
+            </div>
+          ):item.id==="notifs"?(
+            <span style={{fontSize:10,fontWeight:700,color:pushPermission==="granted"?"#15803d":"#92400e",background:pushPermission==="granted"?"#dcfce7":"#fef3c7",borderRadius:20,padding:"2px 9px"}}>{pushPermission==="granted"?"ON":"OFF"}</span>
+          ):(
+            <span style={{color:TXT3,fontSize:20}}>›</span>
+          )}
+        </div>
+      ))}
+      <div style={{textAlign:"center",padding:"20px 0 10px",color:TXT3,fontSize:10,letterSpacing:.5}}>CKeys · v{APP_VERSION}</div>
+    </div>
+  );
+
+  return(
+    <div>
+      {retourEl()}
+
+      {/* ── PROFIL ── */}
+      {onglet==="profil"&&(
+        <div style={{padding:"0 12px 14px"}}>
+          <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:14}}>👤 Mon profil</div>
+          <div style={S.card}>
+            <div style={{fontWeight:700,fontSize:13,color:TXT,marginBottom:12}}>📸 Photo de profil</div>
+            <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:12}}>
+              <Avatar emp={emp} size={64}/>
+              <div style={{flex:1}}>
+                <button onClick={pickPhoto} style={{...S.bPri,marginBottom:6,fontSize:13}}>📷 Changer la photo</button>
+                {emp.photo&&(
+                  <button onClick={()=>{
+                    setData(d=>({...d,employes:d.employes.map(e=>e.id===emp.id?{...e,photo:null}:e)}));
+                    setCurrentUser(u=>({...u,photo:null}));
+                    toast_("Photo supprimée");
+                  }} style={{...S.bGhost,fontSize:12,padding:"8px"}}>🗑️ Supprimer</button>
+                )}
+              </div>
             </div>
           </div>
-          <span style={{fontSize:13,color:TXT3,fontWeight:600}}>{step==="changer"?"✕":">✏️"}</span>
-        </div>
-      </div>
-
-      {step==="changer"&&(
-        <div style={S.card}>
-          {emp.pin&&emp.pin.trim()!==""&&(
-            <>
-              <label style={S.lbl}>Ancien PIN</label>
-              <input style={{...S.inp,letterSpacing:8,fontSize:22,textAlign:"center"}}
-                type="password" maxLength={4} placeholder="••••"
-                value={oldPin} onChange={e=>setOldPin(e.target.value.replace(/\D/g,"").slice(0,4))}/>
-            </>
-          )}
-          <label style={S.lbl}>Nouveau PIN (4 chiffres)</label>
-          <input style={{...S.inp,letterSpacing:8,fontSize:22,textAlign:"center"}}
-            type={show?"text":"password"} maxLength={4} placeholder="••••"
-            value={newPin} onChange={e=>setNewPin(e.target.value.replace(/\D/g,"").slice(0,4))}/>
-          <label style={S.lbl}>Confirmer</label>
-          <input style={{...S.inp,letterSpacing:8,fontSize:22,textAlign:"center"}}
-            type={show?"text":"password"} maxLength={4} placeholder="••••"
-            value={confirmPin} onChange={e=>setConfirmPin(e.target.value.replace(/\D/g,"").slice(0,4))}/>
-          <button type="button" onClick={()=>setShow(s=>!s)} style={{...S.bSec,marginBottom:6,fontSize:12}}>
-            {show?"🙈 Masquer":"👁️ Afficher"}
-          </button>
-          <button style={S.bPri} onClick={sauvegarder}>💾 Enregistrer le PIN</button>
+          <div style={S.card}>
+            <div style={{fontWeight:700,fontSize:13,color:TXT,marginBottom:12}}>📞 Coordonnées</div>
+            <label style={S.lbl}>Numéro de téléphone</label>
+            <input style={S.inp} type="tel" placeholder="06 12 34 56 78"
+              value={tel} onChange={e=>setTel(e.target.value)}/>
+            {tel&&<a href={`tel:${tel}`} style={{display:"block",fontSize:11,color:GOLD_DARK,marginTop:-6,marginBottom:10,fontWeight:600}}>📞 Appeler ce numéro</a>}
+            <label style={S.lbl}>Adresse email</label>
+            <input style={S.inp} type="email" placeholder="prenom@example.com"
+              value={email} onChange={e=>setEmail(e.target.value)}/>
+            {email&&<a href={`mailto:${email}`} style={{display:"block",fontSize:11,color:GOLD_DARK,marginTop:-6,marginBottom:10,fontWeight:600}}>✉️ Envoyer un email</a>}
+            <button style={S.bPri} onClick={sauvegarderProfil}>💾 Enregistrer les coordonnées</button>
+          </div>
         </div>
       )}
 
-      {/* Prochainement */}
-      <div style={{...S.sec,paddingTop:20}}>
-        <div style={S.secTit}>Prochainement</div>
-      </div>
-      {[
-        {icon:"📱",label:"Notifications push",desc:"Alertes automatiques"},
-        {icon:"🌐",label:"Langue",desc:"Français, English..."},
-      ].map((f,i)=>(
-        <div key={i} style={{...S.card,display:"flex",alignItems:"center",gap:12,opacity:.5}}>
-          <span style={{fontSize:22}}>{f.icon}</span>
-          <div>
-            <div style={{fontWeight:600,fontSize:13,color:TXT2}}>{f.label}</div>
-            <div style={{fontSize:11,color:TXT3,marginTop:1}}>{f.desc}</div>
+      {/* ── CODE PIN ── */}
+      {onglet==="pin"&&(
+        <div style={{padding:"0 12px 14px"}}>
+          <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:14}}>🔢 Code PIN</div>
+          <div style={S.card}>
+            <div style={{fontSize:13,color:TXT2,marginBottom:14}}>
+              {emp.pin&&emp.pin.trim()!==""
+                ?<span>PIN actuel : <span style={{letterSpacing:6,color:GOLD,fontWeight:800}}>● ● ● ●</span></span>
+                :<span style={{color:TXT3}}>🔓 Aucun PIN défini — connexion sans code</span>}
+            </div>
+            {emp.pin&&emp.pin.trim()!==""&&(
+              <>
+                <label style={S.lbl}>Ancien PIN</label>
+                <input style={{...S.inp,letterSpacing:8,fontSize:22,textAlign:"center"}}
+                  type="password" maxLength={4} placeholder="••••"
+                  value={oldPin} onChange={e=>setOldPin(e.target.value.replace(/\D/g,"").slice(0,4))}/>
+              </>
+            )}
+            <label style={S.lbl}>Nouveau PIN (4 chiffres)</label>
+            <input style={{...S.inp,letterSpacing:8,fontSize:22,textAlign:"center"}}
+              type={showPin?"text":"password"} maxLength={4} placeholder="••••"
+              value={newPin} onChange={e=>setNewPin(e.target.value.replace(/\D/g,"").slice(0,4))}/>
+            <label style={S.lbl}>Confirmer</label>
+            <input style={{...S.inp,letterSpacing:8,fontSize:22,textAlign:"center"}}
+              type={showPin?"text":"password"} maxLength={4} placeholder="••••"
+              value={confirmPin} onChange={e=>setConfirmPin(e.target.value.replace(/\D/g,"").slice(0,4))}/>
+            <button type="button" onClick={()=>setShowPin(s=>!s)} style={{...S.bSec,marginBottom:8,fontSize:12}}>
+              {showPin?"🙈 Masquer":"👁️ Afficher"}
+            </button>
+            <button style={S.bPri} onClick={sauvegarderPin}>💾 Enregistrer le PIN</button>
           </div>
-          <span style={{marginLeft:"auto",fontSize:10,background:"#f4f4f5",color:TXT3,borderRadius:20,padding:"2px 8px",fontWeight:600}}>Bientôt</span>
         </div>
-      ))}
-      <div style={{textAlign:"center",padding:"20px 0 10px",color:TXT3,fontSize:10,letterSpacing:.5}}>
-        CKeys · v{APP_VERSION}
-      </div>
+      )}
+
+      {/* ── MODE NUIT (redirige vers toggle direct) ── */}
+      {onglet==="nuit"&&(
+        <div style={{padding:"0 12px 14px"}}>
+          <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:14}}>🌙 Mode nuit</div>
+          <div style={{...S.card,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 16px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              <div style={{width:44,height:44,borderRadius:12,background:nightMode?"#120f00":"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{nightMode?"🌙":"☀️"}</div>
+              <div>
+                <div style={{fontWeight:700,fontSize:14}}>{nightMode?"Mode nuit activé":"Mode jour"}</div>
+                <div style={{fontSize:12,color:"#94a3b8",marginTop:1}}>{nightMode?"Interface sombre":"Interface claire"}</div>
+              </div>
+            </div>
+            <div onClick={toggleNightMode} style={{width:52,height:28,borderRadius:14,background:nightMode?GOLD:"#e2e8f0",cursor:"pointer",position:"relative",transition:"background .3s",flexShrink:0}}>
+              <div style={{width:22,height:22,borderRadius:"50%",background:"white",position:"absolute",top:3,left:nightMode?27:3,transition:"left .3s",boxShadow:"0 2px 6px rgba(0,0,0,.25)"}}/>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
 // ══════════════════════════════════════════════════════════════════════════════
 // APP PRINCIPALE
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2147,9 +2573,37 @@ export default function App(){
   const [problemeId,setProblemeId]=useState(null);
   const [currentUser,setCurrentUser]=useState(null);
   const [nightMode,setNightMode]=useState(false);
+  const [pushEnabled,setPushEnabled]=useState(false);
+  const [pushPermission,setPushPermission]=useState(()=>
+    typeof Notification!=="undefined"?Notification.permission:"default"
+  );
 
   const toggleNightMode=useCallback(()=>{
     setNightMode(n=>!n);
+  },[]);
+
+  // ── Notifications push ──────────────────────────────────────────────────────
+  const demanderNotifPush=useCallback(async()=>{
+    if(typeof Notification==="undefined"){
+      alert("Les notifications ne sont pas supportées sur ce navigateur.");
+      return;
+    }
+    const perm=await Notification.requestPermission();
+    setPushPermission(perm);
+    if(perm==="granted"){
+      setPushEnabled(true);
+      new Notification("✅ Notifications activées",{
+        body:"Vous recevrez des alertes pour les signalements et tâches.",
+        icon:"https://cdn.jsdelivr.net/npm/emoji-datasource-apple@15.0.1/img/apple/64/1f3e0.png"
+      });
+    }
+  },[]);
+
+  const envoyerNotifPush=useCallback((titre,corps,tag="notif")=>{
+    if(typeof Notification==="undefined"||Notification.permission!=="granted") return;
+    try{
+      new Notification(titre,{body:corps,tag,icon:"https://cdn.jsdelivr.net/npm/emoji-datasource-apple@15.0.1/img/apple/64/26a0.png"});
+    }catch(e){console.warn("Push notif failed",e);}
   },[]);
 
 
@@ -2175,7 +2629,7 @@ export default function App(){
       id:Date.now(),
       empId:t?.employeId||currentUser.id,
       nom:emp?.nom||currentUser.nom,
-      texte:`⚠️ Problème signalé sur "${t?.type||"tâche"}"${note?` : ${note}`:""}`,
+      texte:`⚠️ Problème signalé sur "${t?.type||"tâche"}"${note?" : "+note:""}`,
       ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),
       zoneId:t?.zoneId||null,
       type:"probleme",
@@ -2246,7 +2700,7 @@ export default function App(){
 
   // Écran PIN si pas connecté
   if(!currentUser){
-    return <EcranPin employes={data.employes.filter(e=>e.actif)} onLogin={u=>{setCurrentUser(u);if(u.role==="employe")setView("planning");}}/>;
+    return <EcranPin employes={data.employes.filter(e=>e.actif)} onLogin={u=>{setCurrentUser(u);setView("accueil");}}/>;
   }
 
   const isAdmin=currentUser?.role==="admin"||currentUser?.role==="manager";
@@ -2263,7 +2717,9 @@ export default function App(){
   const appBg=nightMode?"#0a0a0f":SURFACE;
 
   const navItems=isEmp?[
+    {id:"accueil",    icon:"◉",label:"Accueil"},
     {id:"planning",   icon:"⊟",label:"Planning"},
+    {id:"messages",   icon:"✉",label:"Messages"},
     {id:"parametres", icon:"⊞",label:"Paramètres"},
   ]:[
     {id:"accueil",    icon:"◉",label:"Accueil"},
@@ -2278,19 +2734,66 @@ export default function App(){
   const isFullscreen=!isDesktop&&!isTablet&&(view==="planning"||view==="messages");
 
   // ── Contenu partagé ──
-  const contentArea==>(
+  const contentArea=()=>(
     <>
-      {view==="accueil"    &&<Accueil    isAdmin={isAdmin} data={isEmp?{...data,employes:data.employes.filter(e=>e.id===currentUser.id)}:data} updateSt={updateSt} onEditTache={isAdmin?openEditTache:null} onToggleCheck={toggleCheck} onSignalerProbleme={setProblemeId} onSignalerMessage={isEmp?(msg)=>{setData(d=>({...d,messages:[...(d.messages||[]),{id:Date.now(),empId:currentUser.id,nom:currentUser.nom,texte:`⚠️ Problème sur "${(data.zones.find(z=>z.id===msg.zoneId)||{}).nom||"logement"}" : ${msg.texte}`,zoneId:msg.zoneId,ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),type:"probleme",photoProbleme:msg.photo||null,archive:false,lu:false}]}));toast_("Problème envoyé ✓");}:null}/>}
+      {view==="accueil"    &&(()=>{
+        // Pour employé : filtrer pour ne voir que ses logements et tâches
+        const empZoneIds=isEmp?[...new Set(data.taches.filter(t=>t.employeId===currentUser.id).map(t=>t.zoneId))]:null;
+        const dataAccueil=isEmp?{
+          ...data,
+          taches:data.taches.filter(t=>t.employeId===currentUser.id),
+          zones:data.zones.filter(z=>empZoneIds.includes(z.id)),
+          employes:data.employes.filter(e=>e.id===currentUser.id),
+        }:data;
+        function signalerMsg(msg){
+          const zoneName=(data.zones.find(z=>z.id===msg.zoneId)||{}).nom||"logement";
+          const piecesTxt=(msg.pieces&&msg.pieces.length>0)?` | Pièces : ${msg.pieces.join(", ")}`:"";
+          const newMsg={id:Date.now(),empId:currentUser.id,nom:currentUser.nom,
+            texte:`⚠️ Problème sur "${zoneName}" : ${msg.texte||"Signalement sans description"}${piecesTxt}`,
+            zoneId:msg.zoneId,
+            ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),
+            type:"probleme",
+            photoProbleme:msg.photo||null,
+            photosSupp:msg.photosSupp||[],
+            pieces:msg.pieces||[],
+            archive:false,lu:false};
+          // Messages supplémentaires pour chaque photo additionnelle
+          const msgsSupp=(msg.photosSupp||[]).map((ph,i)=>({
+            id:Date.now()+i+1,empId:currentUser.id,nom:currentUser.nom,
+            texte:`📷 Photo ${i+2}/${(msg.photosSupp||[]).length+1}`,
+            zoneId:msg.zoneId,ts:newMsg.ts,type:"photo",
+            photoProbleme:ph,archive:false,lu:false
+          }));
+          setData(d=>({...d,
+            messages:[...(d.messages||[]),newMsg,...msgsSupp],
+            notifications:[...(d.notifications||[]),{
+              type:"probleme",
+              msg:`⚠️ ${currentUser.nom} — ${zoneName}${piecesTxt} : ${msg.texte||"Signalement"}`,
+              empId:currentUser.id,zoneId:msg.zoneId,
+              photo:msg.photo||null,photosSupp:msg.photosSupp||[],pieces:msg.pieces||[],
+              ts:new Date().toLocaleString("fr-FR"),lu:false
+            }].slice(-50)
+          }));
+          toast_("Signalement envoyé à l\'admin ✓");
+          // Notif push pour admins (si permission)
+          envoyerNotifPush(
+            `⚠️ Signalement — ${(data.zones.find(z=>z.id===msg.zoneId)||{}).nom||"logement"}`,
+            `${currentUser.nom} : ${msg.texte||"Problème signalé"}${(msg.pieces&&msg.pieces.length>0)?" ("+msg.pieces.join(", ")+")":""}` ,
+            "signalement"
+          );
+        }
+        return <Accueil isAdmin={isAdmin} currentUserId={currentUser.id} data={dataAccueil} updateSt={updateSt} onEditTache={isAdmin?openEditTache:null} onToggleCheck={toggleCheck} onSignalerProbleme={setProblemeId} onSignalerMessage={isEmp?signalerMsg:null}/>;
+      })()}
       {view==="planning"   &&<Planning   data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} weekOff={weekOff} setWeekOff={setWeekOff} filterEmp={filterEmp} setFilterEmp={setFilterEmp} onEditTache={isAdmin?openEditTache:null} onNewTache={isAdmin?openNewTache:null} isReadOnly={isEmp}/>}
-      {view==="zones"      &&isAdmin&&<Logements  data={data} onEdit={openEditZone} onOpenTypes={()=>setModal("types")} isReadOnly={false}/>}
-      {view==="messages"   &&<Messages   data={data} setData={setData} currentUser={currentUser} toast_={toast_}/>}
+      {view==="zones"      &&isAdmin&&<Logements  data={data} onEdit={openEditZone} isReadOnly={false}/>}
+      {view==="messages"   &&<Messages   data={data} setData={setData} currentUser={currentUser} toast_={toast_} envoyerNotifPush={envoyerNotifPush}/>}
 
-      {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode}/>}
-      {view==="parametres" &&isEmp&&<EmpParametres emp={currentUser} setData={setData} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode}/>}
+      {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushEnabled={pushEnabled} setPushEnabled={setPushEnabled} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush}/>}
+      {view==="parametres" &&isEmp&&<EmpParametres emp={currentUser} setData={setData} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush}/>}
     </>
   );
 
-  const modals==>(
+  const modals=()=>(
     <>
       {(modal==="tache"||modal==="tache_edit")&&(
         <ModalTache editMode={modal==="tache_edit"} form={form} setForm={setForm}
@@ -2334,7 +2837,7 @@ export default function App(){
           </div>
         </div>
         <nav style={{flex:1,padding:"12px 10px",display:"flex",flexDirection:"column",gap:2}}>
-          {navItems.map(item=><NavItem key={item.id} item={item}/>)}
+          {navItems.map(item=>renderNavItem(item))}
         </nav>
         <div style={{padding:"12px 10px",borderTop:"1px solid rgba(255,255,255,.06)"}}>
           {isAdmin&&(view==="accueil"||view==="planning")&&(
@@ -2357,10 +2860,10 @@ export default function App(){
           </div>
         </div>
         <div style={{flex:1,overflowY:"auto",background:nightMode?"#0a0a0f":"#f0f2f5"}}>
-          <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 24px"}}>{contentArea}</div>
+          <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 24px"}}>{contentArea()}</div>
         </div>
       </div>
-      {modals}
+      {modals()}
     </div>
   );
 
@@ -2410,10 +2913,10 @@ export default function App(){
           </div>
         </div>
         <div style={{flex:1,overflowY:"auto",background:nightMode?"#0a0a0f":"#f0f2f5"}}>
-          <div style={{maxWidth:860,margin:"0 auto",padding:"16px 18px"}}>{contentArea}</div>
+          <div style={{maxWidth:860,margin:"0 auto",padding:"16px 18px"}}>{contentArea()}</div>
         </div>
       </div>
-      {modals}
+      {modals()}
     </div>
   );
 
@@ -2433,12 +2936,12 @@ export default function App(){
       </div>
       {toast&&<div style={S.toast(toast.t)}>{toast.m}</div>}
       <div style={isFullscreen?{flex:1,overflow:"hidden",display:"flex",flexDirection:"column"}:{paddingTop:12,paddingBottom:82}}>
-        {contentArea}
+        {contentArea()}
       </div>
       {isAdmin&&(view==="accueil"||view==="planning")&&(
         <button style={{...S.fab,bottom:isPlanning?66:92}} onClick={()=>openNewTache()}>＋</button>
       )}
-      {modals}
+      {modals()}
       <nav style={{...S.nav}}>
         {navItems.map(item=>(
           <button key={item.id} style={S.navBtn(view===item.id)} onClick={()=>setView(item.id)}>
