@@ -1224,6 +1224,89 @@ function Historique({data,currentUser,isEmp,toast_}){
   );
 }
 
+// ── HistoriqueInline — version intégrée dans Paramètres ─────────────────────
+function HistoriqueInline({data,toast_,nightMode}){
+  const now=new Date();
+  const [moisSel,setMoisSel]=useState(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`);
+  const MOIS_LONG_H=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+  const MOIS_COURT_H=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
+  const moisDispo=Array.from({length:12},(_,i)=>{
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    return{v:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`,l:`${MOIS_LONG_H[d.getMonth()]} ${d.getFullYear()}`};
+  });
+  const tachesMois=data.taches.filter(t=>{if(!t.date)return false;const[y,m]=t.date.split("-");return`${y}-${m}`===moisSel&&t.statut==="termine";});
+  const empH=id=>data.employes.find(e=>e.id===id);
+  const zoneH=id=>data.zones.find(z=>z.id===id);
+  const parLog={};
+  tachesMois.forEach(t=>{if(!parLog[t.zoneId]){parLog[t.zoneId]={zone:zoneH(t.zoneId),taches:[]};}parLog[t.zoneId].taches.push(t);});
+  const nbTotal=tachesMois.length;
+  const empActifs=[...new Set(tachesMois.map(t=>t.employeId))];
+
+  return(
+    <div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+        <div style={{fontWeight:900,fontSize:15,color:TXT}}>⧗ Historique mensuel</div>
+        <select style={{borderRadius:8,border:"1px solid #e2e8f0",padding:"5px 8px",fontSize:12,background:"white",color:TXT,cursor:"pointer"}}
+          value={moisSel} onChange={e=>setMoisSel(e.target.value)}>
+          {moisDispo.map(m=><option key={m.v} value={m.v}>{m.l}</option>)}
+        </select>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
+        <div style={{background:"linear-gradient(135deg,#2d7a2d,#1a5c1a)",borderRadius:12,padding:"12px 8px",color:"white",textAlign:"center"}}><div style={{fontSize:22,fontWeight:900}}>{nbTotal}</div><div style={{fontSize:9,opacity:.85,marginTop:2}}>Tâches ✓</div></div>
+        <div style={{background:"linear-gradient(135deg,#1a1408,#c9a84c)",borderRadius:12,padding:"12px 8px",color:"white",textAlign:"center"}}><div style={{fontSize:22,fontWeight:900}}>{Object.keys(parLog).length}</div><div style={{fontSize:9,opacity:.85,marginTop:2}}>Logements</div></div>
+        <div style={{background:"linear-gradient(135deg,#c9a84c,#9a7530)",borderRadius:12,padding:"12px 8px",color:"white",textAlign:"center"}}><div style={{fontSize:22,fontWeight:900}}>{empActifs.length}</div><div style={{fontSize:9,opacity:.85,marginTop:2}}>Employés</div></div>
+      </div>
+      {nbTotal===0&&<div style={{textAlign:"center",color:"#94a3b8",fontSize:13,padding:"24px 0"}}>📭 Aucune tâche terminée ce mois-ci</div>}
+      {Object.values(parLog).map(({zone:z,taches})=>(
+        <div key={z?.id} style={{background:"white",borderRadius:14,padding:14,marginBottom:8,boxShadow:"0 1px 4px rgba(0,0,0,.06)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,paddingBottom:10,borderBottom:"1px solid #f1f5f9"}}>
+            <div style={{width:40,height:40,borderRadius:10,overflow:"hidden",background:"#f1f5f9",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+              {z?.photo?<img src={z.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:18}}>🏠</span>}
+            </div>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:800,fontSize:13}}>{z?.nom||"?"}</div>
+              <div style={{fontSize:11,color:"#94a3b8"}}>{taches.length} tâche(s)</div>
+            </div>
+            <div style={{background:GOLD_BG,color:GOLD,borderRadius:20,padding:"2px 10px",fontSize:11,fontWeight:700}}>{taches.length} ✓</div>
+          </div>
+          {taches.sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(t=>{
+            const e=empH(t.employeId);
+            const d=t.date?new Date(t.date):null;
+            return(
+              <div key={t.id} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 0",borderBottom:"1px solid #f8fafc"}}>
+                <div style={{width:26,height:26,borderRadius:"50%",background:e?.couleur||"#ccc",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"white",fontWeight:900,overflow:"hidden"}}>
+                  {e?.photo?<img src={e.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:(e?.nom||"?")[0]}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:600,fontSize:12}}>{t.type}</div>
+                  <div style={{fontSize:10,color:"#94a3b8"}}>{e?.nom||"?"} · {t.heure}</div>
+                </div>
+                {d&&<div style={{fontSize:10,color:"#64748b",fontWeight:600}}>{d.getDate()} {MOIS_COURT_H[d.getMonth()]}</div>}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+      {nbTotal>0&&(
+        <button style={{width:"100%",padding:"11px",background:GOLD_BG,color:GOLD_DARK,border:`1px solid ${GOLD}44`,borderRadius:12,fontSize:13,fontWeight:700,cursor:"pointer",marginTop:4}}
+          onClick={()=>{
+            const ml=moisDispo.find(m=>m.v===moisSel)?.l||moisSel;
+            let txt=`=== RÉCAPITULATIF ${ml.toUpperCase()} ===\n\n`;
+            Object.values(parLog).forEach(({zone:z,taches})=>{
+              txt+=`📍 ${z?.nom||"?"}\n`;
+              if(z?.adresse)txt+=`   Adresse : ${z.adresse}\n`;
+              taches.forEach(t=>{const e=empH(t.employeId);txt+=`   ✓ ${t.date||"?"} ${t.heure} — ${t.type} (${e?.nom||"?"})\n`;});
+              txt+=`   Sous-total : ${taches.length} tâche(s)\n\n`;
+            });
+            txt+=`TOTAL : ${nbTotal} tâche(s) · ${Object.keys(parLog).length} logement(s)`;
+            navigator.clipboard.writeText(txt).then(()=>toast_("📋 Récapitulatif copié !")).catch(()=>toast_("Copie impossible","err"));
+          }}>📋 Copier le récapitulatif</button>
+      )}
+    </div>
+  );
+}
+
+
 // ── PinRow — composant isolé pour éviter hooks dans .map() ──────────────────
 function PinRow({emp,onSavePin}){
   const [edit,setEdit]=useState(false);
@@ -1297,6 +1380,7 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
 
   const menuItems=[
     {id:"gestion_equipe", icon:"👥", label:"Gestion Équipe",   desc:"Membres, rôles, droits et PIN"},
+    {id:"historique",     icon:"⧗", label:"Historique",       desc:"Tâches terminées & récapitulatif"},
     {id:"notifs",         icon:"🔔", label:"Notifications",    desc:"Activité récente", badge:nbNotifsBadge},
     {id:"nuit",           icon:"🌙", label:"Mode nuit",        desc:"Interface sombre"},
   ];
@@ -1392,6 +1476,13 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
         </div>
       )}
 
+
+      {/* ── HISTORIQUE ── */}
+      {onglet==="historique"&&(
+        <div style={{padding:"0 12px 14px"}}>
+          <HistoriqueInline data={data} toast_={toast_} nightMode={nightMode}/>
+        </div>
+      )}
 
       {/* ── NOTIFICATIONS ── */}
       {onglet==="notifs"&&(
@@ -1836,8 +1927,37 @@ function Messages({data,setData,currentUser,toast_}){
   };
 
   // ── Vue archives ──
+  const [selArchives,setSelArchives]=useState(new Set());
+  const [modeSelection,setModeSelection]=useState(false);
   const vueArchives=()=>(
     <div style={{flex:1,overflowY:"auto",padding:"12px"}}>
+      {/* Header archives avec gestion */}
+      {msgArchives.length>0&&(
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+          <button
+            onClick={()=>{setModeSelection(s=>!s);setSelArchives(new Set());}}
+            style={{flex:1,padding:"8px 12px",background:modeSelection?"#fef2f2":"#f8fafc",border:`1px solid ${modeSelection?"#fecaca":"#e2e8f0"}`,borderRadius:10,fontSize:12,fontWeight:700,color:modeSelection?"#dc2626":TXT2,cursor:"pointer"}}>
+            {modeSelection?"✕ Annuler":"☑️ Sélectionner"}
+          </button>
+          {modeSelection&&selArchives.size>0&&(
+            <button
+              onClick={()=>{
+                setData(d=>({...d,messages:(d.messages||[]).filter(m=>!selArchives.has(m.id))}));
+                setSelArchives(new Set());setModeSelection(false);
+              }}
+              style={{padding:"8px 14px",background:"#dc2626",border:"none",borderRadius:10,fontSize:12,fontWeight:700,color:"white",cursor:"pointer"}}>
+              🗑️ Supprimer ({selArchives.size})
+            </button>
+          )}
+          {modeSelection&&(
+            <button
+              onClick={()=>setSelArchives(new Set(msgArchives.map(m=>m.id)))}
+              style={{padding:"8px 12px",background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:10,fontSize:11,fontWeight:700,color:TXT2,cursor:"pointer"}}>
+              Tout
+            </button>
+          )}
+        </div>
+      )}
       {msgArchives.length===0&&(
         <div style={{textAlign:"center",padding:"48px 20px",color:TXT3}}>
           <div style={{fontSize:36,marginBottom:8}}>🗄️</div>
@@ -1846,9 +1966,20 @@ function Messages({data,setData,currentUser,toast_}){
       )}
       {msgArchives.map(m=>{
         const e=emp(m.empId);const z=zone(m.zoneId);
+        const isSel=selArchives.has(m.id);
         return(
-          <div key={m.id} style={{...S.card,marginBottom:8,opacity:.75}}>
+          <div key={m.id}
+            onClick={()=>{if(modeSelection){setSelArchives(s=>{const n=new Set(s);n.has(m.id)?n.delete(m.id):n.add(m.id);return n;});}}}
+            style={{...S.card,marginBottom:8,opacity:modeSelection&&!isSel?.55:1,
+              border:isSel?"2px solid #dc2626":undefined,
+              background:isSel?"#fef2f2":undefined,
+              cursor:modeSelection?"pointer":"default",transition:"all .15s"}}>
             <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
+              {modeSelection&&(
+                <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${isSel?"#dc2626":"#d1d5db"}`,background:isSel?"#dc2626":"white",flexShrink:0,marginTop:6,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  {isSel&&<span style={{color:"white",fontSize:12,fontWeight:900}}>✓</span>}
+                </div>
+              )}
               <Avatar emp={e} size={32}/>
               <div style={{flex:1}}>
                 <div style={{fontWeight:700,fontSize:13}}>{m.nom}</div>
@@ -1856,10 +1987,12 @@ function Messages({data,setData,currentUser,toast_}){
                 <div style={{fontSize:13,color:TXT2,marginTop:2}}>{m.texte}</div>
                 <div style={{fontSize:10,color:TXT3,marginTop:3}}>{m.ts}</div>
               </div>
-              <button onClick={()=>desarchiverMsg(m.id)}
-                style={{border:`1px solid ${BORDER}`,background:"#f8fafc",color:TXT2,borderRadius:8,padding:"4px 8px",fontSize:10,cursor:"pointer",flexShrink:0}}>
-                Restaurer
-              </button>
+              {!modeSelection&&(
+                <button onClick={()=>desarchiverMsg(m.id)}
+                  style={{border:`1px solid ${BORDER}`,background:"#f8fafc",color:TXT2,borderRadius:8,padding:"4px 8px",fontSize:10,cursor:"pointer",flexShrink:0}}>
+                  Restaurer
+                </button>
+              )}
             </div>
           </div>
         );
@@ -2113,7 +2246,7 @@ export default function App(){
 
   // Écran PIN si pas connecté
   if(!currentUser){
-    return <EcranPin employes={data.employes.filter(e=>e.actif)} onLogin={u=>setCurrentUser(u)}/>;
+    return <EcranPin employes={data.employes.filter(e=>e.actif)} onLogin={u=>{setCurrentUser(u);if(u.role==="employe")setView("planning");}}/>;
   }
 
   const isAdmin=currentUser?.role==="admin"||currentUser?.role==="manager";
@@ -2129,13 +2262,16 @@ export default function App(){
   const nbNotifs=(data.notifications||[]).filter(n=>n.type==="probleme"&&!n.lu).length;
   const appBg=nightMode?"#0a0a0f":SURFACE;
 
-  const navItems=[
+  const navItems=isEmp?[
+    {id:"planning",   icon:"⊟",label:"Planning"},
+    {id:"parametres", icon:"⊞",label:"Paramètres"},
+  ]:[
     {id:"accueil",    icon:"◉",label:"Accueil"},
     {id:"planning",   icon:"⊟",label:"Planning"},
     ...(isAdmin?[{id:"zones",icon:"⌂",label:"Logements"}]:[]),
     {id:"messages",   icon:"✉",label:"Messages"},
-    {id:"historique", icon:"⧗",label:"Historique"},
-    {id:"parametres", icon:"⊞",label:isAdmin?"Admin":"Paramètres"},
+
+    {id:"parametres", icon:"⊞",label:"Admin"},
   ];
 
   const isPlanning=view==="planning";
@@ -2148,7 +2284,7 @@ export default function App(){
       {view==="planning"   &&<Planning   data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} weekOff={weekOff} setWeekOff={setWeekOff} filterEmp={filterEmp} setFilterEmp={setFilterEmp} onEditTache={isAdmin?openEditTache:null} onNewTache={isAdmin?openNewTache:null} isReadOnly={isEmp}/>}
       {view==="zones"      &&isAdmin&&<Logements  data={data} onEdit={openEditZone} onOpenTypes={()=>setModal("types")} isReadOnly={false}/>}
       {view==="messages"   &&<Messages   data={data} setData={setData} currentUser={currentUser} toast_={toast_}/>}
-      {view==="historique" &&<Historique data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} currentUser={currentUser} isEmp={isEmp}/>}
+
       {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode}/>}
       {view==="parametres" &&isEmp&&<EmpParametres emp={currentUser} setData={setData} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode}/>}
     </>
