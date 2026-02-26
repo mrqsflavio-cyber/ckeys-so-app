@@ -1267,6 +1267,7 @@ function PinRow({emp,onSavePin}){
 // ══════════════════════════════════════════════════════════════════════════════
 function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
   const [onglet,setOnglet]=useState(null); // null = menu principal
+  const [notifDetail,setNotifDetail]=useState(null);
 
   // Mark notifications as read when opening notifs tab
   function ouvrirNotifs(){
@@ -1391,37 +1392,135 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
         </div>
       )}
 
+
       {/* ── NOTIFICATIONS ── */}
       {onglet==="notifs"&&(
         <div style={{padding:"0 12px 14px"}}>
-          <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:14}}>🔔 Notifications</div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+            <div style={{fontWeight:900,fontSize:16,color:TXT}}>🔔 Notifications</div>
+            {(data.notifications||[]).some(n=>n.type==="probleme")&&(
+              <button onClick={()=>setData(d=>({...d,notifications:(d.notifications||[]).filter(n=>n.type!=="probleme")}))}
+                style={{border:"1px solid #fecaca",background:"#fef2f2",color:"#dc2626",borderRadius:8,padding:"4px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                🗑️ Tout effacer
+              </button>
+            )}
+          </div>
           {(data.notifications||[]).length===0&&(
             <div style={{...S.card,textAlign:"center",color:"#94a3b8",padding:"32px",fontSize:13}}>
               🔔 Aucune notification pour l'instant<br/>
-              <span style={{fontSize:11,marginTop:6,display:"block"}}>Les nouvelles tâches assignées apparaîtront ici</span>
+              <span style={{fontSize:11,marginTop:6,display:"block"}}>Les problèmes signalés apparaîtront ici</span>
             </div>
           )}
           {(data.notifications||[]).slice().reverse().map((n,i)=>{
-            const emp=data.employes.find(e=>e.id===n.empId);
-            const zone=data.zones.find(z=>z.id===n.zoneId);
+            const empN=data.employes.find(e=>e.id===n.empId);
+            const zoneN=data.zones.find(z=>z.id===n.zoneId);
+            const isProbleme=n.type==="probleme";
+            const hasDetail=isProbleme&&(n.note||n.photo);
             return(
-              <div key={i} style={{...S.card,display:"flex",gap:12,alignItems:"flex-start"}}>
-                <div style={{width:36,height:36,borderRadius:"50%",background:n.type==="nouvelle"?GOLD_BG:n.type==="probleme"?"#fdecea":GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>
-                  {n.type==="nouvelle"?"📋":n.type==="probleme"?"⚠️":"✅"}
+              <div key={i}
+                onClick={()=>hasDetail&&setNotifDetail(n)}
+                style={{...S.card,display:"flex",gap:12,alignItems:"flex-start",
+                  cursor:hasDetail?"pointer":"default",
+                  border:isProbleme?"1.5px solid #fecaca":undefined,
+                  background:isProbleme?(nightMode?"#2a1010":"#fff8f8"):undefined,
+                  position:"relative",overflow:"hidden"}}>
+                {isProbleme&&<div style={{position:"absolute",left:0,top:0,bottom:0,width:4,background:"#dc2626",borderRadius:"18px 0 0 18px"}}/>}
+                <div style={{width:40,height:40,borderRadius:12,background:isProbleme?"#fdecea":GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,marginLeft:isProbleme?4:0}}>
+                  {n.type==="nouvelle"?"📋":isProbleme?"⚠️":"✅"}
                 </div>
-                <div style={{flex:1}}>
-                  <div style={{fontWeight:700,fontSize:13,color:"#1e293b"}}>{n.msg}</div>
-                  <div style={{fontSize:11,color:"#94a3b8",marginTop:2}}>
-                    {emp&&<span>👤 {emp.nom}</span>}
-                    {zone&&<span style={{marginLeft:6}}>🏠 {zone.nom}</span>}
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:700,fontSize:13,color:isProbleme?"#b91c1c":TXT}}>{n.msg}</div>
+                  <div style={{fontSize:11,color:"#94a3b8",marginTop:3,display:"flex",gap:6,flexWrap:"wrap"}}>
+                    {empN&&<span style={{background:(empN.couleur||"#ccc")+"22",color:empN.couleur||"#888",borderRadius:20,padding:"1px 7px",fontWeight:600}}>👤 {empN.nom}</span>}
+                    {zoneN&&<span style={{background:"#f1f5f9",borderRadius:20,padding:"1px 7px"}}>🏠 {zoneN.nom}</span>}
                   </div>
-                  <div style={{fontSize:10,color:"#cbd5e1",marginTop:1}}>{n.ts}</div>
+                  {n.note&&(
+                    <div style={{fontSize:11,color:"#6b7280",marginTop:4,fontStyle:"italic",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      📝 {n.note}
+                    </div>
+                  )}
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:4}}>
+                    <div style={{fontSize:10,color:"#cbd5e1"}}>{n.ts}</div>
+                    {hasDetail&&<div style={{fontSize:11,color:"#dc2626",fontWeight:700}}>{n.photo?"📷 ":""}Voir détail →</div>}
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
       )}
+
+      {/* ── MODAL DÉTAIL PROBLÈME ── */}
+      {notifDetail&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.72)",backdropFilter:"blur(8px)",zIndex:400,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
+          onClick={e=>e.target===e.currentTarget&&setNotifDetail(null)}>
+          <div style={{background:nightMode?"#1e1e2e":"white",borderRadius:"24px 24px 0 0",padding:"20px 20px 40px",width:"100%",maxWidth:480,maxHeight:"90vh",overflowY:"auto",borderTop:"3px solid #dc2626"}}>
+            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:18}}>
+              <div style={{width:44,height:44,borderRadius:12,background:"#fdecea",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>⚠️</div>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:900,fontSize:15,color:"#b91c1c"}}>{notifDetail.msg}</div>
+                <div style={{fontSize:11,color:"#94a3b8",marginTop:2}}>{notifDetail.ts}</div>
+              </div>
+              <button onClick={()=>setNotifDetail(null)}
+                style={{border:"none",background:"#f4f4f5",borderRadius:10,width:34,height:34,cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center",color:"#52525b",flexShrink:0}}>✕</button>
+            </div>
+
+            <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
+              {(()=>{const e=data.employes.find(x=>x.id===notifDetail.empId);return e&&(
+                <div style={{display:"flex",alignItems:"center",gap:8,background:"#f8fafc",borderRadius:12,padding:"8px 12px",border:"1px solid #e2e8f0",flex:1}}>
+                  <div style={{width:34,height:34,borderRadius:"50%",background:e.couleur||"#ccc",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,overflow:"hidden"}}>
+                    {e.photo?<img src={e.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{color:"white",fontWeight:900,fontSize:13}}>{(e.nom||"?")[0]}</span>}
+                  </div>
+                  <div><div style={{fontWeight:700,fontSize:13}}>{e.nom}</div><div style={{fontSize:10,color:"#94a3b8"}}>Employé(e)</div></div>
+                </div>
+              );})()}
+              {(()=>{const z=data.zones.find(x=>x.id===notifDetail.zoneId);return z&&(
+                <div style={{display:"flex",alignItems:"center",gap:8,background:"#f8fafc",borderRadius:12,padding:"8px 12px",border:"1px solid #e2e8f0",flex:1}}>
+                  <span style={{fontSize:22}}>🏠</span>
+                  <div><div style={{fontWeight:700,fontSize:13}}>{z.nom}</div><div style={{fontSize:10,color:"#94a3b8"}}>Logement</div></div>
+                </div>
+              );})()}
+            </div>
+
+            {notifDetail.note&&(
+              <div style={{background:"#fef2f2",border:"1px solid #fecaca",borderRadius:14,padding:"14px 16px",marginBottom:14}}>
+                <div style={{fontSize:10,fontWeight:800,color:"#dc2626",textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>📝 Note de l'employé</div>
+                <div style={{fontSize:14,color:"#1e293b",lineHeight:1.65,fontStyle:"italic"}}>"{notifDetail.note}"</div>
+              </div>
+            )}
+
+            {notifDetail.photo&&(
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:10,fontWeight:800,color:"#dc2626",textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>📷 Photo du problème</div>
+                <img src={notifDetail.photo} alt="photo problème"
+                  onClick={()=>window.open(notifDetail.photo,"_blank")}
+                  style={{width:"100%",borderRadius:14,objectFit:"cover",maxHeight:280,border:"2px solid #fecaca",cursor:"zoom-in",display:"block"}}/>
+                <div style={{fontSize:10,color:"#94a3b8",marginTop:5,textAlign:"center"}}>Appuyer sur la photo pour l'agrandir</div>
+              </div>
+            )}
+
+            {notifDetail.tacheId&&(()=>{
+              const t=data.taches.find(x=>x.id===notifDetail.tacheId);
+              return t?(
+                <div style={{background:"#f8fafc",borderRadius:14,padding:"12px 14px",border:"1px solid #e2e8f0",marginBottom:14}}>
+                  <div style={{fontSize:10,fontWeight:800,color:"#64748b",textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>📋 Tâche concernée</div>
+                  <div style={{fontWeight:700,fontSize:14}}>{t.type}</div>
+                  <div style={{fontSize:12,color:"#64748b",marginTop:2}}>⏰ {t.heure} · {t.date}</div>
+                </div>
+              ):null;
+            })()}
+
+            <button onClick={()=>{
+              const idx=(data.notifications||[]).slice().reverse().indexOf(notifDetail);
+              setData(d=>{const rev=[...(d.notifications||[])].reverse();rev.splice(idx,1);return{...d,notifications:rev.reverse()};});
+              setNotifDetail(null);
+            }} style={{width:"100%",padding:"13px",background:"#fef2f2",color:"#dc2626",border:"1px solid #fecaca",borderRadius:12,fontSize:13,fontWeight:700,cursor:"pointer"}}>
+              🗑️ Effacer cette notification
+            </button>
+          </div>
+        </div>
+      )}
+
 
       {/* ── MODE NUIT ── */}
       {onglet==="nuit"&&(
@@ -1955,7 +2054,7 @@ export default function App(){
       ...d,
       taches:d.taches.map(x=>x.id===tacheId?{...x,statut:"probleme",noteProbleme:note,photoProbleme:photoProbleme||null}:x),
       messages:[...(d.messages||[]),msgProbleme],
-      notifications:[...(d.notifications||[]),{type:"probleme",msg:`Problème signalé : ${t?.type||"tâche"}`,empId:t?.employeId,zoneId:t?.zoneId,ts:new Date().toLocaleString("fr-FR"),lu:false}].slice(-50),
+      notifications:[...(d.notifications||[]),{type:"probleme",msg:`Problème signalé : ${t?.type||"tâche"}`,empId:t?.employeId,zoneId:t?.zoneId,tacheId:tacheId,note:note||null,photo:photoProbleme||null,ts:new Date().toLocaleString("fr-FR"),lu:false}].slice(-50),
     }));
     setProblemeId(null);
     toast_("Problème signalé ✓");
