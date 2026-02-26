@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { db } from "./firebase";
-import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 
 // ─── Palette CKeys — Nouvelle ère ────────────────────────────────────────────
 const GOLD        = "#c9a84c";  // or principal
@@ -66,6 +64,16 @@ function mapsUrl(a){return`https://www.google.com/maps/search/?api=1&query=${enc
 function usePhotoPicker(setter){
   const ref=useRef();
   return{ref,pick:()=>ref.current.click(),handle:(e)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setter(ev.target.result);r.readAsDataURL(f);}};
+}
+
+function useIsDesktop(){
+  const [isDesktop,setIsDesktop]=useState(()=>window.innerWidth>=900);
+  useEffect(()=>{
+    const handler=()=>setIsDesktop(window.innerWidth>=900);
+    window.addEventListener("resize",handler);
+    return()=>window.removeEventListener("resize",handler);
+  },[]);
+  return isDesktop;
 }
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
@@ -1638,8 +1646,8 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
 // APP PRINCIPALE
 // ══════════════════════════════════════════════════════════════════════════════
 export default function App(){
-  const [data,setData]=useState(SEED);
-  const [loading,setLoading]=useState(true);
+  const isDesktop=useIsDesktop();
+  const [data,setData]=useState(()=>{try{const s=localStorage.getItem("cmg5");return s?JSON.parse(s):SEED;}catch{return SEED;}});
   const [view,setView]=useState("accueil");
   const [weekOff,setWeekOff]=useState(0);
   const [modal,setModal]=useState(null);
@@ -1648,37 +1656,17 @@ export default function App(){
   const [toast,setToast]=useState(null);
   const [problemeId,setProblemeId]=useState(null);
   const [currentUser,setCurrentUser]=useState(null);
-  const [nightMode,setNightMode]=useState(false);
+  const [nightMode,setNightMode]=useState(()=>{try{return localStorage.getItem("cmg_night")==="1";}catch{return false;}});
 
-  const toggleNightMode=useCallback(()=>setNightMode(n=>!n),[]);
-
-  // ── Chargement initial depuis Firestore + écoute en temps réel ──
-  useEffect(()=>{
-    const ref=doc(db,"app","data");
-    // Écoute en temps réel → toute modification par n'importe quel appareil se synchronise
-    const unsub=onSnapshot(ref,(snap)=>{
-      if(snap.exists()){
-        setData(snap.data());
-      } else {
-        // Première utilisation : on envoie le SEED dans Firestore
-        setDoc(ref,SEED);
-      }
-      setLoading(false);
-    },(err)=>{
-      console.error("Firestore error:",err);
-      setLoading(false);
+  const toggleNightMode=useCallback(()=>{
+    setNightMode(n=>{
+      const next=!n;
+      try{localStorage.setItem("cmg_night",next?"1":"0");}catch{}
+      return next;
     });
-    return ()=>unsub();
   },[]);
 
-  // ── Sauvegarde dans Firestore à chaque modification ──
-  const isMounted=useRef(false);
-  useEffect(()=>{
-    if(!isMounted.current){isMounted.current=true;return;}
-    if(loading) return;
-    const ref=doc(db,"app","data");
-    setDoc(ref,data).catch(e=>console.error("Save error:",e));
-  },[data,loading]);
+  useEffect(()=>{try{localStorage.setItem("cmg5",JSON.stringify(data));}catch{}},[data]);
 
   const toast_=useCallback((m,t="ok")=>{setToast({m,t});setTimeout(()=>setToast(null),2400);},[]);
   const close=useCallback(()=>setModal(null),[]);
@@ -1753,16 +1741,6 @@ export default function App(){
   const openEditEmp=(e)=>{setForm(e?{...e}:{actif:true,photo:null,tel:"",email:"",pin:"",role:"employe"});setModal("employe");};
   const openEditZone=(z)=>{setForm(z?{...z}:{});setModal("zone");};
 
-  // ── Écran de chargement Firestore ──
-  if(loading) return(
-    <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${NOIR},#141408)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:20}}>
-      <img src={LOGO} alt="CKeys" style={{width:100,height:100,objectFit:"contain",borderRadius:20,opacity:.8}}/>
-      <div style={{color:GOLD,fontSize:13,fontWeight:700,letterSpacing:2,opacity:.7}}>Chargement des données...</div>
-      <div style={{width:40,height:40,border:`3px solid ${GOLD}33`,borderTop:`3px solid ${GOLD}`,borderRadius:"50%",animation:"spin 1s linear infinite"}}/>
-      <style>{`@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
-
   // Écran PIN si pas connecté
   if(!currentUser){
     return <EcranPin employes={data.employes.filter(e=>e.actif)} onLogin={u=>setCurrentUser(u)}/>;
@@ -1789,6 +1767,120 @@ export default function App(){
   // Badge notifs
   const appBg = nightMode?"#0a0a0f":SURFACE;
 
+  // ── Contenu principal partagé mobile/desktop ──
+  const ContentArea = () => (
+    <>
+      {view==="accueil"    &&<Accueil    data={isEmp?{...data,employes:data.employes.filter(e=>e.id===currentUser.id)}:data} updateSt={updateSt} onEditTache={isAdmin?openEditTache:null} onToggleCheck={toggleCheck} onSignalerProbleme={setProblemeId} onSignalerMessage={isEmp?(msg)=>{setData(d=>({...d,messages:[...(d.messages||[]),{id:Date.now(),empId:currentUser.id,nom:currentUser.nom,texte:msg.texte,zoneId:msg.zoneId,ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),type:"probleme"}]}));toast_("Message envoyé ✓");}:null}/>}
+      {view==="planning"   &&<Planning   data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} weekOff={weekOff} setWeekOff={setWeekOff} filterEmp={filterEmp} setFilterEmp={setFilterEmp} onEditTache={isAdmin?openEditTache:null} onNewTache={isAdmin?openNewTache:null} isReadOnly={isEmp}/>}
+      {view==="zones"      &&isAdmin&&<Logements  data={data} onEdit={openEditZone} onOpenTypes={()=>setModal("types")} isReadOnly={false}/>}
+      {view==="messages"   &&<Messages   data={data} setData={setData} currentUser={currentUser} toast_={toast_}/>}
+      {view==="historique" &&<Historique data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} currentUser={currentUser} isEmp={isEmp}/>}
+      {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode}/>}
+      {view==="parametres" &&isEmp&&<EmpParametres emp={currentUser} setData={setData} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode}/>}
+    </>
+  );
+
+  const Modals = () => (
+    <>
+      {(modal==="tache"||modal==="tache_edit")&&(
+        <ModalTache editMode={modal==="tache_edit"} form={form} setForm={setForm}
+          employes={data.employes} zones={data.zones} types={data.typesPerso||DEFAULT_TYPES}
+          onSave={saveTache} onDelete={delTache} onClose={close}/>
+      )}
+      {modal==="employe"&&<ModalEmploye form={form} setForm={setForm} onSave={saveEmp} onDelete={delEmp} onClose={close}/>}
+      {modal==="zone"   &&<ModalLogement form={form} setForm={setForm} onSave={saveZone} onDelete={delZone} onClose={close}/>}
+      {modal==="types"  &&<ModalTypes types={data.typesPerso||DEFAULT_TYPES} onSave={saveTypes} onClose={close}/>}
+      {problemeId&&<ModalProbleme tacheId={problemeId} onConfirm={confirmerProbleme} onClose={()=>setProblemeId(null)}/>}
+    </>
+  );
+
+  // ══════════════════════════════════════════════════════
+  // VERSION DESKTOP
+  // ══════════════════════════════════════════════════════
+  if(isDesktop) return(
+    <div style={{display:"flex",height:"100vh",background:nightMode?"#0a0a0f":"#f0f2f5",fontFamily:"'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",overflow:"hidden"}}>
+
+      {/* ── SIDEBAR GAUCHE ── */}
+      <div style={{width:240,background:NOIR3,display:"flex",flexDirection:"column",borderRight:"1px solid rgba(255,255,255,.06)",flexShrink:0}}>
+        {/* Logo */}
+        <div style={{padding:"22px 20px 18px",borderBottom:"1px solid rgba(255,255,255,.06)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <img src={LOGO} alt="CKeys" style={{width:42,height:42,objectFit:"contain",borderRadius:10,background:"rgba(255,255,255,.06)",padding:3}}/>
+            <div>
+              <div style={{color:"white",fontWeight:900,fontSize:16,letterSpacing:-.5}}>CKeys</div>
+              <div style={{color:GOLD,fontSize:10,fontWeight:600,opacity:.8}}>{currentUser.nom}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav style={{flex:1,padding:"12px 10px",display:"flex",flexDirection:"column",gap:3}}>
+          {navItems.map(item=>{
+            const active=view===item.id;
+            const hasBadge=(item.id==="messages"&&nbMsgs>0)||(item.id==="parametres"&&(data.notifications||[]).filter(n=>n.type==="probleme").length>0);
+            const badgeCount=item.id==="messages"?nbMsgs:(data.notifications||[]).filter(n=>n.type==="probleme").length;
+            return(
+              <button key={item.id} onClick={()=>setView(item.id)}
+                style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",borderRadius:12,border:"none",background:active?`${GOLD}18`:"transparent",color:active?GOLD:"rgba(255,255,255,.5)",cursor:"pointer",transition:"all .15s",textAlign:"left",fontWeight:active?700:500,fontSize:14,position:"relative"}}>
+                <span style={{fontSize:18,width:22,textAlign:"center"}}>{item.icon}</span>
+                <span>{item.label}</span>
+                {hasBadge&&<span style={{marginLeft:"auto",background:"#ef4444",color:"white",borderRadius:20,minWidth:18,height:18,fontSize:10,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 5px"}}>{badgeCount>9?"9+":badgeCount}</span>}
+                {active&&<div style={{position:"absolute",left:0,top:"50%",transform:"translateY(-50%)",width:3,height:20,background:GOLD,borderRadius:"0 3px 3px 0"}}/>}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Bas sidebar */}
+        <div style={{padding:"14px 10px",borderTop:"1px solid rgba(255,255,255,.06)"}}>
+          {isAdmin&&(view==="accueil"||view==="planning")&&(
+            <button onClick={()=>openNewTache()}
+              style={{width:"100%",padding:"12px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:"#1a0d00",fontSize:14,fontWeight:700,cursor:"pointer",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              ＋ Nouvelle tâche
+            </button>
+          )}
+          <button onClick={()=>setCurrentUser(null)}
+            style={{width:"100%",padding:"10px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.5)",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:600}}>
+            ↩ Déconnexion
+          </button>
+        </div>
+      </div>
+
+      {/* ── CONTENU PRINCIPAL ── */}
+      <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+        {/* Topbar desktop */}
+        <div style={{background:"white",borderBottom:"1px solid #e8edf3",padding:"14px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,boxShadow:"0 1px 4px rgba(0,0,0,.04)"}}>
+          <div>
+            <div style={{fontWeight:800,fontSize:18,color:TXT,letterSpacing:-.3}}>
+              {navItems.find(n=>n.id===view)?.label||"Accueil"}
+            </div>
+            <div style={{fontSize:12,color:TXT3,marginTop:1}}>{fmtDate(new Date())}</div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            {toast&&<div style={{background:toast.t==="err"?"#dc2626":NOIR3,color:"white",padding:"8px 18px",borderRadius:50,fontSize:13,fontWeight:600,boxShadow:"0 4px 20px rgba(0,0,0,.2)"}}>{toast.m}</div>}
+            <Avatar emp={currentUser} size={36}/>
+            <div>
+              <div style={{fontWeight:700,fontSize:13,color:TXT}}>{currentUser.nom}</div>
+              <div style={{fontSize:10,color:TXT3}}>{currentUser.role==="admin"?"Administrateur":currentUser.role==="manager"?"Manager":"Employé"}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Zone scrollable */}
+        <div style={{flex:1,overflowY:"auto",background:nightMode?"#0a0a0f":"#f0f2f5"}}>
+          <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 24px"}}>
+            <ContentArea/>
+          </div>
+        </div>
+      </div>
+
+      <Modals/>
+    </div>
+  );
+
+  // ══════════════════════════════════════════════════════
+  // VERSION MOBILE (inchangée)
+  // ══════════════════════════════════════════════════════
   return(
     <div style={{...S.app,background:appBg,...(isFullscreen?{height:"100vh",overflow:"hidden",paddingBottom:0}:{})}}>
       <div style={{...S.topbar}}>
@@ -1809,28 +1901,14 @@ export default function App(){
       {toast&&<div style={S.toast(toast.t)}>{toast.m}</div>}
 
       <div style={isFullscreen?{flex:1,overflow:"hidden",display:"flex",flexDirection:"column"}:{paddingTop:12,paddingBottom:82}}>
-        {view==="accueil"    &&<Accueil    data={isEmp?{...data,employes:data.employes.filter(e=>e.id===currentUser.id)}:data} updateSt={updateSt} onEditTache={isAdmin?openEditTache:null} onToggleCheck={toggleCheck} onSignalerProbleme={setProblemeId} onSignalerMessage={isEmp?(msg)=>{setData(d=>({...d,messages:[...(d.messages||[]),{id:Date.now(),empId:currentUser.id,nom:currentUser.nom,texte:msg.texte,zoneId:msg.zoneId,ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),type:"probleme"}]}));toast_("Message envoyé ✓");}:null}/>}
-        {view==="planning"   &&<Planning   data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} weekOff={weekOff} setWeekOff={setWeekOff} filterEmp={filterEmp} setFilterEmp={setFilterEmp} onEditTache={isAdmin?openEditTache:null} onNewTache={isAdmin?openNewTache:null} isReadOnly={isEmp}/>}
-        {view==="zones"      &&isAdmin&&<Logements  data={data} onEdit={openEditZone} onOpenTypes={()=>setModal("types")} isReadOnly={false}/>}
-        {view==="messages"   &&<Messages   data={data} setData={setData} currentUser={currentUser} toast_={toast_}/>}
-        {view==="historique" &&<Historique data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} currentUser={currentUser} isEmp={isEmp}/>}
-        {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode}/>}
-        {view==="parametres" &&isEmp&&<EmpParametres emp={currentUser} setData={setData} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode}/>}
+        <ContentArea/>
       </div>
 
       {isAdmin&&(view==="accueil"||view==="planning")&&(
         <button style={{...S.fab,bottom:isPlanning?66:92}} onClick={()=>openNewTache()}>＋</button>
       )}
 
-      {(modal==="tache"||modal==="tache_edit")&&(
-        <ModalTache editMode={modal==="tache_edit"} form={form} setForm={setForm}
-          employes={data.employes} zones={data.zones} types={data.typesPerso||DEFAULT_TYPES}
-          onSave={saveTache} onDelete={delTache} onClose={close}/>
-      )}
-      {modal==="employe"&&<ModalEmploye form={form} setForm={setForm} onSave={saveEmp} onDelete={delEmp} onClose={close}/>}
-      {modal==="zone"   &&<ModalLogement form={form} setForm={setForm} onSave={saveZone} onDelete={delZone} onClose={close}/>}
-      {modal==="types"  &&<ModalTypes types={data.typesPerso||DEFAULT_TYPES} onSave={saveTypes} onClose={close}/>}
-      {problemeId&&<ModalProbleme tacheId={problemeId} onConfirm={confirmerProbleme} onClose={()=>setProblemeId(null)}/>}
+      <Modals/>
 
       <nav style={{...S.nav}}>
         {navItems.map(item=>(
