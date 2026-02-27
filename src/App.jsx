@@ -2959,10 +2959,29 @@ function AppInner(){
     typeof Notification!=="undefined"?Notification.permission:"default"
   );
 
-  // ── Appliquer la taille du texte sur tout le document ──
+  // ── Appliquer la taille du texte via zoom CSS sur tout le conteneur ──
   useEffect(()=>{
-    const scales={normal:"16px",grand:"19px",tresGrand:"22px"};
-    document.documentElement.style.fontSize=scales[textSize]||"16px";
+    const zooms={normal:"1",grand:"1.18",tresGrand:"1.38"};
+    const zoom=zooms[textSize]||"1";
+    let styleEl=document.getElementById("ckeys-textsize-style");
+    if(!styleEl){styleEl=document.createElement("style");styleEl.id="ckeys-textsize-style";document.head.appendChild(styleEl);}
+    if(zoom==="1"){
+      styleEl.textContent="";
+    } else {
+      styleEl.textContent=`
+        #ckeys-root {
+          zoom: ${zoom};
+        }
+        @supports not (zoom: 1) {
+          #ckeys-root {
+            transform: scale(${zoom});
+            transform-origin: top center;
+            width: ${(100/parseFloat(zoom)).toFixed(2)}%;
+            margin-left: ${((1-1/parseFloat(zoom))*50).toFixed(2)}%;
+          }
+        }
+      `;
+    }
     try{localStorage.setItem("ckeys_textsize",textSize);}catch{}
   },[textSize]);
 
@@ -3397,7 +3416,7 @@ function AppInner(){
   // MOBILE — layout original
   // ══════════════════════════════════════════════════════
   return(
-    <div style={{...S.app,background:appBg}}>
+    <div id="ckeys-root" style={{...S.app,background:appBg}}>
       <div style={{...S.topbar}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
