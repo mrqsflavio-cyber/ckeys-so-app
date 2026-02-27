@@ -1841,7 +1841,7 @@ function GestionPieces({data,setData,toast_}){
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE PARAMÈTRES — avec onglets : Équipe + Gestion droits + PIN + Général
 // ══════════════════════════════════════════════════════════════════════════════
-function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pushEnabled,setPushEnabled,pushPermission,demanderNotifPush,onZoomPhoto}){
+function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pushEnabled,setPushEnabled,pushPermission,demanderNotifPush,onZoomPhoto,textSize,setTextSize}){
   const [onglet,setOnglet]=useState(null); // null = menu principal
   const [notifDetail,setNotifDetail]=useState(null);
 
@@ -1879,6 +1879,7 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
     {id:"notifs",         icon:"🔔", label:"Notifications",    desc:"Activité récente", badge:nbNotifsBadge},
     {id:"notifications",  icon:"🔔", label:"Notifications push", desc:"Alertes en temps réel"},
     {id:"nuit",           icon:"🌙", label:"Mode nuit",        desc:"Interface sombre"},
+    {id:"taille",         icon:"🔡", label:"Taille de l'écriture", desc:textSize==="normal"?"Taille normale":textSize==="grand"?"Grands caractères":"Très grands caractères"},
     {id:"tracking",        icon:"📍", label:"Tracking horaires",  desc:"Suivi arrivée/départ des employés"},
   ];
 
@@ -2252,6 +2253,39 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
               style={{width:52,height:28,borderRadius:14,background:nightMode?GOLD:"#e2e8f0",cursor:"pointer",position:"relative",transition:"background .3s",flexShrink:0}}>
               <div style={{width:22,height:22,borderRadius:"50%",background:"white",position:"absolute",top:3,left:nightMode?27:3,transition:"left .3s",boxShadow:"0 2px 6px rgba(0,0,0,.25)"}}/>
             </div>
+          </div>
+        </div>
+      )}
+      {onglet==="taille"&&(
+        <div style={{padding:"0 12px 14px"}}>
+          <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:6}}>🔡 Taille de l'écriture</div>
+          <div style={{fontSize:12,color:TXT3,marginBottom:16}}>Choisissez la taille du texte dans toute l'application.</div>
+          {[
+            {id:"normal",    label:"Normale",            desc:"Taille standard",          preview:"Aa"},
+            {id:"grand",     label:"Grande",             desc:"Texte agrandi",            preview:"Aa"},
+            {id:"tresGrand", label:"Très grande",        desc:"Pour les petits caractères",preview:"Aa"},
+          ].map(opt=>{
+            const sel=textSize===opt.id;
+            const previewSize=opt.id==="normal"?18:opt.id==="grand"?24:30;
+            return(
+              <div key={opt.id} onClick={()=>setTextSize(opt.id)}
+                style={{display:"flex",alignItems:"center",gap:14,background:sel?GOLD_BG:CARD,borderRadius:14,padding:"16px",marginBottom:10,border:`2px solid ${sel?GOLD:"#e2e8f0"}`,cursor:"pointer",transition:"all .2s"}}>
+                <div style={{width:56,height:56,borderRadius:12,background:sel?`${GOLD}22`:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontWeight:900,fontSize:previewSize,color:sel?GOLD_DARK:TXT2,transition:"all .2s"}}>
+                  {opt.preview}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:700,fontSize:14,color:sel?GOLD_DARK:TXT}}>{opt.label}</div>
+                  <div style={{fontSize:12,color:TXT3,marginTop:2}}>{opt.desc}</div>
+                </div>
+                <div style={{width:22,height:22,borderRadius:"50%",border:`2px solid ${sel?GOLD:"#d1d5db"}`,background:sel?GOLD:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
+                  {sel&&<div style={{width:8,height:8,borderRadius:"50%",background:"white"}}/>}
+                </div>
+              </div>
+            );
+          })}
+          <div style={{background:"#f0fdf4",borderRadius:12,padding:"12px 14px",border:"1px solid #bbf7d0",marginTop:4}}>
+            <div style={{fontSize:11,color:"#16a34a",fontWeight:700,marginBottom:4}}>✅ Aperçu en temps réel</div>
+            <div style={{fontSize:13,color:"#166534",lineHeight:1.5}}>Le changement est appliqué immédiatement dans toute l'application et sauvegardé pour vos prochaines connexions.</div>
           </div>
         </div>
       )}
@@ -2661,7 +2695,7 @@ function Messages({data,setData,currentUser,toast_,envoyerNotifPush,onZoomPhoto}
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE PARAMÈTRES EMPLOYÉ — Pin + Mode nuit
 // ══════════════════════════════════════════════════════════════════════════════
-function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightMode,pushPermission,demanderNotifPush}){
+function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightMode,pushPermission,demanderNotifPush,textSize,setTextSize}){
   const [onglet,setOnglet]=useState(null); // null=menu | profil | pin | nuit | notifs
   // PIN state
   const [oldPin,setOldPin]=useState("");
@@ -2699,6 +2733,7 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
     {id:"profil", icon:"👤", label:"Mon profil",        desc:"Photo, téléphone, email"},
     {id:"pin",    icon:"🔢", label:"Code PIN",           desc:emp.pin&&emp.pin.trim()!==""?"PIN défini — Modifier":"Aucun PIN — Accès libre"},
     {id:"nuit",   icon:"🌙", label:"Mode nuit",          desc:nightMode?"Interface sombre activée":"Interface claire"},
+    {id:"taille", icon:"🔡", label:"Taille de l'écriture", desc:textSize==="normal"?"Taille normale":textSize==="grand"?"Grands caractères":"Très grands caractères"},
     {id:"notifs", icon:"🔔", label:"Notifications push", desc:pushPermission==="granted"?"Alertes activées":"Appuyer pour activer"},
   ];
 
@@ -2842,6 +2877,39 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
           </div>
         </div>
       )}
+      {onglet==="taille"&&(
+        <div style={{padding:"0 12px 14px"}}>
+          <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:6}}>🔡 Taille de l'écriture</div>
+          <div style={{fontSize:12,color:TXT3,marginBottom:16}}>Choisissez la taille du texte dans toute l'application.</div>
+          {[
+            {id:"normal",    label:"Normale",            desc:"Taille standard",           preview:"Aa"},
+            {id:"grand",     label:"Grande",             desc:"Texte agrandi",             preview:"Aa"},
+            {id:"tresGrand", label:"Très grande",        desc:"Pour les petits caractères", preview:"Aa"},
+          ].map(opt=>{
+            const sel=textSize===opt.id;
+            const previewSize=opt.id==="normal"?18:opt.id==="grand"?24:30;
+            return(
+              <div key={opt.id} onClick={()=>setTextSize(opt.id)}
+                style={{display:"flex",alignItems:"center",gap:14,background:sel?GOLD_BG:CARD,borderRadius:14,padding:"16px",marginBottom:10,border:`2px solid ${sel?GOLD:"#e2e8f0"}`,cursor:"pointer",transition:"all .2s"}}>
+                <div style={{width:56,height:56,borderRadius:12,background:sel?`${GOLD}22`:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontWeight:900,fontSize:previewSize,color:sel?GOLD_DARK:TXT2,transition:"all .2s"}}>
+                  {opt.preview}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:700,fontSize:14,color:sel?GOLD_DARK:TXT}}>{opt.label}</div>
+                  <div style={{fontSize:12,color:TXT3,marginTop:2}}>{opt.desc}</div>
+                </div>
+                <div style={{width:22,height:22,borderRadius:"50%",border:`2px solid ${sel?GOLD:"#d1d5db"}`,background:sel?GOLD:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
+                  {sel&&<div style={{width:8,height:8,borderRadius:"50%",background:"white"}}/>}
+                </div>
+              </div>
+            );
+          })}
+          <div style={{background:"#f0fdf4",borderRadius:12,padding:"12px 14px",border:"1px solid #bbf7d0",marginTop:4}}>
+            <div style={{fontSize:11,color:"#16a34a",fontWeight:700,marginBottom:4}}>✅ Aperçu en temps réel</div>
+            <div style={{fontSize:13,color:"#166534",lineHeight:1.5}}>Le changement est appliqué immédiatement dans toute l'application et sauvegardé pour vos prochaines connexions.</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2855,9 +2923,11 @@ function AppInner(){
     let meta = document.querySelector('meta[name="viewport"]');
     if(!meta){ meta=document.createElement('meta'); meta.name='viewport'; document.head.appendChild(meta); }
     meta.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
-    // Body/html : scroll autorisé, pas de débordement horizontal
-    document.documentElement.style.cssText='height:100%;overflow-x:hidden;';
-    document.body.style.cssText='min-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;';
+    // Body/html : scroll autorisé, pas de débordement horizontal (ne pas écraser fontSize)
+    document.documentElement.style.overflowX='hidden';
+    document.body.style.overflowX='hidden';
+    document.body.style.overflowY='auto';
+    document.body.style.webkitOverflowScrolling='touch';
     return()=>{};
   },[]);
   const bp=useBreakpoint();
@@ -2883,10 +2953,18 @@ function AppInner(){
   const [lightboxSrc,setLightboxSrc]=useState(null);
   const [currentUser,setCurrentUser]=useState(null);
   const [nightMode,setNightMode]=useState(false);
+  const [textSize,setTextSize]=useState(()=>{ try{return localStorage.getItem("ckeys_textsize")||"normal";}catch{return "normal";} });
   const [pushEnabled,setPushEnabled]=useState(false);
   const [pushPermission,setPushPermission]=useState(()=>
     typeof Notification!=="undefined"?Notification.permission:"default"
   );
+
+  // ── Appliquer la taille du texte sur tout le document ──
+  useEffect(()=>{
+    const scales={normal:"16px",grand:"19px",tresGrand:"22px"};
+    document.documentElement.style.fontSize=scales[textSize]||"16px";
+    try{localStorage.setItem("ckeys_textsize",textSize);}catch{}
+  },[textSize]);
 
   const toggleNightMode=useCallback(()=>{
     setNightMode(n=>!n);
@@ -3177,8 +3255,8 @@ function AppInner(){
       {view==="zones"      &&isAdmin&&<Logements  data={data} onEdit={openEditZone} isReadOnly={false}/>}
       {view==="messages"   &&<Messages   data={data} setData={setData} currentUser={currentUser} toast_={toast_} envoyerNotifPush={envoyerNotifPush} onZoomPhoto={setLightboxSrc}/>}
 
-      {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushEnabled={pushEnabled} setPushEnabled={setPushEnabled} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush} onZoomPhoto={setLightboxSrc}/>}
-      {view==="parametres" &&isEmp&&<EmpParametres emp={currentUser} setData={setData} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush}/>}
+      {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushEnabled={pushEnabled} setPushEnabled={setPushEnabled} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush} onZoomPhoto={setLightboxSrc} textSize={textSize} setTextSize={setTextSize}/>}
+      {view==="parametres" &&isEmp&&<EmpParametres emp={currentUser} setData={setData} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush} textSize={textSize} setTextSize={setTextSize}/>}
     </>
   );
 
