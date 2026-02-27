@@ -170,7 +170,7 @@ function useBreakpoint(){
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const S={
-  app:    {fontFamily:"'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",background:SURFACE,minHeight:"100vh",maxWidth:480,margin:"0 auto",paddingBottom:82,display:"flex",flexDirection:"column"},
+  app:    {fontFamily:"'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",background:SURFACE,minHeight:"100vh",maxWidth:480,margin:"0 auto",paddingBottom:82,display:"flex",flexDirection:"column",overflowY:"auto"},
   topbar: {background:NOIR3,color:"white",padding:"16px 16px 14px",position:"sticky",top:0,zIndex:90,borderBottom:`1px solid rgba(255,255,255,.06)`},
   topTit: {fontSize:18,fontWeight:800,letterSpacing:-0.5},
   topSub: {fontSize:11,opacity:.45,marginTop:1},
@@ -894,20 +894,36 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
 // ══════════════════════════════════════════════════════════════════════════════
 function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onSignalerMessage,isAdmin,currentUserId,validerLot}){
   const [jourOffset,setJourOffset]=useState(0); // 0=aujourd'hui, 1=demain
+  // Pour admin : index de l'employé actuellement affiché (0 = "Tous")
+  const empActifs=data.employes.filter(e=>e.actif);
+  // empIdx : 0 = vue "Tous", 1..N = employé spécifique
+  const [empIdx,setEmpIdx]=useState(0);
   const swipeStartX=useRef(null);
   const swipeStartY=useRef(null);
+  // Swipe horizontal : jour (si vertical) ou employé (si admin)
+  const swipeMode=useRef(null); // "emp" | "jour" | null
 
   function handleTouchStart(e){
     swipeStartX.current=e.touches[0].clientX;
     swipeStartY.current=e.touches[0].clientY;
+    swipeMode.current=null;
   }
   function handleTouchEnd(e){
     if(swipeStartX.current===null)return;
     const dx=e.changedTouches[0].clientX-swipeStartX.current;
     const dy=e.changedTouches[0].clientY-swipeStartY.current;
     if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){
-      if(dx<0&&jourOffset===0)setJourOffset(1);
-      else if(dx>0&&jourOffset===1)setJourOffset(0);
+      if(isAdmin){
+        // swipe gauche = employé suivant, droite = précédent
+        const total=empActifs.length+1; // 0=Tous, 1..N=employés
+        if(dx<0) setEmpIdx(i=>Math.min(i+1,total-1));
+        else if(dx>0) setEmpIdx(i=>Math.max(i-1,0));
+      } else {
+        if(dx<0&&jourOffset===0)setJourOffset(1);
+        else if(dx>0&&jourOffset===1)setJourOffset(0);
+      }
+    } else if(!isAdmin&&Math.abs(dy)>Math.abs(dx)&&Math.abs(dx)<20){
+      // swipe vertical pour jour uniquement sur employé
     }
     swipeStartX.current=null;
     swipeStartY.current=null;
@@ -915,6 +931,8 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
 
   const dateAffichee=jourOffset===0?TODAY:TOMORROW;
   const isAujourdhui=jourOffset===0;
+  // Pour admin : l'employé sélectionné (null = tous)
+  const empSelAdmin=isAdmin&&empIdx>0?empActifs[empIdx-1]:null;
 
   function tacheMatchJour(t,dateStr){
     if(!t.date) return false;
@@ -929,8 +947,12 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
     return t.date===dateStr;
   }
 
-  const tAuj=data.taches.filter(t=>tacheMatchJour(t,TODAY));
-  const tJour=data.taches.filter(t=>tacheMatchJour(t,dateAffichee));
+  // Filtrer les tâches selon l'employé sélectionné (admin) ou tous
+  const filtreEmpId=isAdmin&&empSelAdmin?empSelAdmin.id:null;
+  const tAujAll=data.taches.filter(t=>tacheMatchJour(t,TODAY));
+  const tAuj=filtreEmpId?tAujAll.filter(t=>t.employeId===filtreEmpId):tAujAll;
+  const tJourAll=data.taches.filter(t=>tacheMatchJour(t,dateAffichee));
+  const tJour=filtreEmpId?tJourAll.filter(t=>t.employeId===filtreEmpId):tJourAll;
   const tFin=tAuj.filter(t=>t.statut==="termine").length;
 
   const logsMoisEmp=id=>new Set(data.taches.filter(t=>{
@@ -940,37 +962,82 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
   }).map(t=>t.zoneId)).size;
 
   const logsAvecTaches=data.zones.filter(z=>tJour.some(t=>t.zoneId===z.id));
-  const logsSansTaches=isAdmin&&isAujourdhui?data.zones.filter(z=>!tJour.some(t=>t.zoneId===z.id)):[];
+  const logsSansTaches=isAdmin&&isAujourdhui&&!filtreEmpId?data.zones.filter(z=>!tJourAll.some(t=>t.zoneId===z.id)):[];
 
   const dateLabel=new Date(dateAffichee+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+  const totalPages=isAdmin?empActifs.length+1:2; // admin: Tous+employés | employé: auj+demain
 
   return(
     <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{userSelect:"none"}}>
-      {/* Stats */}
+      {/* Stats — colorisées selon employé sélectionné */}
       <div style={S.sgrid}>
-        <div style={S.scard("linear-gradient(135deg,#1a1408,#c9a84c)")}><div style={S.snum}>{tAuj.length}</div><div style={S.slbl}>Tâches aujourd'hui</div></div>
+        <div style={S.scard(empSelAdmin?`linear-gradient(135deg,${empSelAdmin.couleur||GOLD}cc,${empSelAdmin.couleur||GOLD}88)`:"linear-gradient(135deg,#1a1408,#c9a84c)")}><div style={S.snum}>{tAuj.length}</div><div style={S.slbl}>Tâches aujourd'hui</div></div>
         <div style={S.scard("linear-gradient(135deg,#2d7a2d,#1a5c1a)")}><div style={S.snum}>{tFin}</div><div style={S.slbl}>Terminées</div></div>
       </div>
 
-      {/* Sélecteur Aujourd'hui / Demain */}
-      <div style={{padding:"8px 12px 4px"}}>
-        <div style={{display:"flex",background:"#f1f5f9",borderRadius:14,padding:3,gap:2,marginBottom:8,position:"relative"}}>
-          <button onClick={()=>setJourOffset(0)} style={{...S.tab(isAujourdhui),flex:1,borderRadius:11,fontSize:13,padding:"9px 4px"}}>
-            📅 Aujourd'hui
-          </button>
-          <button onClick={()=>setJourOffset(1)} style={{...S.tab(!isAujourdhui),flex:1,borderRadius:11,fontSize:13,padding:"9px 4px"}}>
-            🌅 Demain
-          </button>
+      {/* ── Sélecteur EMPLOYÉ (admin) ou JOUR (employé) ── */}
+      {isAdmin?(
+        <div style={{padding:"8px 12px 4px"}}>
+          {/* Bandeau employé sélectionné */}
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8,background:empSelAdmin?`${empSelAdmin.couleur||GOLD}18`:"#f8fafc",borderRadius:14,padding:"10px 14px",border:`1.5px solid ${empSelAdmin?empSelAdmin.couleur||GOLD:"#e2e8f0"}`}}>
+            {empSelAdmin?(
+              <>
+                <div style={{width:32,height:32,borderRadius:"50%",background:empSelAdmin.couleur||GOLD,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontWeight:900,fontSize:13}}>
+                  {(empSelAdmin.nom||"?").slice(0,1).toUpperCase()}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:800,fontSize:14,color:empSelAdmin.couleur||GOLD}}>{empSelAdmin.nom}</div>
+                  <div style={{fontSize:10,color:"#94a3b8"}}>{tAuj.length} tâche{tAuj.length!==1?"s":""} · {tFin} terminée{tFin!==1?"s":""}</div>
+                </div>
+              </>
+            ):(
+              <>
+                <div style={{width:32,height:32,borderRadius:"50%",background:GOLD,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>👥</div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:800,fontSize:14,color:GOLD}}>Toute l'équipe</div>
+                  <div style={{fontSize:10,color:"#94a3b8"}}>{tAuj.length} tâche{tAuj.length!==1?"s":""} · {tFin} terminée{tFin!==1?"s":""}</div>
+                </div>
+              </>
+            )}
+            <div style={{fontSize:10,color:"#94a3b8",fontWeight:600}}>← swipe →</div>
+          </div>
+          {/* Indicateurs de points */}
+          <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:6}}>
+            {[null,...empActifs].map((e,i)=>(
+              <div key={i} onClick={()=>setEmpIdx(i)}
+                style={{width:i===empIdx?22:8,height:8,borderRadius:10,background:i===empIdx?(e?e.couleur||GOLD:GOLD):"#d1d5db",transition:"all .3s",cursor:"pointer"}}/>
+            ))}
+          </div>
+          {/* Sélecteur cliquable */}
+          <div style={{display:"flex",gap:5,overflowX:"auto",paddingBottom:4,marginBottom:4}}>
+            {[null,...empActifs].map((e,i)=>(
+              <button key={i} onClick={()=>setEmpIdx(i)}
+                style={{flexShrink:0,padding:"5px 12px",borderRadius:20,border:`1.5px solid ${i===empIdx?(e?e.couleur||GOLD:GOLD):"#e2e8f0"}`,background:i===empIdx?(e?e.couleur||GOLD:GOLD):"white",color:i===empIdx?"white":(e?e.couleur||GOLD:TXT2),fontSize:11,fontWeight:700,cursor:"pointer",transition:"all .2s"}}>
+                {e?e.nom:"Tous"}
+              </button>
+            ))}
+          </div>
         </div>
-        <div style={{fontSize:10,fontWeight:700,color:TXT3,textTransform:"uppercase",letterSpacing:1.5,marginBottom:4,textAlign:"center",opacity:.7}}>
-          {dateLabel}
+      ):(
+        /* Sélecteur Aujourd'hui / Demain pour employé */
+        <div style={{padding:"8px 12px 4px"}}>
+          <div style={{display:"flex",background:"#f1f5f9",borderRadius:14,padding:3,gap:2,marginBottom:8,position:"relative"}}>
+            <button onClick={()=>setJourOffset(0)} style={{...S.tab(isAujourdhui),flex:1,borderRadius:11,fontSize:13,padding:"9px 4px"}}>
+              📅 Aujourd'hui
+            </button>
+            <button onClick={()=>setJourOffset(1)} style={{...S.tab(!isAujourdhui),flex:1,borderRadius:11,fontSize:13,padding:"9px 4px"}}>
+              🌅 Demain
+            </button>
+          </div>
+          <div style={{fontSize:10,fontWeight:700,color:TXT3,textTransform:"uppercase",letterSpacing:1.5,marginBottom:4,textAlign:"center",opacity:.7}}>
+            {dateLabel}
+          </div>
+          <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:8}}>
+            <div style={{width:20,height:3,borderRadius:10,background:isAujourdhui?GOLD:"#d1d5db",transition:"all .3s"}}/>
+            <div style={{width:20,height:3,borderRadius:10,background:!isAujourdhui?GOLD:"#d1d5db",transition:"all .3s"}}/>
+          </div>
         </div>
-        {/* Indicateur swipe */}
-        <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:8}}>
-          <div style={{width:20,height:3,borderRadius:10,background:isAujourdhui?GOLD:"#d1d5db",transition:"all .3s"}}/>
-          <div style={{width:20,height:3,borderRadius:10,background:!isAujourdhui?GOLD:"#d1d5db",transition:"all .3s"}}/>
-        </div>
-      </div>
+      )}
 
       {data.zones.length===0&&(
         <div style={{...S.card,color:"#94a3b8",textAlign:"center",fontSize:14,padding:"28px 16px"}}>
@@ -1754,7 +1821,7 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
   if(!onglet) return(
     <div style={{padding:"14px 12px"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-        <div style={{fontWeight:900,fontSize:16,color:TXT}}>⚙️ Admin</div>
+        <div style={{fontWeight:900,fontSize:16,color:TXT}}>⚙️ Options</div>
         <div style={{fontSize:11,color:GOLD_DARK,fontWeight:700,background:GOLD_BG,borderRadius:20,padding:"3px 10px",border:`1px solid ${GOLD}44`}}>v{APP_VERSION}</div>
       </div>
       {menuItems.map((item,i)=>(
@@ -1829,6 +1896,24 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
 
                 {/* PIN admin */}
                 <PinRow emp={e} onSavePin={(id,pin)=>{setPin(id,pin);toast_("PIN mis à jour ✓");}}/>
+
+                {/* Couleur */}
+                <div style={{marginBottom:6,marginTop:6}}>
+                  <div style={{fontSize:11,fontWeight:700,color:TXT2,marginBottom:6}}>🎨 Couleur dans le planning</div>
+                  <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap"}}>
+                    {["#e05c5c","#4ecdc4","#45b7d1","#96ceb4","#bb8fce","#f4a261","#2ec4b6","#e76f51","#06d6a0","#118ab2","#ffd166","#ef476f"].map(c=>(
+                      <button key={c} onClick={()=>{setData(d=>({...d,employes:d.employes.map(x=>x.id===e.id?{...x,couleur:c}:x)}));toast_("Couleur mise à jour ✓");}}
+                        style={{width:28,height:28,borderRadius:"50%",background:c,border:(e.couleur||"#e05c5c")===c?"3px solid #1a1a1a":"2px solid transparent",cursor:"pointer",flexShrink:0,transition:"transform .1s",transform:(e.couleur||"#e05c5c")===c?"scale(1.25)":"scale(1)"}}>
+                      </button>
+                    ))}
+                    <label title="Couleur personnalisée" style={{width:28,height:28,borderRadius:"50%",background:`conic-gradient(red,yellow,lime,cyan,blue,magenta,red)`,border:"2px solid #e2e8f0",cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",position:"relative"}}>
+                      <input type="color" defaultValue={e.couleur||"#e05c5c"}
+                        onChange={ev=>{setData(d=>({...d,employes:d.employes.map(x=>x.id===e.id?{...x,couleur:ev.target.value}:x)}));}}
+                        onBlur={()=>toast_("Couleur mise à jour ✓")}
+                        style={{position:"absolute",width:"200%",height:"200%",opacity:0,cursor:"pointer",top:"-50%",left:"-50%"}}/>
+                    </label>
+                  </div>
+                </div>
 
                 {/* Actif/Inactif */}
                 <button onClick={()=>toggleActif(e.id)} style={{...S.bSec,marginTop:6,fontSize:12,padding:"7px"}}>
@@ -2652,7 +2737,7 @@ function AppInner(){
     try{
       const saved=localStorage.getItem("ckeys_data");
       if(saved){const parsed=JSON.parse(saved);if(parsed&&parsed.employes)return parsed;}
-    }catch(e){console.warn("localStorage read:",e);}
+    }catch(e){}
     return {...SEED};
   });
   const [fbStatus,setFbStatus]=useState("init");
@@ -2701,30 +2786,16 @@ function AppInner(){
   },[]);
 
 
-  // ── localStorage : sauvegarde instantanée à chaque modif ────────────────
-  useEffect(()=>{
-    try{localStorage.setItem("ckeys_data",JSON.stringify(data));}
-    catch(e){console.warn("localStorage write:",e);}
-  },[data]);
-
   // ── Firebase : init + écoute temps réel ──────────────────────────────────
   useEffect(()=>{
     let unsub=null;
-    // On ignore les snapshots qui arrivent pendant/juste après notre propre sauvegarde
-    const GRACE=3000; // 3 secondes de grâce après une sauvegarde locale
     initFirebase().then(ok=>{
       if(!ok){setFbStatus("unconfigured");return;}
       const ref=_doc(_db,...FIREBASE_DOC_PATH.split("/"));
-      // Chargement initial : seulement si Firebase est plus récent que notre localStorage
       _getDoc(ref).then(snap=>{
         if(snap.exists()){
           const d=snap.data()?.data;
-          const ts=snap.data()?._ts||0;
-          // Ne remplace les données locales que si Firebase a été sauvegardé
-          // après notre dernière sauvegarde connue (évite d'écraser des modifs récentes)
-          if(d&&ts>(_lastSaveTs.current||0)){
-            try{setData(prev=>mergeData(prev,d));}catch(e){console.warn(e);}
-          }
+          if(d){try{setData(prev=>mergeData(prev,d));}catch(e){console.warn(e);}}
         }
       });
       unsub=_onSnapshot(ref,snap=>{
@@ -2732,10 +2803,8 @@ function AppInner(){
           const d=snap.data()?.data;
           const ts=snap.data()?._ts||0;
           const now=Date.now();
-          // N'applique les données distantes que si elles sont plus récentes
-          // ET qu'on n'est pas en train de sauvegarder nous-mêmes
-          const notOurOwnSave=(now-(_lastSaveTs.current||0))>GRACE;
-          if(d&&ts>0&&notOurOwnSave&&ts>(_lastSaveTs.current||0)){
+          const notOurEcho=(now-(_lastSaveTs.current||0))>3000;
+          if(d&&notOurEcho&&ts>(_lastSaveTs.current||0)){
             try{setData(prev=>mergeData(prev,d));}catch(e){console.warn(e);}
           }
         }
@@ -2745,11 +2814,19 @@ function AppInner(){
     return()=>{unsub&&unsub();};
   },[]);
 
-  // ── Firebase : sauvegarde auto debounce 1.5s ──────────────────────────────
+  // ── localStorage : sauvegarde instantanée locale ─────────────────────────
   useEffect(()=>{
-    if(fbStatus==="unconfigured"||fbStatus==="init") return;
+    try{localStorage.setItem("ckeys_data",JSON.stringify(data));}
+    catch(e){}
+  },[data]);
+
+  // ── Firebase : sauvegarde auto debounce 2s ────────────────────────────────
+  useEffect(()=>{
+    if(fbStatus==="unconfigured") return;
     if(saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current=setTimeout(async()=>{
+      let tries=0;
+      while(!_fbReady&&tries<10){await new Promise(r=>setTimeout(r,500));tries++;}
       if(!_fbReady) return;
       setFbStatus("syncing");
       try{
@@ -2903,7 +2980,7 @@ function AppInner(){
     ...(isAdmin?[{id:"zones",icon:"⌂",label:"Logements"}]:[]),
     {id:"messages",   icon:"✉",label:"Messages"},
 
-    {id:"parametres", icon:"⊞",label:"Admin"},
+    {id:"parametres", icon:"⚙️",label:"Options"},
   ];
 
   const isPlanning=view==="planning";
