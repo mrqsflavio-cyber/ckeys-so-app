@@ -763,7 +763,7 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,valide
                     </div>
                     {/* Valider individuellement (double-tap rapide) */}
                     {!isDone&&!isSel&&(
-                      <div style={{display:"flex",gap:4"}}>
+                      <div style={{display:"flex",gap:4}}>
                         <button onClick={(e)=>{e.stopPropagation();ai.isTacheEntiere?onUpdateSt(ai.tacheId,"termine"):onToggleCheck(ai.tacheId,ai.item);}}
                           style={{border:`1px solid ${GOLD}44`,background:GOLD_BG,color:GOLD_DARK,borderRadius:8,padding:"4px 8px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>✓</button>
                         <button onClick={(e)=>{e.stopPropagation();onSignalerProbleme(ai.tacheId);}}
