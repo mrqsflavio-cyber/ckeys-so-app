@@ -1,4 +1,27 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Component } from "react";
+
+// ─── ErrorBoundary — capture les crashes runtime ──────────────────────────────
+class ErrorBoundary extends Component {
+  constructor(props){super(props);this.state={err:null};}
+  static getDerivedStateFromError(e){return{err:e};}
+  render(){
+    if(this.state.err) return(
+      <div style={{padding:24,background:"#1a0000",minHeight:"100vh",color:"white",fontFamily:"monospace"}}>
+        <h2 style={{color:"#ff6b6b",marginBottom:16}}>💥 Erreur JavaScript détectée</h2>
+        <pre style={{background:"#2a0000",padding:16,borderRadius:8,whiteSpace:"pre-wrap",fontSize:13,color:"#ffaaaa"}}>
+          {this.state.err?.message}
+        </pre>
+        <pre style={{background:"#2a0000",padding:16,borderRadius:8,whiteSpace:"pre-wrap",fontSize:11,color:"#ff8888",marginTop:12}}>
+          {this.state.err?.stack}
+        </pre>
+        <button onClick={()=>this.setState({err:null})} style={{marginTop:16,padding:"10px 20px",background:"#c9a84c",border:"none",borderRadius:8,color:"black",fontWeight:700,cursor:"pointer"}}>
+          🔄 Réessayer
+        </button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
 
 // ─── Firebase — Configuration ─────────────────────────────────────────────────
 // INSTRUCTIONS : Remplace les valeurs ci-dessous par celles de ton projet Firebase
@@ -2305,7 +2328,7 @@ function stripPhotos(data) {
   };
 }
 
-export default function App(){
+function AppInner(){
   const bp=useBreakpoint();
   const isDesktop=bp==="desktop";
   const isTablet=bp==="tablet";
@@ -2706,4 +2729,8 @@ export default function App(){
       </nav>
     </div>
   );
+}
+
+export default function App(){
+  return <ErrorBoundary><AppInner/></ErrorBoundary>;
 }
