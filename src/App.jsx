@@ -2648,7 +2648,13 @@ function AppInner(){
   const bp=useBreakpoint();
   const isDesktop=bp==="desktop";
   const isTablet=bp==="tablet";
-  const [data,setData]=useState({...SEED});
+  const [data,setData]=useState(()=>{
+    try{
+      const saved=localStorage.getItem("ckeys_data");
+      if(saved){const parsed=JSON.parse(saved);if(parsed&&parsed.employes)return parsed;}
+    }catch(e){console.warn("localStorage read:",e);}
+    return {...SEED};
+  });
   const [fbStatus,setFbStatus]=useState("init");
   const saveTimeoutRef=useRef(null);
   const _lastSaveTs=useRef(0);
@@ -2695,23 +2701,41 @@ function AppInner(){
   },[]);
 
 
+  // ── localStorage : sauvegarde instantanée à chaque modif ────────────────
+  useEffect(()=>{
+    try{localStorage.setItem("ckeys_data",JSON.stringify(data));}
+    catch(e){console.warn("localStorage write:",e);}
+  },[data]);
+
   // ── Firebase : init + écoute temps réel ──────────────────────────────────
   useEffect(()=>{
     let unsub=null;
+    // On ignore les snapshots qui arrivent pendant/juste après notre propre sauvegarde
+    const GRACE=3000; // 3 secondes de grâce après une sauvegarde locale
     initFirebase().then(ok=>{
       if(!ok){setFbStatus("unconfigured");return;}
       const ref=_doc(_db,...FIREBASE_DOC_PATH.split("/"));
+      // Chargement initial : seulement si Firebase est plus récent que notre localStorage
       _getDoc(ref).then(snap=>{
         if(snap.exists()){
           const d=snap.data()?.data;
-          if(d){try{setData(prev=>mergeData(prev,d));}catch(e){console.warn(e);}}
+          const ts=snap.data()?._ts||0;
+          // Ne remplace les données locales que si Firebase a été sauvegardé
+          // après notre dernière sauvegarde connue (évite d'écraser des modifs récentes)
+          if(d&&ts>(_lastSaveTs.current||0)){
+            try{setData(prev=>mergeData(prev,d));}catch(e){console.warn(e);}
+          }
         }
       });
       unsub=_onSnapshot(ref,snap=>{
         if(snap.exists()){
           const d=snap.data()?.data;
           const ts=snap.data()?._ts||0;
-          if(d&&ts>(_lastSaveTs.current||0)){
+          const now=Date.now();
+          // N'applique les données distantes que si elles sont plus récentes
+          // ET qu'on n'est pas en train de sauvegarder nous-mêmes
+          const notOurOwnSave=(now-(_lastSaveTs.current||0))>GRACE;
+          if(d&&ts>0&&notOurOwnSave&&ts>(_lastSaveTs.current||0)){
             try{setData(prev=>mergeData(prev,d));}catch(e){console.warn(e);}
           }
         }
