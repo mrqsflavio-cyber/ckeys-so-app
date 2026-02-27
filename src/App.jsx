@@ -171,7 +171,7 @@ function useBreakpoint(){
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const S={
-  app:    {fontFamily:"'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",background:SURFACE,minHeight:"100vh",maxWidth:480,margin:"0 auto",display:"flex",flexDirection:"column"},
+  app:    {fontFamily:"'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",background:SURFACE,minHeight:"100vh",maxWidth:480,margin:"0 auto",display:"flex",flexDirection:"column",overflowX:"hidden"},
   topbar: {background:NOIR3,color:"white",padding:"16px 16px 14px",position:"sticky",top:0,zIndex:90,borderBottom:`1px solid rgba(255,255,255,.06)`},
   topTit: {fontSize:18,fontWeight:800,letterSpacing:-0.5},
   topSub: {fontSize:11,opacity:.45,marginTop:1},
@@ -1841,7 +1841,7 @@ function GestionPieces({data,setData,toast_}){
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE PARAMÈTRES — avec onglets : Équipe + Gestion droits + PIN + Général
 // ══════════════════════════════════════════════════════════════════════════════
-function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pushEnabled,setPushEnabled,pushPermission,demanderNotifPush}){
+function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pushEnabled,setPushEnabled,pushPermission,demanderNotifPush,onZoomPhoto}){
   const [onglet,setOnglet]=useState(null); // null = menu principal
   const [notifDetail,setNotifDetail]=useState(null);
 
@@ -2139,8 +2139,18 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
               <div style={{marginBottom:14}}>
                 <div style={{fontSize:10,fontWeight:800,color:"#dc2626",textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>📷 Photo du problème</div>
                 <img src={notifDetail.photo} alt="photo problème"
-                  onClick={()=>window.open(notifDetail.photo,"_blank")}
+                  onClick={()=>onZoomPhoto?onZoomPhoto(notifDetail.photo):window.open(notifDetail.photo,"_blank")}
                   style={{width:"100%",borderRadius:14,objectFit:"cover",maxHeight:280,border:"2px solid #fecaca",cursor:"zoom-in",display:"block"}}/>
+                {(notifDetail.photosSupp||[]).length>0&&(
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:8}}>
+                    {(notifDetail.photosSupp||[]).map((ph,i)=>(
+                      <img key={i} src={ph} alt={`photo ${i+2}`}
+                        style={{width:72,height:72,borderRadius:8,objectFit:"cover",cursor:"zoom-in",border:"2px solid #fecaca"}}
+                        onClick={()=>onZoomPhoto?onZoomPhoto(ph):window.open(ph,"_blank")}
+                      />
+                    ))}
+                  </div>
+                )}
                 <div style={{fontSize:10,color:"#94a3b8",marginTop:5,textAlign:"center"}}>Appuyer sur la photo pour l'agrandir</div>
               </div>
             )}
@@ -2256,7 +2266,7 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE MESSAGES — chat entre employés et admin
 // ══════════════════════════════════════════════════════════════════════════════
-function Messages({data,setData,currentUser,toast_,envoyerNotifPush}){
+function Messages({data,setData,currentUser,toast_,envoyerNotifPush,onZoomPhoto}){
   const isAdmin=currentUser.role==="admin"||currentUser.role==="manager";
   // onglet: "conversations" | "archives"
   const [onglet,setOnglet]=useState("conversations");
@@ -2508,10 +2518,20 @@ function Messages({data,setData,currentUser,toast_,envoyerNotifPush}){
                           {m.photoProbleme&&(
                             <div style={{marginTop:10}}>
                               <img src={m.photoProbleme} alt="photo problème"
-                                style={{display:"block",width:"100%",borderRadius:10,maxHeight:260,objectFit:"cover",cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.15)"}}
-                                onClick={()=>window.open(m.photoProbleme,"_blank")}
+                                style={{display:"block",width:"100%",borderRadius:10,maxHeight:260,objectFit:"cover",cursor:"zoom-in",boxShadow:"0 2px 8px rgba(0,0,0,.15)"}}
+                                onClick={()=>onZoomPhoto?onZoomPhoto(m.photoProbleme):window.open(m.photoProbleme,"_blank")}
                               />
                               <div style={{fontSize:9,color:"#dc2626",marginTop:4,fontWeight:600,opacity:.7}}>📷 Appuyez pour agrandir</div>
+                            </div>
+                          )}
+                          {(m.photosSupp||[]).length>0&&(
+                            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:8}}>
+                              {(m.photosSupp||[]).map((ph,i)=>(
+                                <img key={i} src={ph} alt={`photo ${i+2}`}
+                                  style={{width:72,height:72,borderRadius:8,objectFit:"cover",cursor:"zoom-in",border:"2px solid #fecaca",boxShadow:"0 1px 4px rgba(0,0,0,.15)"}}
+                                  onClick={()=>onZoomPhoto?onZoomPhoto(ph):window.open(ph,"_blank")}
+                                />
+                              ))}
                             </div>
                           )}
                         </div>
@@ -2829,6 +2849,17 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
 // APP PRINCIPALE
 // ══════════════════════════════════════════════════════════════════════════════
 function AppInner(){
+  // ── Fix viewport : plein écran, non-zoomable, mais défilable ──
+  useEffect(()=>{
+    // Viewport : width=device-width, pas de zoom
+    let meta = document.querySelector('meta[name="viewport"]');
+    if(!meta){ meta=document.createElement('meta'); meta.name='viewport'; document.head.appendChild(meta); }
+    meta.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+    // Body/html : scroll autorisé, pas de débordement horizontal
+    document.documentElement.style.cssText='height:100%;overflow-x:hidden;';
+    document.body.style.cssText='min-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;';
+    return()=>{};
+  },[]);
   const bp=useBreakpoint();
   const isDesktop=bp==="desktop";
   const isTablet=bp==="tablet";
@@ -2849,6 +2880,7 @@ function AppInner(){
   const [filterEmp,setFilterEmp]=useState("tous");
   const [toast,setToast]=useState(null);
   const [problemeId,setProblemeId]=useState(null);
+  const [lightboxSrc,setLightboxSrc]=useState(null);
   const [currentUser,setCurrentUser]=useState(null);
   const [nightMode,setNightMode]=useState(false);
   const [pushEnabled,setPushEnabled]=useState(false);
@@ -3143,9 +3175,9 @@ function AppInner(){
       })()}
       {view==="planning"   &&<Planning   data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} weekOff={weekOff} setWeekOff={setWeekOff} filterEmp={filterEmp} setFilterEmp={setFilterEmp} onEditTache={isAdmin?openEditTache:null} onNewTache={isAdmin?openNewTache:null} isReadOnly={isEmp}/>}
       {view==="zones"      &&isAdmin&&<Logements  data={data} onEdit={openEditZone} isReadOnly={false}/>}
-      {view==="messages"   &&<Messages   data={data} setData={setData} currentUser={currentUser} toast_={toast_} envoyerNotifPush={envoyerNotifPush}/>}
+      {view==="messages"   &&<Messages   data={data} setData={setData} currentUser={currentUser} toast_={toast_} envoyerNotifPush={envoyerNotifPush} onZoomPhoto={setLightboxSrc}/>}
 
-      {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushEnabled={pushEnabled} setPushEnabled={setPushEnabled} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush}/>}
+      {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushEnabled={pushEnabled} setPushEnabled={setPushEnabled} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush} onZoomPhoto={setLightboxSrc}/>}
       {view==="parametres" &&isEmp&&<EmpParametres emp={currentUser} setData={setData} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush}/>}
     </>
   );
@@ -3161,6 +3193,12 @@ function AppInner(){
       {modal==="zone"   &&<ModalLogement form={form} setForm={setForm} onSave={saveZone} onDelete={delZone} onClose={close}/>}
       {modal==="types"  &&<ModalTypes types={data.typesPerso||DEFAULT_TYPES} onSave={saveTypes} onClose={close}/>}
       {problemeId&&<ModalProbleme tacheId={problemeId} onConfirm={confirmerProbleme} onClose={()=>setProblemeId(null)}/>}
+      {lightboxSrc&&(
+        <div onClick={()=>setLightboxSrc(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:16,cursor:"zoom-out"}}>
+          <img src={lightboxSrc} alt="zoom" style={{maxWidth:"100%",maxHeight:"90vh",borderRadius:12,boxShadow:"0 8px 40px rgba(0,0,0,.6)",objectFit:"contain"}}/>
+          <button onClick={()=>setLightboxSrc(null)} style={{position:"absolute",top:16,right:16,width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,.15)",border:"none",color:"white",fontSize:20,fontWeight:900,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+        </div>
+      )}
     </>
   );
 
@@ -3281,7 +3319,7 @@ function AppInner(){
   // MOBILE — layout original
   // ══════════════════════════════════════════════════════
   return(
-    <div style={{...S.app,background:appBg,...(isFullscreen?{height:"100vh",overflow:"hidden",paddingBottom:0}:{})}}>
+    <div style={{...S.app,background:appBg}}>
       <div style={{...S.topbar}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -3292,7 +3330,7 @@ function AppInner(){
         </div>
       </div>
       {toast&&<div style={S.toast(toast.t)}>{toast.m}</div>}
-      <div style={isFullscreen?{flex:1,overflow:"hidden",display:"flex",flexDirection:"column"}:{flex:1,overflowY:"auto",paddingTop:12,paddingBottom:82,WebkitOverflowScrolling:"touch"}}>
+      <div style={isFullscreen?{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",paddingBottom:82,WebkitOverflowScrolling:"touch"}:{flex:1,overflowY:"auto",paddingTop:12,paddingBottom:82,WebkitOverflowScrolling:"touch"}}>
         {contentArea()}
       </div>
       {isAdmin&&(view==="accueil"||view==="planning")&&(
