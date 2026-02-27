@@ -1542,7 +1542,7 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode}){
   );
 
   // ── Bouton retour ──
-  const retourEl==>(
+  const retourEl=(
     <button onClick={()=>setOnglet(null)} style={{display:"flex",alignItems:"center",gap:6,background:"transparent",border:"none",color:GOLD_DARK,fontWeight:700,fontSize:13,cursor:"pointer",padding:"12px 12px 4px"}}>
       ← Retour
     </button>
@@ -2521,7 +2521,7 @@ export default function App(){
   const isFullscreen=!isDesktop&&!isTablet&&(view==="planning"||view==="messages");
 
   // ── Contenu partagé ──
-  const contentArea==>(
+  const contentArea=(
     <>
       {view==="accueil"    &&<Accueil    isAdmin={isAdmin} data={isEmp?{...data,employes:data.employes.filter(e=>e.id===currentUser.id)}:data} updateSt={updateSt} onEditTache={isAdmin?openEditTache:null} onToggleCheck={toggleCheck} validerLot={validerLot} onSignalerProbleme={setProblemeId} onSignalerMessage={(msg)=>{setData(d=>({...d,messages:[...(d.messages||[]),{id:Date.now(),empId:currentUser.id,nom:currentUser.nom,texte:`⚠️ Problème signalé par ${currentUser.nom} sur "${(data.zones.find(z=>z.id===msg.zoneId)||{}).nom||"logement"}" : ${msg.texte}`,zoneId:msg.zoneId,ts:new Date().toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),type:"probleme",photoProbleme:msg.photo||null,archive:false,lu:false}]}));toast_("Problème envoyé ✓");}}/>}
       {view==="planning"   &&<Planning   data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} weekOff={weekOff} setWeekOff={setWeekOff} filterEmp={filterEmp} setFilterEmp={setFilterEmp} onEditTache={isAdmin?openEditTache:null} onNewTache={isAdmin?openNewTache:null} isReadOnly={isEmp}/>}
@@ -2533,7 +2533,7 @@ export default function App(){
     </>
   );
 
-  const modals==>(
+  const modals=(
     <>
       {(modal==="tache"||modal==="tache_edit")&&(
         <ModalTache editMode={modal==="tache_edit"} form={form} setForm={setForm}
