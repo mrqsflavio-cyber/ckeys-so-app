@@ -2147,7 +2147,7 @@ function Messages({data,setData,currentUser,toast_}){
         </div>
       )}
       {/* Contenu */}
-      {convSel?{vueConversation()}:onglet==="conversations"?{listeConversations()}:{vueArchives()}}
+      {convSel?vueConversation():onglet==="conversations"?listeConversations():vueArchives()}
     </div>
   );
 }
