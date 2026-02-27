@@ -2512,7 +2512,7 @@ function AppInner(){
 
   // Écran PIN si pas connecté
   if(!currentUser){
-    return <EcranPin employes={data.employes.filter(e=>e.actif)} onLogin={u=>{setCurrentUser(u);if(u.role==="employe")setView("planning");}}/>;
+    return <EcranPin employes={data.employes.filter(e=>e.actif)} onLogin={u=>{setCurrentUser(u);setView("accueil");}}/>;
   }
 
   const isAdmin=currentUser?.role==="admin"||currentUser?.role==="manager";
@@ -2529,7 +2529,9 @@ function AppInner(){
   const appBg=nightMode?"#0a0a0f":SURFACE;
 
   const navItems=isEmp?[
+    {id:"accueil",    icon:"◉",label:"Accueil"},
     {id:"planning",   icon:"⊟",label:"Planning"},
+    {id:"messages",   icon:"✉",label:"Messages"},
     {id:"parametres", icon:"⊞",label:"Paramètres"},
   ]:[
     {id:"accueil",    icon:"◉",label:"Accueil"},
@@ -2570,7 +2572,7 @@ function AppInner(){
     </>
   );
 
-  const renderNavItem=(item)=>{
+  const NavItem=({item})=>{
     const active=view===item.id;
     const hasBadge=(item.id==="messages"&&nbMsgs>0)||(item.id==="parametres"&&nbNotifs>0);
     const badgeCount=item.id==="messages"?nbMsgs:nbNotifs;
