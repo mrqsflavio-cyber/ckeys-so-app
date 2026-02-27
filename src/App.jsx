@@ -749,6 +749,7 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
   }
 
   return(
+    <>
     <div style={{borderRadius:18,margin:"0 12px 10px",overflow:"hidden",border:`1.5px solid ${borderColor}`,background:bgColor,boxShadow:"0 3px 14px rgba(0,0,0,.06)"}}>
       {/* ── Header cliquable ── */}
       <div style={{padding:"14px 16px",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}} onClick={()=>setOpen(o=>!o)}>
@@ -981,6 +982,7 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
         onCancel={()=>setHeuresModal(null)}
       />
     )}
+    </>
   );
 }
 // ══════════════════════════════════════════════════════════════════════════════
