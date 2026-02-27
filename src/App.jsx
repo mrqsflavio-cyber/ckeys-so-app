@@ -1134,9 +1134,9 @@ function Planning({data,weekOff,setWeekOff,filterEmp,setFilterEmp,onEditTache,on
       </div>
 
       {/* Contenu selon mode */}
-      {planMode==="jour"&&{vueJour()}}
-      {planMode==="semaine"&&{vueSemaine()}}
-      {planMode==="mois"&&{vueMois()}}
+      {planMode==="jour"&&vueJour()}
+      {planMode==="semaine"&&vueSemaine()}
+      {planMode==="mois"&&vueMois()}
     </div>
   );
 }
