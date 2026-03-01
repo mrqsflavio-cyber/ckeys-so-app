@@ -689,7 +689,7 @@ function ModalHeures({onConfirm,onCancel,nomTache,nomZone}){
   );
 }
 
-function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSignalerProbleme,onSignalerMessage,pieces,validerLot,trackingActif}){
+function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSignalerProbleme,onSignalerMessage,pieces,validerLot,trackingActif,suiviKmActif}){
   const [open,setOpen]=useState(false);
   const [showSignalement,setShowSignalement]=useState(false);
   const [noteProbleme,setNoteProbleme]=useState("");
@@ -783,6 +783,7 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
                 style={{fontSize:11,color:GOLD_DARK,fontWeight:600,textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:200}}>
                 {zone.adresse}
               </a>
+              {suiviKmActif&&<DistanceKmBadge adresse={zone.adresse}/>}
             </div>
           )}
           <div style={{display:"flex",alignItems:"center",gap:7}}>
@@ -992,6 +993,7 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
   const [jourOffset,setJourOffset]=useState(0);
   const empActifs=data.employes.filter(e=>e.actif);
   const [empIdx,setEmpIdx]=useState(0);
+  const [showRecapModal,setShowRecapModal]=useState(false);
   const swipeStartX=useRef(null);
   const swipeStartY=useRef(null);
 
@@ -1051,8 +1053,46 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
   const logsSansTaches=isAdmin&&isAujourdhui&&!filtreEmpId?data.zones.filter(z=>!tJourAll.some(t=>t.zoneId===z.id)):[];
   const dateLabel=new Date(dateAffichee+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
 
+  // ── Optimisation trajet ──
+  const {orderedZones,totalKm,totalMins,loading:trajetLoading}=useTrajetOptimise(
+    logsAvecTaches, dateAffichee, data.suiviKmActif||false
+  );
+  const zonesAffichees=data.suiviKmActif&&orderedZones.length>0?orderedZones:logsAvecTaches;
+  const empSelNom=empSelAdmin?.nom||null;
+
+  // Dernier jour du mois — alerte récap pour admin
+  const aujourdhui=new Date();
+  const dernierJourMois=new Date(aujourdhui.getFullYear(),aujourdhui.getMonth()+1,0).getDate();
+  const isLastDayOfMonth=aujourdhui.getDate()===dernierJourMois;
+
   return(
     <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{userSelect:"none"}}>
+
+      {/* Alerte récap mensuel (dernier jour du mois, admin seulement) */}
+      {isAdmin&&isLastDayOfMonth&&data.suiviKmActif&&(
+        <div style={{margin:"8px 12px 0",borderRadius:14,background:"linear-gradient(135deg,#1a0d00,#3d2800)",border:`1px solid ${GOLD}66`,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,cursor:"pointer"}}
+          onClick={()=>setShowRecapModal(true)}>
+          <div style={{fontSize:24,flexShrink:0}}>📊</div>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:800,fontSize:13,color:GOLD}}>Récapitulatif mensuel disponible</div>
+            <div style={{fontSize:11,color:GOLD+"aa",marginTop:2}}>Dernier jour du mois — Voir tous les trajets</div>
+          </div>
+          <div style={{fontSize:11,color:GOLD,fontWeight:700,background:GOLD+"22",borderRadius:20,padding:"4px 12px",border:`1px solid ${GOLD}44`,whiteSpace:"nowrap"}}>Voir →</div>
+        </div>
+      )}
+
+      {/* Bouton récap accessible tout le mois (admin + suivi actif) */}
+      {isAdmin&&data.suiviKmActif&&!isLastDayOfMonth&&(
+        <div style={{display:"flex",justifyContent:"flex-end",padding:"6px 12px 0"}}>
+          <button onClick={()=>setShowRecapModal(true)}
+            style={{fontSize:11,color:GOLD_DARK,fontWeight:700,background:GOLD_BG,borderRadius:20,padding:"4px 12px",border:`1px solid ${GOLD}44`,cursor:"pointer"}}>
+            📊 Récap trajets mensuel
+          </button>
+        </div>
+      )}
+
+      {/* Modal récap mensuel */}
+      {showRecapModal&&<RecapMensuelTrajets data={data} onClose={()=>setShowRecapModal(false)}/>}
       {/* Stats */}
       <div style={S.sgrid}>
         <div style={S.scard(empSelAdmin?`linear-gradient(135deg,${empSelAdmin.couleur||GOLD}dd,${empSelAdmin.couleur||GOLD}99)`:"linear-gradient(135deg,#1a1408,#c9a84c)")}><div style={S.snum}>{tAuj.length}</div><div style={S.slbl}>Tâches aujourd'hui</div></div>
@@ -1110,7 +1150,25 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
       {/* Logements du jour sélectionné */}
       {isAujourdhui?(
         <>
-          {logsAvecTaches.map(z=>(
+          {/* Miniature trajet — grande carte Google Maps */}
+          {data.suiviKmActif&&zonesAffichees.filter(z=>z.adresse).length>=1&&(
+            <MiniatureTrajet
+              zones={zonesAffichees}
+              date={dateLabel}
+              empNom={empSelNom}
+              totalKm={totalKm}
+              totalMins={totalMins}
+            />
+          )}
+
+          {/* Badge optimisation en cours */}
+          {data.suiviKmActif&&trajetLoading&&(
+            <div style={{margin:"0 12px 8px"}}>
+              <span style={{fontSize:11,color:TXT3,fontStyle:"italic"}}>🔄 Optimisation du trajet…</span>
+            </div>
+          )}
+
+          {zonesAffichees.map((z,idx)=>(
             <CarteLogement key={z.id} zone={z}
               tachesZone={tJour.filter(t=>t.zoneId===z.id)}
               employes={data.employes}
@@ -1119,7 +1177,7 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
               onSignalerProbleme={onSignalerProbleme}
               onSignalerMessage={onSignalerMessage}
               validerLot={validerLot}
-              trackingActif={data.trackingActif||false}/>
+              trackingActif={data.trackingActif||false} suiviKmActif={data.suiviKmActif||false}/>
           ))}
           {logsSansTaches.length>0&&(
             <>
@@ -1145,12 +1203,15 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
       ):(
         /* Vue DEMAIN — logements complets avec CarteLogement */
         <>
+          {data.suiviKmActif&&zonesAffichees.filter(z=>z.adresse).length>=1&&(
+            <MiniatureTrajet zones={zonesAffichees} date={dateLabel} empNom={empSelNom} totalKm={totalKm} totalMins={totalMins}/>
+          )}
           {logsAvecTaches.length===0&&(
             <div style={{...S.card,color:"#94a3b8",textAlign:"center",fontSize:14,padding:"28px 16px"}}>
               🌅 Aucune tâche planifiée pour demain
             </div>
           )}
-          {logsAvecTaches.map(z=>(
+          {zonesAffichees.map(z=>(
             <CarteLogement key={z.id} zone={z}
               tachesZone={tJour.filter(t=>t.zoneId===z.id)}
               employes={data.employes}
@@ -1159,7 +1220,7 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
               onSignalerProbleme={onSignalerProbleme}
               onSignalerMessage={onSignalerMessage}
               validerLot={validerLot}
-              trackingActif={data.trackingActif||false}/>
+              trackingActif={data.trackingActif||false} suiviKmActif={data.suiviKmActif||false}/>
           ))}
         </>
       )}
@@ -1167,7 +1228,15 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
       {/* ── Section équipe (admin) ou suivi perso (employé) ── */}
       {isAdmin?(<>
         <div style={S.sec}>
-          <div style={S.secTit}>Suivi de l'équipe — {MOIS_LONG[NOW_M-1]}</div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <div style={S.secTit}>Suivi de l'équipe — {MOIS_LONG[NOW_M-1]}</div>
+            {data.suiviKmActif&&(
+              <button onClick={()=>setShowRecapModal(true)}
+                style={{fontSize:10,color:GOLD_DARK,fontWeight:700,background:GOLD_BG,borderRadius:20,padding:"3px 10px",border:`1px solid ${GOLD}44`,cursor:"pointer"}}>
+                📊 Trajets
+              </button>
+            )}
+          </div>
         </div>
         <div style={S.card}>
           {data.employes.filter(e=>e.actif).map((e,i,arr)=>{
@@ -1839,6 +1908,1008 @@ function GestionPieces({data,setData,toast_}){
 
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
+// DROITS & RÔLES — permissions granulaires par rôle
+// ══════════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
+// HISTORIQUE HEURES & DÉPLACEMENTS — onglet admin avec 2 pages + swipe
+// ══════════════════════════════════════════════════════════════════════════════
+function HistoriqueHeuresDeplacements({data,toast_}){
+  const [page,setPage]=useState(0); // 0=heures, 1=déplacements
+  const [empSel,setEmpSel]=useState("tous");
+  const [moisSel,setMoisSel]=useState(()=>{
+    const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;
+  });
+  const swipeRef=useRef(null);
+  const swipeStartX=useRef(null);
+
+  const empActifs=data.employes.filter(e=>e.actif);
+
+  const moisDispo=Array.from({length:12},(_,i)=>{
+    const d=new Date();d.setMonth(d.getMonth()-i);
+    const v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+    const l=new Date(d.getFullYear(),d.getMonth(),1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+    return{v,l};
+  });
+
+  // Tâches du mois filtré
+  const tachesMois=data.taches.filter(t=>{
+    if(!t.date)return false;
+    const[y,m]=t.date.split("-");
+    if(`${y}-${m.padStart(2,"0")}`!==moisSel)return false;
+    if(empSel!=="tous"&&t.employeId!==parseInt(empSel))return false;
+    return true;
+  });
+
+  const tachesAvecHeures=tachesMois.filter(t=>t.heureArriveeReel&&t.heureDepartReel);
+
+  function diffMins(a,d){
+    const[ah,am]=a.split(":").map(Number);
+    const[dh,dm]=d.split(":").map(Number);
+    return(dh*60+dm)-(ah*60+am);
+  }
+  function fmtDuree(m){if(m<=0)return"0min";const h=Math.floor(m/60),min=m%60;return h>0?`${h}h${min>0?String(min).padStart(2,"0")+"min":""}`:`${min}min`;}
+  function fmtDate(d){return new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});}
+
+  // Swipe handlers
+  function onTouchStart(e){swipeStartX.current=e.touches[0].clientX;}
+  function onTouchEnd(e){
+    if(swipeStartX.current===null)return;
+    const dx=e.changedTouches[0].clientX-swipeStartX.current;
+    if(Math.abs(dx)>50){setPage(p=>dx<0?Math.min(p+1,1):Math.max(p-1,0));}
+    swipeStartX.current=null;
+  }
+
+  // ── PAGE 0 : Heures de travail ──
+  const pageHeures=()=>{
+    // Grouper par employé
+    const parEmp={};
+    tachesAvecHeures.forEach(t=>{
+      if(!parEmp[t.employeId])parEmp[t.employeId]={empId:t.employeId,taches:[],totalMins:0};
+      const mins=diffMins(t.heureArriveeReel,t.heureDepartReel);
+      if(mins>0){parEmp[t.employeId].taches.push({...t,duree:mins});parEmp[t.employeId].totalMins+=mins;}
+    });
+    const empList=Object.values(parEmp).sort((a,b)=>b.totalMins-a.totalMins);
+    const totalGlobal=empList.reduce((a,e)=>a+e.totalMins,0);
+
+    // Grouper par date pour chaque employé
+    const joursUniques=[...new Set(tachesAvecHeures.map(t=>t.date))].sort().reverse();
+
+    return(
+      <div>
+        {/* Totaux globaux */}
+        {tachesAvecHeures.length>0&&(
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,padding:"0 12px",marginBottom:14}}>
+            <div style={{background:"linear-gradient(135deg,#1a1408,#c9a84c)",borderRadius:14,padding:"12px 8px",color:"white",textAlign:"center"}}>
+              <div style={{fontSize:20,fontWeight:900}}>{fmtDuree(totalGlobal)}</div>
+              <div style={{fontSize:9,opacity:.85,marginTop:2}}>Total heures</div>
+            </div>
+            <div style={{background:"linear-gradient(135deg,#2d7a2d,#1a5c1a)",borderRadius:14,padding:"12px 8px",color:"white",textAlign:"center"}}>
+              <div style={{fontSize:20,fontWeight:900}}>{tachesAvecHeures.length}</div>
+              <div style={{fontSize:9,opacity:.85,marginTop:2}}>Tâches</div>
+            </div>
+            <div style={{background:"linear-gradient(135deg,#1e3a8a,#3b82f6)",borderRadius:14,padding:"12px 8px",color:"white",textAlign:"center"}}>
+              <div style={{fontSize:20,fontWeight:900}}>{empList.length}</div>
+              <div style={{fontSize:9,opacity:.85,marginTop:2}}>Employés</div>
+            </div>
+          </div>
+        )}
+
+        {tachesAvecHeures.length===0&&(
+          <div style={{padding:"40px 20px",textAlign:"center",color:TXT3}}>
+            <div style={{fontSize:40,marginBottom:12}}>⏱️</div>
+            <div style={{fontWeight:700,fontSize:14,color:TXT2}}>Aucune heure enregistrée</div>
+            <div style={{fontSize:12,marginTop:6}}>Activez le tracking horaires et les employés saisiront leurs heures en validant leurs tâches.</div>
+          </div>
+        )}
+
+        {/* Par employé — résumé */}
+        {empList.map(ep=>{
+          const emp=data.employes.find(e=>e.id===ep.empId);
+          if(!emp)return null;
+          const pct=totalGlobal>0?Math.round(ep.totalMins/totalGlobal*100):0;
+          return(
+            <div key={ep.empId} style={{...S.card,marginBottom:8,padding:"14px 16px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                <Avatar emp={emp} size={40}/>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:800,fontSize:14,color:TXT}}>{emp.nom}</div>
+                  <div style={{fontSize:11,color:TXT2}}>{ep.taches.length} tâche{ep.taches.length>1?"s":""}</div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontWeight:900,fontSize:18,color:emp.couleur||GOLD}}>{fmtDuree(ep.totalMins)}</div>
+                  <div style={{fontSize:10,color:TXT3}}>{pct}% du total</div>
+                </div>
+              </div>
+              {/* Barre de progression */}
+              <div style={{height:6,borderRadius:10,background:"#f1f5f9",overflow:"hidden",marginBottom:10}}>
+                <div style={{height:"100%",width:pct+"%",background:`linear-gradient(90deg,${emp.couleur||GOLD},${emp.couleur||GOLD}99)`,borderRadius:10,transition:"width .4s"}}/>
+              </div>
+              {/* Détail par jour */}
+              {ep.taches.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map((t,i,arr)=>{
+                const zone=data.zones.find(z=>z.id===t.zoneId);
+                return(
+                  <div key={t.id} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 0",borderBottom:i<Math.min(arr.length-1,4)?"1px solid #f8fafc":"none"}}>
+                    <div style={{width:8,height:8,borderRadius:"50%",background:emp.couleur||GOLD,flexShrink:0}}/>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:12,fontWeight:600,color:TXT,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.type} · {zone?.nom||"?"}</div>
+                      <div style={{fontSize:10,color:TXT3}}>{fmtDate(t.date)}</div>
+                    </div>
+                    <div style={{flexShrink:0,textAlign:"right"}}>
+                      <div style={{fontSize:12,fontWeight:700,color:TXT}}>{fmtDuree(t.duree)}</div>
+                      <div style={{fontSize:10,color:TXT3}}>{t.heureArriveeReel} → {t.heureDepartReel}</div>
+                    </div>
+                  </div>
+                );
+              })}
+              {ep.taches.length>5&&(
+                <div style={{fontSize:11,color:TXT3,textAlign:"center",marginTop:6}}>+{ep.taches.length-5} tâches supplémentaires</div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Export texte */}
+        {tachesAvecHeures.length>0&&(
+          <div style={{padding:"0 12px 16px"}}>
+            <button style={S.bSec} onClick={()=>{
+              const moisLabel=moisDispo.find(m=>m.v===moisSel)?.l||moisSel;
+              let txt=`=== HEURES DE TRAVAIL — ${moisLabel.toUpperCase()} ===\n\n`;
+              empList.forEach(ep=>{
+                const emp=data.employes.find(e=>e.id===ep.empId);
+                txt+=`👤 ${emp?.nom||"?"} — Total : ${fmtDuree(ep.totalMins)}\n`;
+                ep.taches.forEach(t=>{
+                  const zone=data.zones.find(z=>z.id===t.zoneId);
+                  txt+=`   ${t.date} ${t.heureArriveeReel}→${t.heureDepartReel} (${fmtDuree(t.duree)}) — ${t.type} @ ${zone?.nom||"?"}\n`;
+                });
+                txt+="\n";
+              });
+              txt+=`TOTAL ÉQUIPE : ${fmtDuree(totalGlobal)}`;
+              navigator.clipboard.writeText(txt).then(()=>toast_("📋 Copié !")).catch(()=>toast_("Erreur copie","err"));
+            }}>📋 Exporter les heures</button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ── PAGE 1 : Déplacements ──
+  const pageDeplacements=()=>{
+    // Grouper tâches par jour x employé
+    const joursMap={};
+    tachesMois.filter(t=>t.date).forEach(t=>{
+      const key=t.date;
+      if(!joursMap[key])joursMap[key]={};
+      if(!joursMap[key][t.employeId])joursMap[key][t.employeId]=[];
+      const zone=data.zones.find(z=>z.id===t.zoneId);
+      if(zone&&zone.adresse&&!joursMap[key][t.employeId].some(z=>z.id===zone.id)){
+        joursMap[key][t.employeId].push(zone);
+      }
+    });
+    const jours=Object.keys(joursMap).sort().reverse();
+    const totalJoursAvecDeplacement=jours.filter(j=>Object.values(joursMap[j]).some(z=>z.length>0)).length;
+
+    return(
+      <div>
+        {jours.length===0&&(
+          <div style={{padding:"40px 20px",textAlign:"center",color:TXT3}}>
+            <div style={{fontSize:40,marginBottom:12}}>🗺️</div>
+            <div style={{fontWeight:700,fontSize:14,color:TXT2}}>Aucun déplacement ce mois</div>
+            <div style={{fontSize:12,marginTop:6}}>Les déplacements apparaissent ici quand des tâches sont assignées avec des adresses de logement.</div>
+          </div>
+        )}
+        {jours.map(jour=>{
+          const empIds=Object.keys(joursMap[jour]).filter(id=>joursMap[jour][id].length>0);
+          if(empIds.length===0)return null;
+          const empIdsFiltres=empSel==="tous"?empIds:empIds.filter(id=>id===empSel);
+          if(empIdsFiltres.length===0)return null;
+          return(
+            <div key={jour} style={{...S.card,marginBottom:8,padding:0,overflow:"hidden"}}>
+              {/* Entête jour */}
+              <div style={{background:"#f8fafc",padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <div style={{fontWeight:700,fontSize:13,color:TXT}}>📅 {fmtDate(jour)}</div>
+                <div style={{fontSize:11,color:TXT3}}>{empIdsFiltres.length} employé{empIdsFiltres.length>1?"s":""}</div>
+              </div>
+              {/* Par employé */}
+              {empIdsFiltres.map((id,idx)=>{
+                const empId=parseInt(id);
+                const emp=data.employes.find(e=>e.id===empId);
+                const zones=joursMap[jour][id];
+                if(!zones||zones.length===0)return null;
+                const mapsUrl=buildGoogleMapsUrl(zones);
+                return(
+                  <div key={id} style={{padding:"12px 14px",borderBottom:idx<empIdsFiltres.length-1?`1px solid ${BORDER}`:"none"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                      <Avatar emp={emp} size={32}/>
+                      <div style={{fontWeight:700,fontSize:13,color:TXT,flex:1}}>{emp?.nom||"?"}</div>
+                      {mapsUrl&&(
+                        <a href={mapsUrl} target="_blank" rel="noreferrer"
+                          style={{fontSize:10,color:GOLD_DARK,fontWeight:700,textDecoration:"none",background:GOLD_BG,borderRadius:20,padding:"3px 10px",border:`1px solid ${GOLD}44`,whiteSpace:"nowrap"}}>
+                          🗺️ Ouvrir Maps
+                        </a>
+                      )}
+                    </div>
+                    {/* Carte miniature du trajet du jour */}
+                    {zones.length>0&&zones[0].adresse&&(
+                      <div style={{borderRadius:14,overflow:"hidden",marginBottom:10,height:180,position:"relative",boxShadow:"0 2px 10px rgba(0,0,0,.12)"}}>
+                        {(()=>{
+                          const origin=zones[0].adresse;
+                          const dest=zones[zones.length-1].adresse;
+                          const wps=zones.slice(1,-1).map(z=>encodeURIComponent(z.adresse)).join("|");
+                          const embedUrl=zones.length===1
+                            ?`https://maps.google.com/maps?q=${encodeURIComponent(origin)}&output=embed&z=14`
+                            :`https://maps.google.com/maps?saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(dest)}${wps?`%7C${wps}`:""}&output=embed`;
+                          return(
+                            <iframe src={embedUrl} style={{width:"100%",height:"100%",border:"none"}}
+                              loading="lazy" referrerPolicy="no-referrer-when-downgrade" title={`Trajet ${emp?.nom} ${jour}`}/>
+                          );
+                        })()}
+                        {/* Badge nombre d'arrêts */}
+                        <div style={{position:"absolute",top:8,right:8,background:"#1a73e8",color:"white",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,boxShadow:"0 2px 8px rgba(26,115,232,.4)"}}>
+                          {zones.length} arrêt{zones.length>1?"s":""}
+                        </div>
+                      </div>
+                    )}
+                    {/* Arrêts */}
+                    <div style={{display:"flex",gap:4,overflowX:"auto",scrollbarWidth:"none",paddingBottom:2}}>
+                      {zones.map((z,i)=>(
+                        <div key={z.id} style={{display:"flex",alignItems:"center",flexShrink:0}}>
+                          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                            <div style={{width:20,height:20,borderRadius:"50%",background:i===0?"#22c55e":i===zones.length-1?"#ea4335":GOLD,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,color:"white",flexShrink:0}}>
+                              {i===0?"S":i===zones.length-1?"A":(i+1)}
+                            </div>
+                            <div style={{fontSize:8,color:TXT2,fontWeight:600,maxWidth:60,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{z.nom}</div>
+                          </div>
+                          {i<zones.length-1&&<div style={{width:16,height:1.5,background:"#dadce0",margin:"0 2px",marginBottom:12,flexShrink:0}}/>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const PAGES=[
+    {id:0,label:"⏱️ Heures travail",icon:"⏱️"},
+    {id:1,label:"🗺️ Déplacements",  icon:"🗺️"},
+  ];
+
+  return(
+    <div>
+      {/* Titre */}
+      <div style={{padding:"0 12px 10px",fontWeight:900,fontSize:16,color:TXT}}>⏱️ Heures & Déplacements</div>
+
+      {/* Sélecteurs — mois + employé */}
+      <div style={{display:"flex",gap:8,padding:"0 12px",marginBottom:12}}>
+        <select value={moisSel} onChange={e=>setMoisSel(e.target.value)}
+          style={{flex:1,borderRadius:10,border:`1px solid ${BORDER}`,padding:"8px 10px",fontSize:12,fontWeight:600,color:TXT,background:"#f8fafc"}}>
+          {moisDispo.map(m=><option key={m.v} value={m.v}>{m.l}</option>)}
+        </select>
+        <select value={empSel} onChange={e=>setEmpSel(e.target.value)}
+          style={{flex:1,borderRadius:10,border:`1px solid ${BORDER}`,padding:"8px 10px",fontSize:12,fontWeight:600,color:TXT,background:"#f8fafc"}}>
+          <option value="tous">👥 Tous</option>
+          {empActifs.map(e=><option key={e.id} value={e.id}>👤 {e.nom}</option>)}
+        </select>
+      </div>
+
+      {/* Sélecteur de page — liste scrollable */}
+      <div style={{padding:"0 12px",marginBottom:10}}>
+        <div style={{display:"flex",background:"#f1f5f9",borderRadius:14,padding:3,gap:2}}>
+          {PAGES.map(p=>(
+            <button key={p.id} onClick={()=>setPage(p.id)}
+              style={{flex:1,padding:"9px 4px",borderRadius:11,border:"none",background:page===p.id?GOLD:"transparent",color:page===p.id?"#1a0d00":TXT2,fontWeight:700,fontSize:12,cursor:"pointer",transition:"all .2s",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+              {p.icon} {p.label.split(" ").slice(1).join(" ")}
+            </button>
+          ))}
+        </div>
+        {/* Indicateur swipe */}
+        <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:8}}>
+          {PAGES.map(p=>(
+            <div key={p.id} style={{width:page===p.id?22:8,height:4,borderRadius:10,background:page===p.id?GOLD:"#d1d5db",transition:"all .3s",cursor:"pointer"}} onClick={()=>setPage(p.id)}/>
+          ))}
+        </div>
+        <div style={{textAlign:"center",fontSize:10,color:TXT3,marginTop:4}}>← swipe pour changer de vue →</div>
+      </div>
+
+      {/* Contenu swipeable */}
+      <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {page===0&&pageHeures()}
+        {page===1&&pageDeplacements()}
+      </div>
+    </div>
+  );
+}
+
+const DROITS_DEFAUT={
+  manager:{
+    voirToutesLesTaches:true,
+    creerTaches:true,
+    modifierTaches:true,
+    supprimerTaches:true,
+    voirTousLesEmployes:true,
+    validerTaches:true,
+    voirHistoriqueComplet:true,
+    accesMessages:true,
+    voirRapports:true,
+  },
+  employe:{
+    voirToutesLesTaches:false,
+    creerTaches:false,
+    modifierTaches:false,
+    supprimerTaches:false,
+    voirTousLesEmployes:false,
+    validerTaches:true,
+    voirHistoriqueComplet:false,
+    accesMessages:true,
+    voirRapports:false,
+  }
+};
+
+const DROITS_LABELS=[
+  {id:"voirToutesLesTaches",  label:"Voir toutes les tâches",       icon:"📋", desc:"Accès aux tâches de toute l'équipe (pas seulement les siennes)"},
+  {id:"creerTaches",          label:"Créer des tâches",             icon:"➕", desc:"Peut créer de nouvelles tâches"},
+  {id:"modifierTaches",       label:"Modifier des tâches",          icon:"✏️", desc:"Peut modifier les détails d'une tâche"},
+  {id:"supprimerTaches",      label:"Supprimer des tâches",         icon:"🗑️", desc:"Peut supprimer une tâche"},
+  {id:"voirTousLesEmployes",  label:"Voir tous les employés",       icon:"👥", desc:"Accès à la liste complète de l'équipe"},
+  {id:"validerTaches",        label:"Valider ses tâches",           icon:"✅", desc:"Peut cocher ses tâches comme terminées"},
+  {id:"voirHistoriqueComplet",label:"Voir l'historique complet",    icon:"⧗", desc:"Accès à l'historique de toute l'équipe"},
+  {id:"accesMessages",        label:"Accès aux messages",           icon:"💬", desc:"Peut envoyer et recevoir des messages"},
+  {id:"voirRapports",         label:"Voir les rapports",            icon:"📊", desc:"Accès aux statistiques et récapitulatifs"},
+];
+
+function DroitsRoles({data,setData,toast_}){
+  const droits=data.droitsRoles||DROITS_DEFAUT;
+  const [roleActif,setRoleActif]=useState("manager");
+
+  function toggle(role,droit){
+    setData(d=>{
+      const dr=d.droitsRoles||DROITS_DEFAUT;
+      return{...d,droitsRoles:{...dr,[role]:{...dr[role],[droit]:!dr[role][droit]}}};
+    });
+    toast_("Droits mis à jour ✓");
+  }
+
+  function reset(role){
+    setData(d=>({...d,droitsRoles:{...(d.droitsRoles||DROITS_DEFAUT),[role]:{...DROITS_DEFAUT[role]}}}));
+    toast_("Droits réinitialisés ✓");
+  }
+
+  const roles=[
+    {id:"manager", label:"Manager", icon:"👔", color:"#7c3aed", bg:"#f3f0ff", desc:"Gère l'équipe et les tâches"},
+    {id:"employe", label:"Employé", icon:"👤", color:GOLD_DARK,  bg:GOLD_BG,  desc:"Exécute ses tâches assignées"},
+  ];
+
+  const currentDroits=droits[roleActif]||DROITS_DEFAUT[roleActif];
+  const role=roles.find(r=>r.id===roleActif);
+  const nbActifs=Object.values(currentDroits).filter(Boolean).length;
+
+  return(
+    <div style={{padding:"0 12px 14px"}}>
+      <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:6}}>🛡️ Droits & Rôles</div>
+      <div style={{fontSize:12,color:TXT2,marginBottom:14}}>Définissez précisément ce que chaque rôle peut faire dans l'application.</div>
+
+      {/* Sélecteur de rôle */}
+      <div style={{display:"flex",gap:10,marginBottom:16}}>
+        {roles.map(r=>{
+          const sel=roleActif===r.id;
+          return(
+            <div key={r.id} onClick={()=>setRoleActif(r.id)}
+              style={{flex:1,borderRadius:14,padding:"14px",border:`2px solid ${sel?r.color:"#e2e8f0"}`,background:sel?r.bg:CARD,cursor:"pointer",transition:"all .2s",textAlign:"center"}}>
+              <div style={{fontSize:24,marginBottom:4}}>{r.icon}</div>
+              <div style={{fontWeight:700,fontSize:13,color:sel?r.color:TXT}}>{r.label}</div>
+              <div style={{fontSize:10,color:TXT3,marginTop:2}}>{r.desc}</div>
+              {sel&&<div style={{fontSize:10,color:r.color,fontWeight:700,marginTop:4,background:r.color+"18",borderRadius:20,padding:"2px 8px",display:"inline-block"}}>{nbActifs} droit{nbActifs>1?"s":""} actif{nbActifs>1?"s":""}</div>}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Liste des droits */}
+      <div style={{background:CARD,borderRadius:16,border:`1px solid ${BORDER}`,overflow:"hidden",marginBottom:12}}>
+        {DROITS_LABELS.map((d,i)=>{
+          const actif=currentDroits[d.id]===true;
+          return(
+            <div key={d.id} onClick={()=>toggle(roleActif,d.id)}
+              style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderBottom:i<DROITS_LABELS.length-1?`1px solid ${BORDER}`:"none",cursor:"pointer",background:actif?role.bg+"44":"transparent",transition:"background .15s"}}>
+              <div style={{width:38,height:38,borderRadius:10,background:actif?role.color+"18":"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0,transition:"all .2s"}}>
+                {d.icon}
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:600,fontSize:13,color:actif?role.color:TXT}}>{d.label}</div>
+                <div style={{fontSize:11,color:TXT3,marginTop:1}}>{d.desc}</div>
+              </div>
+              <div style={{width:46,height:26,borderRadius:13,background:actif?role.color:"#d1d5db",position:"relative",transition:"background .2s",flexShrink:0}}>
+                <div style={{position:"absolute",top:3,left:actif?22:3,width:20,height:20,borderRadius:"50%",background:"white",boxShadow:"0 1px 4px rgba(0,0,0,.2)",transition:"left .2s"}}/>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <button onClick={()=>reset(roleActif)}
+        style={{width:"100%",padding:"11px",background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:12,fontSize:12,fontWeight:700,color:TXT2,cursor:"pointer"}}>
+        🔄 Réinitialiser les droits {role.label}
+      </button>
+
+      <div style={{background:GOLD_BG,borderRadius:12,padding:"11px 14px",border:`1px solid ${GOLD}44`,marginTop:10}}>
+        <div style={{fontSize:11,color:GOLD_DARK,fontWeight:700,marginBottom:3}}>💡 Note</div>
+        <div style={{fontSize:11,color:GOLD_DARK,lineHeight:1.6}}>Les administrateurs ont toujours accès à toutes les fonctionnalités. Ces droits s'appliquent uniquement aux managers et employés.</div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// UTILS GÉO — Haversine + Geocode + TSP optimisation trajet
+// ══════════════════════════════════════════════════════════════════════════════
+function haversine(lat1,lon1,lat2,lon2){
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+async function geocodeAdresse(adresse){
+  try{
+    await new Promise(r=>setTimeout(r,300)); // respect rate limit Nominatim
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(adresse)}&limit=1`,{headers:{"Accept-Language":"fr","User-Agent":"CKeys-App/1.0"}});
+    const j=await r.json();
+    if(j.length>0)return{lat:parseFloat(j[0].lat),lon:parseFloat(j[0].lon),display:j[0].display_name};
+  }catch{}
+  return null;
+}
+
+// Optimisation TSP greedy nearest-neighbor depuis position de départ
+function optimiserTrajet(points, depart){
+  if(points.length<=1)return points;
+  const unvisited=[...points];
+  const route=[];
+  let current=depart||unvisited[0].coords;
+  if(!depart){ route.push(unvisited.shift()); current=route[0].coords; }
+  while(unvisited.length>0){
+    let nearest=null, nearestIdx=-1, nearestDist=Infinity;
+    unvisited.forEach((p,i)=>{
+      const d=haversine(current.lat,current.lon,p.coords.lat,p.coords.lon);
+      if(d<nearestDist){nearestDist=d;nearest=p;nearestIdx=i;}
+    });
+    route.push(nearest);
+    unvisited.splice(nearestIdx,1);
+    current=nearest.coords;
+  }
+  return route;
+}
+
+// Calcul km + temps estimé entre deux points
+function calcSegment(c1,c2){
+  const km=haversine(c1.lat,c1.lon,c2.lat,c2.lon);
+  const vitesse=35; // km/h vitesse moyenne en zone mixte
+  const mins=Math.round(km/vitesse*60);
+  return{km:parseFloat(km.toFixed(1)),mins};
+}
+
+// Construire URL Google Maps Directions avec waypoints
+function buildGoogleMapsUrl(orderedZones){
+  if(orderedZones.length===0)return null;
+  const enc=a=>encodeURIComponent(a);
+  if(orderedZones.length===1)return`https://www.google.com/maps/search/?api=1&query=${enc(orderedZones[0].adresse)}`;
+  const origin=enc(orderedZones[0].adresse);
+  const destination=enc(orderedZones[orderedZones.length-1].adresse);
+  const waypoints=orderedZones.slice(1,-1).map(z=>enc(z.adresse)).join("|");
+  return`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints?`&waypoints=${waypoints}`:""}&travelmode=driving`;
+}
+
+// Construire URL miniature statique (Static Maps API — sans clé, mode embed)
+function buildStaticMapUrl(orderedZones){
+  if(!orderedZones||orderedZones.length===0)return null;
+  const addresses=orderedZones.map(z=>z.adresse).join("|");
+  // Utilise OpenStreetMap via Nominatim coords stockées
+  return null; // On utilisera un iframe Google Maps Embed
+}
+
+// ── Badge distance km ──
+function DistanceKmBadge({adresse,coordsCache}){
+  const [km,setKm]=useState(null);
+  const [err,setErr]=useState(false);
+
+  useEffect(()=>{
+    if(!adresse||!navigator.geolocation)return;
+    // Si les coords sont déjà dans le cache
+    if(coordsCache&&coordsCache[adresse]){
+      navigator.geolocation.getCurrentPosition(pos=>{
+        const c=coordsCache[adresse];
+        const d=haversine(pos.coords.latitude,pos.coords.longitude,c.lat,c.lon);
+        setKm(d.toFixed(1));
+      },()=>{setErr(true);},{timeout:8000});
+      return;
+    }
+    let cancelled=false;
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      if(cancelled)return;
+      const coords=await geocodeAdresse(adresse);
+      if(cancelled)return;
+      if(coords){
+        const d=haversine(pos.coords.latitude,pos.coords.longitude,coords.lat,coords.lon);
+        setKm(d.toFixed(1));
+      }else{setErr(true);}
+    },()=>{setErr(true);},{enableHighAccuracy:false,timeout:8000});
+    return()=>{cancelled=true;};
+  },[adresse]);
+
+  if(!adresse||err||km===null)return null;
+  const d=parseFloat(km);
+  const col=d<5?"#16a34a":d<15?"#d97706":"#dc2626";
+  return(
+    <span style={{display:"inline-flex",alignItems:"center",gap:3,background:col+"18",borderRadius:20,padding:"2px 8px",border:`1px solid ${col}44`}}>
+      <span style={{fontSize:10}}>{d<5?"🚶":d<15?"🚗":"🛣️"}</span>
+      <span style={{fontSize:10,fontWeight:700,color:col}}>{km} km</span>
+    </span>
+  );
+}
+
+// ── Miniature trajet — grande carte style Google Maps (toujours visible) ──
+function MiniatureTrajet({zones, date, empNom, totalKm, totalMins}){
+  const zonesAvecAdresse=zones.filter(z=>z.adresse&&z.adresse.trim());
+  if(zonesAvecAdresse.length===0)return null;
+
+  const mapsUrl=buildGoogleMapsUrl(zonesAvecAdresse);
+  const origin=zonesAvecAdresse[0].adresse;
+  const dest=zonesAvecAdresse[zonesAvecAdresse.length-1].adresse;
+  const wps=zonesAvecAdresse.slice(1,-1).map(z=>encodeURIComponent(z.adresse)).join("|");
+  const embedUrl=zonesAvecAdresse.length===1
+    ?`https://maps.google.com/maps?q=${encodeURIComponent(origin)}&output=embed&z=14`
+    :`https://maps.google.com/maps?saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(dest)}${wps?`%7C${wps}`:""}&output=embed`;
+
+  function fmtMins(m){if(!m)return null;const h=Math.floor(m/60),min=m%60;return h>0?`${h}h${min>0?min+"min":""}`:`${min}min`;}
+
+  return(
+    <div style={{margin:"8px 12px 12px",borderRadius:20,overflow:"hidden",boxShadow:"0 4px 24px rgba(0,0,0,.18)",position:"relative",border:"2px solid rgba(255,255,255,.15)"}}>
+
+      {/* ── CARTE GOOGLE MAPS — grande et centrée ── */}
+      <div style={{position:"relative",height:260,background:"#e8edf1"}}>
+        <iframe
+          src={embedUrl}
+          style={{width:"100%",height:"100%",border:"none",display:"block"}}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          title="Trajet du jour"
+        />
+
+        {/* Overlay badge infos style Google Maps — coin supérieur gauche */}
+        <div style={{position:"absolute",top:12,left:12,display:"flex",flexDirection:"column",gap:6,pointerEvents:"none",zIndex:10}}>
+          {/* Badge temps + distance */}
+          {(totalKm>0||totalMins>0)&&(
+            <div style={{background:"white",borderRadius:14,padding:"10px 14px",boxShadow:"0 3px 14px rgba(0,0,0,.22)",minWidth:110}}>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+                <span style={{fontSize:14}}>🚗</span>
+                <span style={{fontWeight:900,fontSize:18,color:"#1a73e8",lineHeight:1}}>{fmtMins(totalMins)||"–"}</span>
+              </div>
+              <div style={{fontSize:11,color:"#5f6368",fontWeight:500,lineHeight:1.3}}>
+                {totalKm>0&&<div>{totalKm} km</div>}
+                <div style={{color:"#1a73e8",fontWeight:600}}>{zonesAvecAdresse.length} arrêt{zonesAvecAdresse.length>1?"s":""}</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Bouton ouvrir Maps — coin inférieur droit, style Google */}
+        <a href={mapsUrl} target="_blank" rel="noreferrer"
+          style={{position:"absolute",bottom:12,right:12,background:"#1a73e8",color:"white",borderRadius:24,padding:"8px 16px",fontSize:12,fontWeight:700,textDecoration:"none",boxShadow:"0 3px 12px rgba(26,115,232,.5)",display:"flex",alignItems:"center",gap:6,zIndex:10}}>
+          <span style={{fontSize:14}}>🗺️</span> Ouvrir Maps
+        </a>
+      </div>
+
+      {/* ── Barre d'arrêts scrollable en bas ── */}
+      <div style={{background:"white",padding:"10px 14px",borderTop:"1px solid #f0f0f0"}}>
+        <div style={{display:"flex",alignItems:"center",gap:4,overflowX:"auto",scrollbarWidth:"none"}}>
+          {/* Lieu de départ (position) */}
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flexShrink:0}}>
+            <div style={{width:20,height:20,borderRadius:"50%",background:"#4285f4",border:"3px solid white",boxShadow:"0 0 0 2px #4285f4",flexShrink:0}}/>
+            <div style={{fontSize:8,color:"#5f6368",fontWeight:600,textAlign:"center",whiteSpace:"nowrap"}}>Départ</div>
+          </div>
+
+          {zonesAvecAdresse.map((z,i)=>(
+            <div key={z.id||i} style={{display:"flex",alignItems:"center",flexShrink:0}}>
+              {/* Ligne pointillée */}
+              <div style={{display:"flex",alignItems:"center",margin:"0 2px",marginBottom:12}}>
+                {[0,1,2].map(d=><div key={d} style={{width:5,height:2,background:"#dadce0",borderRadius:1,margin:"0 1px"}}/>)}
+              </div>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                {/* Pin rouge style Google */}
+                <div style={{width:22,height:22,borderRadius:"50% 50% 50% 0",background:i===zonesAvecAdresse.length-1?"#ea4335":GOLD,transform:"rotate(-45deg)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(0,0,0,.25)"}}>
+                  <span style={{transform:"rotate(45deg)",color:"white",fontSize:9,fontWeight:900}}>
+                    {i===zonesAvecAdresse.length-1?"🏁":i+1}
+                  </span>
+                </div>
+                <div style={{fontSize:8,color:"#202124",fontWeight:700,maxWidth:60,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{z.nom}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Nom employé si filtré */}
+        {empNom&&(
+          <div style={{fontSize:10,color:"#5f6368",marginTop:6,display:"flex",alignItems:"center",gap:4}}>
+            <span>👤</span><span style={{fontWeight:600}}>{empNom}</span>
+            <span style={{marginLeft:4}}>·</span>
+            <span>{date}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Hook optimisation trajet pour une journée ──
+function useTrajetOptimise(zones, dateStr, suiviKmActif){
+  const [orderedZones,setOrderedZones]=useState(zones);
+  const [segments,setSegments]=useState([]);
+  const [totalKm,setTotalKm]=useState(0);
+  const [totalMins,setTotalMins]=useState(0);
+  const [loading,setLoading]=useState(false);
+  const cacheRef=useRef({}); // adresse -> coords
+
+  useEffect(()=>{
+    if(!suiviKmActif||zones.length<2){setOrderedZones(zones);return;}
+    const zonesAvecAdresse=zones.filter(z=>z.adresse&&z.adresse.trim());
+    if(zonesAvecAdresse.length<2){setOrderedZones(zones);return;}
+
+    let cancelled=false;
+    async function run(){
+      setLoading(true);
+      // Géocoder toutes les adresses
+      const withCoords=[];
+      for(const z of zonesAvecAdresse){
+        if(cacheRef.current[z.adresse]){
+          withCoords.push({...z,coords:cacheRef.current[z.adresse]});
+        }else{
+          const coords=await geocodeAdresse(z.adresse);
+          if(coords){cacheRef.current[z.adresse]=coords;withCoords.push({...z,coords});}
+        }
+        if(cancelled)return;
+      }
+      if(withCoords.length<2){setOrderedZones(zones);setLoading(false);return;}
+
+      // Optimiser depuis position GPS si disponible
+      let depart=null;
+      if(navigator.geolocation){
+        depart=await new Promise(res=>{
+          navigator.geolocation.getCurrentPosition(
+            p=>res({lat:p.coords.latitude,lon:p.coords.longitude}),
+            ()=>res(null),{timeout:5000}
+          );
+        });
+      }
+      if(cancelled)return;
+
+      const optimized=optimiserTrajet(withCoords,depart);
+      
+      // Calculer segments
+      const segs=[];
+      let km=0,mins=0;
+      for(let i=1;i<optimized.length;i++){
+        const s=calcSegment(optimized[i-1].coords,optimized[i].coords);
+        segs.push({from:optimized[i-1].nom,to:optimized[i].nom,...s});
+        km+=s.km;mins+=s.mins;
+      }
+      if(depart){
+        const first=calcSegment(depart,optimized[0].coords);
+        km+=first.km;mins+=first.mins;
+      }
+
+      if(!cancelled){
+        setOrderedZones(optimized);
+        setSegments(segs);
+        setTotalKm(parseFloat(km.toFixed(1)));
+        setTotalMins(mins);
+        setLoading(false);
+      }
+    }
+    run();
+    return()=>{cancelled=true;};
+  },[zones.map(z=>z.id).join(","),suiviKmActif,dateStr]);
+
+  return{orderedZones,segments,totalKm,totalMins,loading,coordsCache:cacheRef.current};
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RÉCAPITULATIF MENSUEL TRAJETS — pour l'admin
+// ══════════════════════════════════════════════════════════════════════════════
+function RecapMensuelTrajets({data,onClose}){
+  const [empSel,setEmpSel]=useState("tous");
+  const [moisSel,setMoisSel]=useState(()=>{
+    const n=new Date();
+    return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;
+  });
+  const [trajetsParJour,setTrajetsParJour]=useState({});
+  const [loading,setLoading]=useState(false);
+  const [computed,setComputed]=useState(false);
+
+  const empActifs=data.employes.filter(e=>e.actif);
+
+  // Grouper tâches par jour x employé pour le mois sélectionné
+  const tachesMois=data.taches.filter(t=>{
+    if(!t.date)return false;
+    const [y,m]=t.date.split("-");
+    return`${y}-${m.padStart(2,"0")}`===moisSel;
+  });
+
+  // Jours uniques avec tâches
+  const joursUniques=[...new Set(tachesMois.map(t=>t.date))].sort();
+
+  async function calculerTousTrajets(){
+    setLoading(true);setComputed(false);
+    const result={};
+    const coordsCache={};
+
+    async function geocachee(adresse){
+      if(!adresse)return null;
+      if(coordsCache[adresse])return coordsCache[adresse];
+      const c=await geocodeAdresse(adresse);
+      if(c)coordsCache[adresse]=c;
+      return c;
+    }
+
+    for(const jour of joursUniques){
+      result[jour]={};
+      const tJour=tachesMois.filter(t=>t.date===jour);
+
+      // Par employé
+      const empIds=[...new Set(tJour.map(t=>t.employeId))];
+      for(const empId of empIds){
+        const emp=data.employes.find(e=>e.id===empId);
+        const zoneIds=[...new Set(tJour.filter(t=>t.employeId===empId).map(t=>t.zoneId))];
+        const zones=zoneIds.map(id=>data.zones.find(z=>z.id===id)).filter(Boolean).filter(z=>z.adresse&&z.adresse.trim());
+        if(zones.length===0){result[jour][empId]={zones:[],km:0,mins:0,segments:[]};continue;}
+
+        const withCoords=[];
+        for(const z of zones){
+          const c=await geocachee(z.adresse);
+          if(c)withCoords.push({...z,coords:c});
+        }
+        const optimized=withCoords.length>=2?optimiserTrajet(withCoords,null):withCoords;
+        let km=0,mins=0;
+        const segs=[];
+        for(let i=1;i<optimized.length;i++){
+          const s=calcSegment(optimized[i-1].coords,optimized[i].coords);
+          segs.push({from:optimized[i-1].nom,to:optimized[i].nom,...s});
+          km+=s.km;mins+=s.mins;
+        }
+        result[jour][empId]={zones:optimized,km:parseFloat(km.toFixed(1)),mins,segments:segs,empNom:emp?.nom||"?",empCouleur:emp?.couleur||GOLD};
+      }
+    }
+    setTrajetsParJour(result);setLoading(false);setComputed(true);
+  }
+
+  // Filtrer par employé
+  const joursAffiches=joursUniques.filter(jour=>{
+    if(empSel==="tous")return true;
+    return trajetsParJour[jour]&&trajetsParJour[jour][empSel];
+  });
+
+  // Totaux
+  const totKm=joursAffiches.reduce((acc,j)=>{
+    const empIds=empSel==="tous"?Object.keys(trajetsParJour[j]||{}):[empSel];
+    return acc+empIds.reduce((a,id)=>a+(trajetsParJour[j]?.[id]?.km||0),0);
+  },0);
+  const totMins=joursAffiches.reduce((acc,j)=>{
+    const empIds=empSel==="tous"?Object.keys(trajetsParJour[j]||{}):[empSel];
+    return acc+empIds.reduce((a,id)=>a+(trajetsParJour[j]?.[id]?.mins||0),0);
+  },0);
+
+  function fmtMins(m){const h=Math.floor(m/60),min=m%60;return h>0?`${h}h${min>0?min+"min":""}`:`${min}min`;}
+  function fmtJour(d){return new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});}
+  function nomMois(m){const[y,mo]=m.split("-");return new Date(y,parseInt(mo)-1,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"});}
+
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.75)",backdropFilter:"blur(8px)",zIndex:500,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
+      onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div style={{background:CARD,borderRadius:"24px 24px 0 0",width:"100%",maxWidth:600,maxHeight:"92vh",display:"flex",flexDirection:"column",borderTop:`3px solid ${GOLD}`}}>
+        {/* Header */}
+        <div style={{padding:"20px 20px 14px",borderBottom:`1px solid ${BORDER}`,flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+            <div>
+              <div style={{fontWeight:900,fontSize:17,color:TXT}}>🗺️ Récap trajets mensuels</div>
+              <div style={{fontSize:12,color:TXT2,marginTop:2}}>Distances et temps de trajet par jour</div>
+            </div>
+            <button onClick={onClose} style={{width:36,height:36,borderRadius:10,border:"none",background:"#f4f4f5",cursor:"pointer",fontSize:18,color:TXT2}}>✕</button>
+          </div>
+
+          {/* Sélecteurs mois + employé */}
+          <div style={{display:"flex",gap:8,marginBottom:10}}>
+            <select value={moisSel} onChange={e=>{setMoisSel(e.target.value);setComputed(false);}}
+              style={{flex:1,borderRadius:10,border:`1px solid ${BORDER}`,padding:"8px 12px",fontSize:12,fontWeight:600,color:TXT,background:"#f8fafc"}}>
+              {Array.from({length:6},(_,i)=>{
+                const d=new Date();d.setMonth(d.getMonth()-i);
+                const v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+                return<option key={v} value={v}>{nomMois(v)}</option>;
+              })}
+            </select>
+            <select value={empSel} onChange={e=>setEmpSel(e.target.value)}
+              style={{flex:1,borderRadius:10,border:`1px solid ${BORDER}`,padding:"8px 12px",fontSize:12,fontWeight:600,color:TXT,background:"#f8fafc"}}>
+              <option value="tous">👥 Tous les employés</option>
+              {empActifs.map(e=><option key={e.id} value={e.id}>👤 {e.nom}</option>)}
+            </select>
+          </div>
+
+          <button onClick={calculerTousTrajets} disabled={loading}
+            style={{width:"100%",padding:"11px",background:loading?"#e2e8f0":`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:loading?"#94a3b8":"#1a0d00",fontSize:13,fontWeight:700,cursor:loading?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            {loading?<><span style={{display:"inline-block",width:14,height:14,border:"2px solid #94a3b8",borderTopColor:"#1a0d00",borderRadius:"50%",animation:"spin 1s linear infinite"}}/>Calcul en cours…</>:"🔄 Calculer les trajets du mois"}
+          </button>
+        </div>
+
+        {/* Totaux */}
+        {computed&&(
+          <div style={{display:"flex",gap:8,padding:"12px 20px",background:GOLD_BG,borderBottom:`1px solid ${GOLD}33`,flexShrink:0}}>
+            <div style={{flex:1,textAlign:"center"}}>
+              <div style={{fontWeight:900,fontSize:20,color:GOLD_DARK}}>{totKm.toFixed(1)}</div>
+              <div style={{fontSize:10,color:GOLD_DARK,fontWeight:700}}>km total</div>
+            </div>
+            <div style={{width:1,background:GOLD+"44"}}/>
+            <div style={{flex:1,textAlign:"center"}}>
+              <div style={{fontWeight:900,fontSize:20,color:GOLD_DARK}}>{fmtMins(totMins)}</div>
+              <div style={{fontSize:10,color:GOLD_DARK,fontWeight:700}}>temps trajet</div>
+            </div>
+            <div style={{width:1,background:GOLD+"44"}}/>
+            <div style={{flex:1,textAlign:"center"}}>
+              <div style={{fontWeight:900,fontSize:20,color:GOLD_DARK}}>{joursAffiches.length}</div>
+              <div style={{fontSize:10,color:GOLD_DARK,fontWeight:700}}>jours actifs</div>
+            </div>
+          </div>
+        )}
+
+        {/* Liste jours */}
+        <div style={{flex:1,overflowY:"auto",padding:"12px 20px 24px"}}>
+          {!computed&&!loading&&(
+            <div style={{textAlign:"center",padding:"40px 20px",color:TXT3}}>
+              <div style={{fontSize:40,marginBottom:12}}>🗓️</div>
+              <div style={{fontSize:13,fontWeight:600}}>Cliquez sur "Calculer" pour obtenir le récapitulatif</div>
+              <div style={{fontSize:11,marginTop:6}}>{joursUniques.length} jour{joursUniques.length!==1?"s":""} avec tâches en {nomMois(moisSel)}</div>
+            </div>
+          )}
+          {computed&&joursAffiches.length===0&&(
+            <div style={{textAlign:"center",padding:"32px 20px",color:TXT3}}>
+              <div style={{fontSize:13}}>Aucun trajet pour cette sélection</div>
+            </div>
+          )}
+          {computed&&joursAffiches.map(jour=>{
+            const trajJour=trajetsParJour[jour]||{};
+            const empIds=empSel==="tous"?Object.keys(trajJour):[empSel].filter(id=>trajJour[id]);
+            if(empIds.length===0)return null;
+            return(
+              <div key={jour} style={{marginBottom:16,borderRadius:16,border:`1px solid ${BORDER}`,overflow:"hidden",background:CARD,boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}>
+                {/* Entête jour */}
+                <div style={{background:"#f8fafc",padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div style={{fontWeight:700,fontSize:13,color:TXT}}>📅 {fmtJour(jour)}</div>
+                  <div style={{display:"flex",gap:8}}>
+                    {(()=>{
+                      const km=empIds.reduce((a,id)=>a+(trajJour[id]?.km||0),0);
+                      const mins=empIds.reduce((a,id)=>a+(trajJour[id]?.mins||0),0);
+                      return<>
+                        <span style={{fontSize:11,color:"#16a34a",fontWeight:700,background:"#dcfce7",borderRadius:20,padding:"2px 9px"}}>{km.toFixed(1)} km</span>
+                        <span style={{fontSize:11,color:"#2563eb",fontWeight:700,background:"#dbeafe",borderRadius:20,padding:"2px 9px"}}>{fmtMins(mins)}</span>
+                      </>;
+                    })()}
+                  </div>
+                </div>
+                {/* Détail par employé */}
+                {empIds.map(id=>{
+                  const t=trajJour[id];
+                  if(!t)return null;
+                  const mapsUrl=buildGoogleMapsUrl(t.zones);
+                  return(
+                    <div key={id} style={{padding:"12px 14px",borderBottom:`1px solid ${BORDER}`}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                        <div style={{width:28,height:28,borderRadius:"50%",background:t.empCouleur+"22",border:`2px solid ${t.empCouleur}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,color:t.empCouleur,flexShrink:0}}>
+                          {(t.empNom||"?")[0].toUpperCase()}
+                        </div>
+                        <div style={{fontWeight:700,fontSize:13,color:TXT,flex:1}}>{t.empNom}</div>
+                        <span style={{fontSize:10,color:GOLD_DARK,fontWeight:700}}>{t.km} km · {fmtMins(t.mins)}</span>
+                      </div>
+                      {/* Arrêts */}
+                      <div style={{display:"flex",gap:0,overflowX:"auto",scrollbarWidth:"none",marginBottom:8,paddingBottom:2}}>
+                        {t.zones.map((z,i)=>(
+                          <div key={i} style={{display:"flex",alignItems:"center",flexShrink:0}}>
+                            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                              <div style={{width:20,height:20,borderRadius:"50%",background:i===0?"#22c55e":i===t.zones.length-1?"#ef4444":GOLD,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,color:"white",flexShrink:0}}>
+                                {i===0?"🚩":i===t.zones.length-1?"🏁":(i+1)}
+                              </div>
+                              <div style={{fontSize:8,color:TXT2,fontWeight:600,maxWidth:60,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{z.nom}</div>
+                            </div>
+                            {i<t.zones.length-1&&<>
+                              <div style={{display:"flex",flexDirection:"column",alignItems:"center",margin:"0 2px",marginBottom:12}}>
+                                <div style={{width:28,height:1.5,background:"#e2e8f0"}}/>
+                                <div style={{fontSize:7,color:TXT3,whiteSpace:"nowrap"}}>{t.segments[i]?.km||"?"}km</div>
+                              </div>
+                            </>}
+                          </div>
+                        ))}
+                      </div>
+                      {mapsUrl&&<a href={mapsUrl} target="_blank" rel="noreferrer"
+                        style={{fontSize:11,color:GOLD_DARK,fontWeight:700,textDecoration:"none",background:GOLD_BG,borderRadius:20,padding:"3px 10px",border:`1px solid ${GOLD}44`,display:"inline-block"}}>
+                        🗺️ Voir dans Maps
+                      </a>}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUIVI DÉPLACEMENTS — paramètres admin
+// ══════════════════════════════════════════════════════════════════════════════
+function SuiviKm({data,setData,toast_}){
+  const actif=!!data.suiviKmActif;
+
+  return(
+    <div style={{padding:"0 12px 14px"}}>
+      <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:6}}>🚗 Suivi déplacements</div>
+      <div style={{fontSize:12,color:TXT2,marginBottom:14}}>Activez le suivi pour optimiser automatiquement l'ordre de passage dans les logements et afficher les distances aux employés.</div>
+
+      {/* Toggle activation */}
+      <div style={{...S.card,display:"flex",alignItems:"center",gap:14,padding:"16px",cursor:"pointer",marginBottom:10}}
+        onClick={()=>{setData(d=>({...d,suiviKmActif:!d.suiviKmActif}));toast_(actif?"Suivi km désactivé":"Suivi km activé ✓");}}>
+        <div style={{width:44,height:44,borderRadius:12,background:actif?"#dcfce7":GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>
+          🚗
+        </div>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:700,fontSize:14,color:TXT}}>Optimisation trajet & distances</div>
+          <div style={{fontSize:12,color:actif?"#16a34a":TXT2,marginTop:2,fontWeight:actif?700:400}}>
+            {actif?"✅ Activé — Trajet optimisé + miniature carte":"❌ Désactivé"}
+          </div>
+        </div>
+        <div style={{width:48,height:26,borderRadius:13,background:actif?"#22c55e":"#d1d5db",position:"relative",transition:"background .2s",flexShrink:0}}>
+          <div style={{position:"absolute",top:3,left:actif?24:3,width:20,height:20,borderRadius:"50%",background:"white",boxShadow:"0 1px 4px rgba(0,0,0,.2)",transition:"left .2s"}}/>
+        </div>
+      </div>
+
+      {actif&&(
+        <>
+          <div style={{...S.card,background:"#f0fdf4",border:"1.5px solid #86efac",marginBottom:10}}>
+            <div style={{fontSize:13,color:"#166534",fontWeight:600,marginBottom:8}}>✅ Fonctionnalités activées</div>
+            <div style={{fontSize:12,color:"#166534",lineHeight:1.8}}>
+              🗺️ <b>Trajet optimisé</b> — ordre des logements calculé (algorithme nearest-neighbor)<br/>
+              📍 <b>Distances affichées</b> — badge km sur chaque logement<br/>
+              🗺️ <b>Miniature carte</b> — aperçu Google Maps du trajet du jour<br/>
+              📊 <b>Récap mensuel</b> — bouton disponible dans les options admin
+            </div>
+          </div>
+
+          <div style={{...S.card,padding:"14px 16px"}}>
+            <div style={{fontSize:12,fontWeight:700,color:TXT,marginBottom:8}}>⚙️ Configuration</div>
+            <div style={{fontSize:11,color:TXT2,marginBottom:12,lineHeight:1.6}}>
+              • Les adresses doivent être renseignées sur chaque logement<br/>
+              • L'optimisation utilise l'algorithme "plus proche voisin" depuis la position GPS de l'employé<br/>
+              • Les distances sont calculées à vol d'oiseau (temps estimé à ~35 km/h)<br/>
+              • La miniature carte s'affiche en cliquant sur la bannière trajet
+            </div>
+          </div>
+        </>
+      )}
+
+      <div style={{background:GOLD_BG,borderRadius:12,padding:"11px 14px",border:`1px solid ${GOLD}44`,marginTop:4}}>
+        <div style={{fontSize:11,color:GOLD_DARK,fontWeight:700,marginBottom:3}}>💡 Prérequis</div>
+        <div style={{fontSize:11,color:GOLD_DARK,lineHeight:1.6}}>
+          Ajoutez une adresse complète (ex: 12 Rue des Lilas, 68500 Guebwiller) dans la fiche de chaque logement pour que le calcul fonctionne.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
 // VUE PARAMÈTRES — avec onglets : Équipe + Gestion droits + PIN + Général
 // ══════════════════════════════════════════════════════════════════════════════
 function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pushEnabled,setPushEnabled,pushPermission,demanderNotifPush,onZoomPhoto,textSize,setTextSize}){
@@ -1872,15 +2943,18 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
   const nbNotifsBadge=(data.notifications||[]).filter(n=>n.type==="probleme"&&!n.lu).length;
 
   const menuItems=[
-    {id:"gestion_equipe", icon:"👥", label:"Gestion Équipe",   desc:"Membres, rôles, droits et PIN"},
-    {id:"types_taches",   icon:"🗂️", label:"Types de tâches",  desc:"Personnaliser la liste des tâches"},
-    {id:"pieces",         icon:"🏠", label:"Pièces du logement", desc:"Liste des pièces pour signalements"},
-    {id:"historique",     icon:"⧗", label:"Historique",       desc:"Tâches terminées & récapitulatif"},
-    {id:"notifs",         icon:"🔔", label:"Notifications",    desc:"Activité récente", badge:nbNotifsBadge},
-    {id:"notifications",  icon:"🔔", label:"Notifications push", desc:"Alertes en temps réel"},
-    {id:"nuit",           icon:"🌙", label:"Mode nuit",        desc:"Interface sombre"},
-    {id:"taille",         icon:"🔡", label:"Taille de l'écriture", desc:textSize==="normal"?"Taille normale":textSize==="grand"?"Grands caractères":"Très grands caractères"},
-    {id:"tracking",        icon:"📍", label:"Tracking horaires",  desc:"Suivi arrivée/départ des employés"},
+    {id:"gestion_equipe",    icon:"👥", label:"Gestion Équipe",        desc:"Membres, rôles, droits et PIN"},
+    {id:"droits_roles",      icon:"🛡️", label:"Droits & Rôles",        desc:"Fonctionnalités accessibles par rôle"},
+    {id:"suivi_km",          icon:"🚗", label:"Suivi déplacements",    desc:"Calcul de distance vers les logements"},
+    {id:"heures_deplacements",icon:"⏱️",label:"Heures & Déplacements", desc:"Historique temps de travail et trajets"},
+    {id:"types_taches",      icon:"🗂️", label:"Types de tâches",       desc:"Personnaliser la liste des tâches"},
+    {id:"pieces",            icon:"🏠", label:"Pièces du logement",    desc:"Liste des pièces pour signalements"},
+    {id:"historique",        icon:"⧗", label:"Historique",            desc:"Tâches terminées & récapitulatif"},
+    {id:"notifs",            icon:"🔔", label:"Notifications",         desc:"Activité récente", badge:nbNotifsBadge},
+    {id:"notifications",     icon:"🔔", label:"Notifications push",    desc:"Alertes en temps réel"},
+    {id:"nuit",              icon:"🌙", label:"Mode nuit",             desc:"Interface sombre"},
+    {id:"taille",            icon:"🔡", label:"Taille de l'écriture",  desc:textSize==="normal"?"Taille normale":textSize==="grand"?"Grands caractères":"Très grands caractères"},
+    {id:"tracking",          icon:"📍", label:"Tracking horaires",     desc:"Suivi arrivée/départ des employés"},
   ];
 
   // ── Menu principal vertical ──
@@ -2289,6 +3363,21 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
           </div>
         </div>
       )}
+      {/* ── DROITS & RÔLES ── */}
+      {onglet==="droits_roles"&&(
+        <DroitsRoles data={data} setData={setData} toast_={toast_}/>
+      )}
+
+      {/* ── SUIVI DÉPLACEMENTS ── */}
+      {onglet==="suivi_km"&&(
+        <SuiviKm data={data} setData={setData} toast_={toast_}/>
+      )}
+
+      {/* ── HEURES & DÉPLACEMENTS ── */}
+      {onglet==="heures_deplacements"&&(
+        <HistoriqueHeuresDeplacements data={data} toast_={toast_}/>
+      )}
+
       {/* ── Numéro de version ── */}
       <div style={{textAlign:"center",padding:"20px 0 10px",color:TXT3,fontSize:10,letterSpacing:.5}}>
         CKeys · v{APP_VERSION}
@@ -3202,17 +4291,23 @@ function AppInner(){
   const nbNotifs=(data.notifications||[]).filter(n=>n.type==="probleme"&&!n.lu).length;
   const appBg=nightMode?"#0a0a0f":SURFACE;
 
+  // ── Droits effectifs selon le rôle ──
+  const droitsConfig=data.droitsRoles||DROITS_DEFAUT;
+  const droitsUser=isAdmin?null:(droitsConfig[currentUser.role]||DROITS_DEFAUT[currentUser.role]||DROITS_DEFAUT.employe);
+
+  const canMessages=isAdmin||(droitsUser?.accesMessages!==false);
+  const canPlanningAccess=isAdmin||(droitsUser?.voirToutesLesTaches!==false)||isEmp;
+
   const navItems=isEmp?[
     {id:"accueil",    icon:"◉",label:"Accueil"},
     {id:"planning",   icon:"⊟",label:"Planning"},
-    {id:"messages",   icon:"✉",label:"Messages"},
+    ...(canMessages?[{id:"messages",   icon:"✉",label:"Messages"}]:[]),
     {id:"parametres", icon:"⊞",label:"Paramètres"},
   ]:[
     {id:"accueil",    icon:"◉",label:"Accueil"},
     {id:"planning",   icon:"⊟",label:"Planning"},
     ...(isAdmin?[{id:"zones",icon:"⌂",label:"Logements"}]:[]),
-    {id:"messages",   icon:"✉",label:"Messages"},
-
+    ...(canMessages?[{id:"messages",   icon:"✉",label:"Messages"}]:[]),
     {id:"parametres", icon:"⚙️",label:"Options"},
   ];
 
@@ -3220,12 +4315,17 @@ function AppInner(){
   const isFullscreen=!isDesktop&&!isTablet&&(view==="planning"||view==="messages");
 
   // ── Contenu partagé ──
+  // Droits appliqués : managers sans "voirToutesLesTaches" traitez comme employé
+  const canVoirToutesTaches=isAdmin||(droitsUser?.voirToutesLesTaches!==false);
+  const canCreerTaches=isAdmin||(droitsUser?.creerTaches!==false);
+  const isFiltreEmp=!canVoirToutesTaches; // restreindre à ses propres tâches
+
   const contentArea=()=>(
     <>
       {view==="accueil"    &&(()=>{
-        // Pour employé : filtrer pour ne voir que ses logements et tâches
-        const empZoneIds=isEmp?[...new Set(data.taches.filter(t=>t.employeId===currentUser.id).map(t=>t.zoneId))]:null;
-        const dataAccueil=isEmp?{
+        // Pour employé ou manager sans droit global : filtrer pour ne voir que ses logements et tâches
+        const empZoneIds=isFiltreEmp?[...new Set(data.taches.filter(t=>t.employeId===currentUser.id).map(t=>t.zoneId))]:null;
+        const dataAccueil=isFiltreEmp?{
           ...data,
           taches:data.taches.filter(t=>t.employeId===currentUser.id),
           zones:data.zones.filter(z=>empZoneIds.includes(z.id)),
@@ -3268,7 +4368,7 @@ function AppInner(){
             "signalement"
           );
         }
-        return <Accueil isAdmin={isAdmin} currentUserId={currentUser.id} data={dataAccueil} updateSt={updateSt} onEditTache={isAdmin?openEditTache:null} onToggleCheck={toggleCheck} validerLot={validerLot} onSignalerProbleme={setProblemeId} onSignalerMessage={isEmp?signalerMsg:null}/>;
+        return <Accueil isAdmin={isAdmin} currentUserId={currentUser.id} data={dataAccueil} updateSt={updateSt} onEditTache={canCreerTaches?openEditTache:null} onToggleCheck={toggleCheck} validerLot={validerLot} onSignalerProbleme={setProblemeId} onSignalerMessage={isFiltreEmp?signalerMsg:null}/>;
       })()}
       {view==="planning"   &&<Planning   data={isEmp?{...data,taches:data.taches.filter(t=>t.employeId===currentUser.id)}:data} weekOff={weekOff} setWeekOff={setWeekOff} filterEmp={filterEmp} setFilterEmp={setFilterEmp} onEditTache={isAdmin?openEditTache:null} onNewTache={isAdmin?openNewTache:null} isReadOnly={isEmp}/>}
       {view==="zones"      &&isAdmin&&<Logements  data={data} onEdit={openEditZone} isReadOnly={false}/>}
@@ -3332,7 +4432,7 @@ function AppInner(){
           {navItems.map(item=>renderNavItem(item))}
         </nav>
         <div style={{padding:"12px 10px",borderTop:"1px solid rgba(255,255,255,.06)"}}>
-          {isAdmin&&(view==="accueil"||view==="planning")&&(
+          {canCreerTaches&&(view==="accueil"||view==="planning")&&(
             <button onClick={()=>openNewTache()} style={{width:"100%",padding:"11px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:"#1a0d00",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>＋ Nouvelle tâche</button>
           )}
           <button onClick={()=>setCurrentUser(null)} style={{width:"100%",padding:"9px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.5)",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:600}}>↩ Déconnexion</button>
@@ -3398,7 +4498,7 @@ function AppInner(){
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             {toast&&<div style={{background:toast.t==="err"?"#dc2626":NOIR3,color:"white",padding:"6px 14px",borderRadius:50,fontSize:12,fontWeight:600}}>{toast.m}</div>}
-            {isAdmin&&(view==="accueil"||view==="planning")&&(
+            {canCreerTaches&&(view==="accueil"||view==="planning")&&(
               <button onClick={()=>openNewTache()} style={{padding:"8px 14px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:10,color:"#1a0d00",fontSize:12,fontWeight:700,cursor:"pointer"}}>＋ Tâche</button>
             )}
             <Avatar emp={currentUser} size={32}/>
@@ -3430,7 +4530,7 @@ function AppInner(){
       <div style={isFullscreen?{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",paddingBottom:82,WebkitOverflowScrolling:"touch"}:{flex:1,overflowY:"auto",paddingTop:12,paddingBottom:82,WebkitOverflowScrolling:"touch"}}>
         {contentArea()}
       </div>
-      {isAdmin&&(view==="accueil"||view==="planning")&&(
+      {canCreerTaches&&(view==="accueil"||view==="planning")&&(
         <button style={{...S.fab,bottom:isPlanning?66:92}} onClick={()=>openNewTache()}>＋</button>
       )}
       {modals()}
