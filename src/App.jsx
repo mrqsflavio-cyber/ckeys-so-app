@@ -1060,39 +1060,10 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
   const zonesAffichees=data.suiviKmActif&&orderedZones.length>0?orderedZones:logsAvecTaches;
   const empSelNom=empSelAdmin?.nom||null;
 
-  // Dernier jour du mois — alerte récap pour admin
-  const aujourdhui=new Date();
-  const dernierJourMois=new Date(aujourdhui.getFullYear(),aujourdhui.getMonth()+1,0).getDate();
-  const isLastDayOfMonth=aujourdhui.getDate()===dernierJourMois;
+  // Dernier jour du mois — plus utilisé dans l'accueil
 
   return(
     <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{userSelect:"none"}}>
-
-      {/* Alerte récap mensuel (dernier jour du mois, admin seulement) */}
-      {isAdmin&&isLastDayOfMonth&&data.suiviKmActif&&(
-        <div style={{margin:"8px 12px 0",borderRadius:14,background:"linear-gradient(135deg,#1a0d00,#3d2800)",border:`1px solid ${GOLD}66`,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,cursor:"pointer"}}
-          onClick={()=>setShowRecapModal(true)}>
-          <div style={{fontSize:24,flexShrink:0}}>📊</div>
-          <div style={{flex:1}}>
-            <div style={{fontWeight:800,fontSize:13,color:GOLD}}>Récapitulatif mensuel disponible</div>
-            <div style={{fontSize:11,color:GOLD+"aa",marginTop:2}}>Dernier jour du mois — Voir tous les trajets</div>
-          </div>
-          <div style={{fontSize:11,color:GOLD,fontWeight:700,background:GOLD+"22",borderRadius:20,padding:"4px 12px",border:`1px solid ${GOLD}44`,whiteSpace:"nowrap"}}>Voir →</div>
-        </div>
-      )}
-
-      {/* Bouton récap accessible tout le mois (admin + suivi actif) */}
-      {isAdmin&&data.suiviKmActif&&!isLastDayOfMonth&&(
-        <div style={{display:"flex",justifyContent:"flex-end",padding:"6px 12px 0"}}>
-          <button onClick={()=>setShowRecapModal(true)}
-            style={{fontSize:11,color:GOLD_DARK,fontWeight:700,background:GOLD_BG,borderRadius:20,padding:"4px 12px",border:`1px solid ${GOLD}44`,cursor:"pointer"}}>
-            📊 Récap trajets mensuel
-          </button>
-        </div>
-      )}
-
-      {/* Modal récap mensuel */}
-      {showRecapModal&&<RecapMensuelTrajets data={data} onClose={()=>setShowRecapModal(false)}/>}
       {/* Stats */}
       <div style={S.sgrid}>
         <div style={S.scard(empSelAdmin?`linear-gradient(135deg,${empSelAdmin.couleur||GOLD}dd,${empSelAdmin.couleur||GOLD}99)`:"linear-gradient(135deg,#1a1408,#c9a84c)")}><div style={S.snum}>{tAuj.length}</div><div style={S.slbl}>Tâches aujourd'hui</div></div>
@@ -1150,16 +1121,43 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
       {/* Logements du jour sélectionné */}
       {isAujourdhui?(
         <>
-          {/* Miniature trajet — grande carte Google Maps */}
-          {data.suiviKmActif&&zonesAffichees.filter(z=>z.adresse).length>=1&&(
-            <MiniatureTrajet
-              zones={zonesAffichees}
-              date={dateLabel}
-              empNom={empSelNom}
-              totalKm={totalKm}
-              totalMins={totalMins}
-            />
-          )}
+          {/* ── Miniature(s) trajet par employé ──
+              Si un employé est sélectionné → 1 carte pour cet employé
+              Si vue "Tous" → 1 carte par employé qui a des logements avec adresse */}
+          {data.suiviKmActif&&(()=>{
+            if(empSelAdmin){
+              // Employé sélectionné : afficher SA miniature avec ses logements
+              const zonesEmp=zonesAffichees.filter(z=>z.adresse&&z.adresse.trim());
+              if(zonesEmp.length===0)return null;
+              return(
+                <MiniatureTrajet
+                  zones={zonesEmp}
+                  date={dateLabel}
+                  empNom={empSelAdmin.nom}
+                  empCouleur={empSelAdmin.couleur}
+                  totalKm={totalKm}
+                  totalMins={totalMins}
+                />
+              );
+            } else {
+              // Vue "Tous" : une miniature par employé actif qui a des tâches aujourd'hui
+              return empActifs.map(emp=>{
+                const zonesEmp=[...new Set(tJour.filter(t=>t.employeId===emp.id).map(t=>t.zoneId))]
+                  .map(id=>data.zones.find(z=>z.id===id))
+                  .filter(z=>z&&z.adresse&&z.adresse.trim());
+                if(zonesEmp.length===0)return null;
+                return(
+                  <MiniatureTrajetEmp
+                    key={emp.id}
+                    emp={emp}
+                    zones={zonesEmp}
+                    date={dateLabel}
+                    tJour={tJour}
+                  />
+                );
+              });
+            }
+          })()}
 
           {/* Badge optimisation en cours */}
           {data.suiviKmActif&&trajetLoading&&(
@@ -1226,6 +1224,7 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
       )}
 
       {/* ── Section équipe (admin) ou suivi perso (employé) ── */}
+      {showRecapModal&&<RecapMensuelTrajets data={data} onClose={()=>setShowRecapModal(false)}/>}
       {isAdmin?(<>
         <div style={S.sec}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -2451,8 +2450,136 @@ function DistanceKmBadge({adresse,coordsCache}){
   );
 }
 
+// ── MiniatureTrajetEmp — carte par employé dans la vue "Tous" ──
+// Gère sa propre optimisation de trajet
+function MiniatureTrajetEmp({emp, zones, date, tJour}){
+  const [orderedZones,setOrderedZones]=useState(zones);
+  const [totalKm,setTotalKm]=useState(0);
+  const [totalMins,setTotalMins]=useState(0);
+  const [loading,setLoading]=useState(false);
+  const cacheRef=useRef({});
+
+  useEffect(()=>{
+    if(zones.length<2){setOrderedZones(zones);return;}
+    let cancelled=false;
+    async function run(){
+      setLoading(true);
+      const withCoords=[];
+      for(const z of zones){
+        let coords=cacheRef.current[z.adresse];
+        if(!coords){
+          coords=await geocodeAdresse(z.adresse);
+          if(coords)cacheRef.current[z.adresse]=coords;
+        }
+        if(coords)withCoords.push({...z,coords});
+        if(cancelled)return;
+      }
+      if(withCoords.length<2){setOrderedZones(zones);setLoading(false);return;}
+      const optimized=optimiserTrajet(withCoords,null);
+      let km=0,mins=0;
+      for(let i=1;i<optimized.length;i++){
+        const s=calcSegment(optimized[i-1].coords,optimized[i].coords);
+        km+=s.km;mins+=s.mins;
+      }
+      if(!cancelled){
+        setOrderedZones(optimized);
+        setTotalKm(parseFloat(km.toFixed(1)));
+        setTotalMins(mins);
+        setLoading(false);
+      }
+    }
+    run();
+    return()=>{cancelled=true;};
+  },[zones.map(z=>z.id).join(",")]);
+
+  // Entête coloré avec avatar employé
+  const zonesAvecAdresse=orderedZones.filter(z=>z.adresse&&z.adresse.trim());
+  if(zonesAvecAdresse.length===0)return null;
+
+  const mapsUrl=buildGoogleMapsUrl(zonesAvecAdresse);
+  const origin=zonesAvecAdresse[0].adresse;
+  const dest=zonesAvecAdresse[zonesAvecAdresse.length-1].adresse;
+  const wps=zonesAvecAdresse.slice(1,-1).map(z=>encodeURIComponent(z.adresse)).join("|");
+  const embedUrl=zonesAvecAdresse.length===1
+    ?`https://maps.google.com/maps?q=${encodeURIComponent(origin)}&output=embed&z=14`
+    :`https://maps.google.com/maps?saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(dest)}${wps?`%7C${wps}`:""}&output=embed`;
+
+  function fmtMins(m){if(!m)return null;const h=Math.floor(m/60),min=m%60;return h>0?`${h}h${min>0?min+"min":""}`:`${min}min`;}
+
+  return(
+    <div style={{margin:"6px 12px 10px",borderRadius:20,overflow:"hidden",boxShadow:"0 4px 20px rgba(0,0,0,.13)",border:`2px solid ${emp.couleur||GOLD}44`}}>
+      {/* Bandeau employé */}
+      <div style={{background:`linear-gradient(135deg,${emp.couleur||GOLD}ee,${emp.couleur||GOLD}aa)`,padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
+        <Avatar emp={emp} size={32}/>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:800,fontSize:14,color:"white"}}>{emp.nom}</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.8)"}}>{zonesAvecAdresse.length} arrêt{zonesAvecAdresse.length>1?"s":""} · {date}</div>
+        </div>
+        {loading&&<span style={{fontSize:11,color:"rgba(255,255,255,.8)",fontStyle:"italic"}}>🔄 Calcul…</span>}
+        {!loading&&totalKm>0&&(
+          <div style={{textAlign:"right"}}>
+            <div style={{fontWeight:900,fontSize:15,color:"white"}}>{fmtMins(totalMins)}</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,.8)"}}>{totalKm} km</div>
+          </div>
+        )}
+      </div>
+
+      {/* Carte */}
+      <div style={{position:"relative",height:240,background:"#e8edf1"}}>
+        <iframe
+          src={embedUrl}
+          style={{width:"100%",height:"100%",border:"none",display:"block"}}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          title={`Trajet ${emp.nom}`}
+        />
+        {/* Badge style Google */}
+        {(totalKm>0||totalMins>0)&&(
+          <div style={{position:"absolute",top:10,left:10,background:"white",borderRadius:12,padding:"8px 12px",boxShadow:"0 3px 12px rgba(0,0,0,.2)",pointerEvents:"none",zIndex:10}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
+              <span style={{fontSize:13}}>🚗</span>
+              <span style={{fontWeight:900,fontSize:17,color:"#1a73e8",lineHeight:1}}>{fmtMins(totalMins)||"–"}</span>
+            </div>
+            <div style={{fontSize:10,color:"#5f6368"}}>
+              {totalKm>0&&<span>{totalKm} km · </span>}
+              <span style={{color:"#1a73e8",fontWeight:600}}>{zonesAvecAdresse.length} arrêt{zonesAvecAdresse.length>1?"s":""}</span>
+            </div>
+          </div>
+        )}
+        <a href={mapsUrl} target="_blank" rel="noreferrer"
+          style={{position:"absolute",bottom:10,right:10,background:"#1a73e8",color:"white",borderRadius:22,padding:"7px 14px",fontSize:11,fontWeight:700,textDecoration:"none",boxShadow:"0 2px 10px rgba(26,115,232,.5)",display:"flex",alignItems:"center",gap:5,zIndex:10}}>
+          🗺️ Ouvrir Maps
+        </a>
+      </div>
+
+      {/* Barre d'arrêts */}
+      <div style={{background:"white",padding:"8px 14px",borderTop:"1px solid #f0f0f0"}}>
+        <div style={{display:"flex",alignItems:"center",gap:3,overflowX:"auto",scrollbarWidth:"none"}}>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flexShrink:0}}>
+            <div style={{width:18,height:18,borderRadius:"50%",background:"#4285f4",border:"2.5px solid white",boxShadow:"0 0 0 2px #4285f4"}}/>
+            <div style={{fontSize:8,color:"#5f6368",fontWeight:600,whiteSpace:"nowrap"}}>Départ</div>
+          </div>
+          {zonesAvecAdresse.map((z,i)=>(
+            <div key={z.id||i} style={{display:"flex",alignItems:"center",flexShrink:0}}>
+              <div style={{display:"flex",alignItems:"center",margin:"0 2px",marginBottom:12}}>
+                {[0,1,2].map(d=><div key={d} style={{width:4,height:1.5,background:"#dadce0",borderRadius:1,margin:"0 1px"}}/>)}
+              </div>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                <div style={{width:20,height:20,borderRadius:"50% 50% 50% 0",background:i===zonesAvecAdresse.length-1?"#ea4335":emp.couleur||GOLD,transform:"rotate(-45deg)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 1px 4px rgba(0,0,0,.2)"}}>
+                  <span style={{transform:"rotate(45deg)",color:"white",fontSize:8,fontWeight:900}}>{i===zonesAvecAdresse.length-1?"🏁":(i+1)}</span>
+                </div>
+                <div style={{fontSize:8,color:"#202124",fontWeight:700,maxWidth:56,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{z.nom}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Miniature trajet — grande carte style Google Maps (toujours visible) ──
-function MiniatureTrajet({zones, date, empNom, totalKm, totalMins}){
+function MiniatureTrajet({zones, date, empNom, empCouleur, totalKm, totalMins}){
   const zonesAvecAdresse=zones.filter(z=>z.adresse&&z.adresse.trim());
   if(zonesAvecAdresse.length===0)return null;
 
@@ -2467,7 +2594,26 @@ function MiniatureTrajet({zones, date, empNom, totalKm, totalMins}){
   function fmtMins(m){if(!m)return null;const h=Math.floor(m/60),min=m%60;return h>0?`${h}h${min>0?min+"min":""}`:`${min}min`;}
 
   return(
-    <div style={{margin:"8px 12px 12px",borderRadius:20,overflow:"hidden",boxShadow:"0 4px 24px rgba(0,0,0,.18)",position:"relative",border:"2px solid rgba(255,255,255,.15)"}}>
+    <div style={{margin:"8px 12px 12px",borderRadius:20,overflow:"hidden",boxShadow:"0 4px 24px rgba(0,0,0,.18)",position:"relative",border:`2px solid ${empCouleur?empCouleur+"66":"rgba(255,255,255,.15)"}`}}>
+
+      {/* Bandeau employé si sélectionné */}
+      {empNom&&(
+        <div style={{background:`linear-gradient(135deg,${empCouleur||GOLD}ee,${empCouleur||GOLD}aa)`,padding:"10px 16px",display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(255,255,255,.25)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:900,color:"white",flexShrink:0}}>
+            {empNom[0].toUpperCase()}
+          </div>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:800,fontSize:13,color:"white"}}>{empNom}</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,.8)"}}>{zonesAvecAdresse.length} arrêt{zonesAvecAdresse.length>1?"s":""} · {date}</div>
+          </div>
+          {(totalKm>0||totalMins>0)&&(
+            <div style={{textAlign:"right"}}>
+              <div style={{fontWeight:900,fontSize:15,color:"white"}}>{fmtMins(totalMins)||"–"}</div>
+              <div style={{fontSize:10,color:"rgba(255,255,255,.8)"}}>{totalKm>0?totalKm+" km":""}</div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── CARTE GOOGLE MAPS — grande et centrée ── */}
       <div style={{position:"relative",height:260,background:"#e8edf1"}}>
