@@ -3110,147 +3110,6 @@ function SuiviKm({data,setData,toast_}){
 }
 
 
-
-// ══════════════════════════════════════════════════════════════════════════════
-// RÉINITIALISATION DE L'APP — Supprime tâches, logements, historique, messages
-// ══════════════════════════════════════════════════════════════════════════════
-function ReinitialisationApp({data,setData,toast_,onRetour}){
-  const [etape,setEtape]=useState("menu"); // "menu" | "confirm1" | "confirm2" | "done"
-  const [selection,setSelection]=useState({taches:true,zones:true,messages:true,notifications:true});
-
-  const labels={
-    taches:    {icon:"📋", label:"Tâches",          desc:"Toutes les tâches planifiées et ponctuelles"},
-    zones:     {icon:"🏠", label:"Logements",        desc:"Tous les logements et leurs données"},
-    messages:  {icon:"💬", label:"Messages & historique", desc:"Tous les messages et l'activité passée"},
-    notifications:{icon:"🔔", label:"Notifications", desc:"Toutes les notifications"},
-  };
-
-  function execReinit(){
-    setData(d=>{
-      const next={...d};
-      if(selection.taches)    next.taches=[];
-      if(selection.zones)     next.zones=[];
-      if(selection.messages)  next.messages=[];
-      if(selection.notifications) next.notifications=[];
-      return next;
-    });
-    setEtape("done");
-    toast_("✅ Réinitialisation effectuée");
-  }
-
-  if(etape==="done") return(
-    <div style={{padding:"20px 12px",textAlign:"center"}}>
-      <div style={{fontSize:56,marginBottom:16}}>✅</div>
-      <div style={{fontWeight:900,fontSize:18,color:"#16a34a",marginBottom:8}}>Réinitialisation effectuée</div>
-      <div style={{fontSize:13,color:TXT2,marginBottom:24}}>Les données sélectionnées ont été supprimées.<br/>Les comptes utilisateurs ont été conservés.</div>
-      <button onClick={onRetour} style={{padding:"12px 28px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:"#1a0d00",fontSize:14,fontWeight:700,cursor:"pointer"}}>
-        ← Retour aux options
-      </button>
-    </div>
-  );
-
-  if(etape==="confirm2") return(
-    <div style={{padding:"16px 12px"}}>
-      <div style={{background:"#fff1f2",border:"2px solid #fecdd3",borderRadius:16,padding:"20px",marginBottom:20,textAlign:"center"}}>
-        <div style={{fontSize:40,marginBottom:10}}>⚠️</div>
-        <div style={{fontWeight:900,fontSize:16,color:"#dc2626",marginBottom:8}}>Dernière confirmation</div>
-        <div style={{fontSize:13,color:"#7f1d1d",lineHeight:1.5}}>
-          Cette action est <strong>irréversible</strong>.<br/>
-          Les données suivantes seront <strong>définitivement supprimées</strong> :
-        </div>
-        <div style={{marginTop:12,display:"flex",flexDirection:"column",gap:6,alignItems:"center"}}>
-          {Object.entries(selection).filter(([,v])=>v).map(([k])=>(
-            <div key={k} style={{background:"#fecdd3",borderRadius:8,padding:"4px 14px",fontSize:12,fontWeight:700,color:"#b91c1c"}}>
-              {labels[k].icon} {labels[k].label}
-            </div>
-          ))}
-        </div>
-        <div style={{marginTop:14,fontSize:12,color:"#9f1239",fontStyle:"italic"}}>
-          Les comptes utilisateurs seront conservés.
-        </div>
-      </div>
-      <div style={{display:"flex",gap:10}}>
-        <button onClick={()=>setEtape("confirm1")}
-          style={{flex:1,padding:"13px",background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:12,color:TXT2,fontSize:13,fontWeight:700,cursor:"pointer"}}>
-          ← Annuler
-        </button>
-        <button onClick={execReinit}
-          style={{flex:1,padding:"13px",background:"linear-gradient(135deg,#dc2626,#b91c1c)",border:"none",borderRadius:12,color:"white",fontSize:13,fontWeight:700,cursor:"pointer"}}>
-          🗑️ Supprimer définitivement
-        </button>
-      </div>
-    </div>
-  );
-
-  if(etape==="confirm1") return(
-    <div style={{padding:"16px 12px"}}>
-      <div style={{fontWeight:900,fontSize:16,color:"#dc2626",marginBottom:6}}>🔄 Réinitialisation de l'app</div>
-      <div style={{fontSize:12,color:TXT2,marginBottom:18,lineHeight:1.5}}>
-        Sélectionnez les données à supprimer. Les comptes utilisateurs ne seront jamais affectés.
-      </div>
-      <div style={{marginBottom:18,display:"flex",flexDirection:"column",gap:8}}>
-        {Object.entries(labels).map(([key,{icon,label,desc}])=>(
-          <div key={key} onClick={()=>setSelection(s=>({...s,[key]:!s[key]}))}
-            style={{display:"flex",alignItems:"center",gap:12,background:selection[key]?"#fff1f2":CARD,borderRadius:14,padding:"13px 16px",border:selection[key]?"1.5px solid #fecaca":`1px solid ${BORDER}`,cursor:"pointer",transition:"all .15s"}}>
-            <div style={{width:40,height:40,borderRadius:10,background:selection[key]?"#fdecea":GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{icon}</div>
-            <div style={{flex:1}}>
-              <div style={{fontWeight:700,fontSize:13,color:selection[key]?"#dc2626":TXT}}>{label}</div>
-              <div style={{fontSize:11,color:TXT2,marginTop:2}}>{desc}</div>
-            </div>
-            <div style={{width:22,height:22,borderRadius:6,border:selection[key]?"2px solid #dc2626":"2px solid #d1d5db",background:selection[key]?"#dc2626":"transparent",display:"flex",alignItems:"center",justifyContent:"center",transition:"all .15s",flexShrink:0}}>
-              {selection[key]&&<span style={{color:"white",fontSize:13,fontWeight:700}}>✓</span>}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div style={{background:"#fef3c7",border:"1px solid #fde68a",borderRadius:12,padding:"10px 14px",marginBottom:16,fontSize:12,color:"#92400e"}}>
-        ⚠️ Cette action est irréversible. Vérifiez votre sélection avant de continuer.
-      </div>
-      <div style={{display:"flex",gap:10}}>
-        <button onClick={onRetour}
-          style={{flex:1,padding:"13px",background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:12,color:TXT2,fontSize:13,fontWeight:700,cursor:"pointer"}}>
-          ← Annuler
-        </button>
-        <button onClick={()=>{if(Object.values(selection).some(Boolean))setEtape("confirm2");}}
-          disabled={!Object.values(selection).some(Boolean)}
-          style={{flex:1,padding:"13px",background:Object.values(selection).some(Boolean)?"linear-gradient(135deg,#dc2626,#b91c1c)":"#e5e7eb",border:"none",borderRadius:12,color:Object.values(selection).some(Boolean)?"white":TXT3,fontSize:13,fontWeight:700,cursor:Object.values(selection).some(Boolean)?"pointer":"not-allowed"}}>
-          Continuer →
-        </button>
-      </div>
-    </div>
-  );
-
-  // Écran d'accueil (menu)
-  return(
-    <div style={{padding:"16px 12px"}}>
-      <div style={{fontWeight:900,fontSize:16,color:"#dc2626",marginBottom:6}}>🔄 Réinitialisation de l'app</div>
-      <div style={{fontSize:13,color:TXT2,marginBottom:20,lineHeight:1.5}}>
-        Supprimez toutes les données de test pour démarrer en production proprement.<br/>
-        <strong>Les comptes utilisateurs seront toujours conservés.</strong>
-      </div>
-      <div style={{background:"#fff8f8",border:"1.5px solid #fecaca",borderRadius:16,padding:"18px",marginBottom:20}}>
-        <div style={{fontWeight:800,fontSize:13,color:"#dc2626",marginBottom:12}}>🗑️ Données qui peuvent être supprimées :</div>
-        {Object.entries(labels).map(([key,{icon,label,desc}])=>(
-          <div key={key} style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:10}}>
-            <span style={{fontSize:18,flexShrink:0}}>{icon}</span>
-            <div>
-              <div style={{fontWeight:700,fontSize:13,color:TXT}}>{label}</div>
-              <div style={{fontSize:11,color:TXT3}}>{desc}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:12,padding:"12px 14px",marginBottom:20,fontSize:12,color:"#166534"}}>
-        ✅ <strong>Conservés :</strong> tous les comptes utilisateurs, leurs rôles et leurs PIN.
-      </div>
-      <button onClick={()=>setEtape("confirm1")}
-        style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#dc2626,#b91c1c)",border:"none",borderRadius:14,color:"white",fontSize:14,fontWeight:700,cursor:"pointer",boxShadow:"0 4px 14px rgba(220,38,38,.3)"}}>
-        🔄 Lancer la réinitialisation
-      </button>
-    </div>
-  );
-}
-
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE PARAMÈTRES — avec onglets : Équipe + Gestion droits + PIN + Général
 // ══════════════════════════════════════════════════════════════════════════════
@@ -3303,7 +3162,6 @@ function Parametres({data,setData,onEditEmp,onEditZone,setCurrentUser,toast_,nig
     {id:"suivi_km",          icon:"🚗", label:"Suivi déplacements",    desc:"Calcul de distance vers les logements"},
     {id:"droits_roles",      icon:"🛡️", label:"Droits & Rôles",        desc:"Fonctionnalités accessibles par rôle"},
     {id:"gestion_equipe",    icon:"👥", label:"Gestion Équipe",        desc:"Membres, rôles, droits et PIN"},
-    {id:"reinitialisation",  icon:"🔄", label:"Réinitialisation de l'app", desc:"Supprimer tâches, logements et historique"},
   ];
 
   // ── Menu principal vertical ──
@@ -3350,10 +3208,10 @@ function Parametres({data,setData,onEditEmp,onEditZone,setCurrentUser,toast_,nig
           <div style={{fontSize:11,fontWeight:800,color:TXT3,textTransform:"uppercase",letterSpacing:.8,marginBottom:10,paddingLeft:4}}>🔧 Options avancées — Administrateur</div>
           {menuItemsPlus.map((item)=>(
             <div key={item.id} onClick={()=>setOnglet(item.id)}
-              style={{display:"flex",alignItems:"center",gap:14,background:item.id==="reinitialisation"?"#fff8f8":CARD,borderRadius:14,padding:"14px 16px",marginBottom:10,border:item.id==="reinitialisation"?"1.5px solid #fecaca":`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}>
-              <div style={{width:44,height:44,borderRadius:12,background:item.id==="reinitialisation"?"#fdecea":GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{item.icon}</div>
+              style={{display:"flex",alignItems:"center",gap:14,background:CARD,borderRadius:14,padding:"14px 16px",marginBottom:10,border:`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}>
+              <div style={{width:44,height:44,borderRadius:12,background:GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{item.icon}</div>
               <div style={{flex:1}}>
-                <div style={{fontWeight:700,fontSize:14,color:item.id==="reinitialisation"?"#dc2626":TXT}}>{item.label}</div>
+                <div style={{fontWeight:700,fontSize:14,color:TXT}}>{item.label}</div>
                 <div style={{fontSize:12,color:TXT2,marginTop:2}}>{item.desc}</div>
               </div>
               <span style={{color:TXT3,fontSize:20}}>›</span>
@@ -3457,9 +3315,6 @@ function Parametres({data,setData,onEditEmp,onEditZone,setCurrentUser,toast_,nig
 
       {/* ── PIÈCES DU LOGEMENT ── */}
       {onglet==="pieces"&&<GestionPieces data={data} setData={setData} toast_={toast_}/>}
-
-      {/* ── RÉINITIALISATION DE L'APP ── */}
-      {onglet==="reinitialisation"&&<ReinitialisationApp data={data} setData={setData} toast_={toast_} onRetour={()=>setOnglet(null)}/>}
 
       {/* ── HISTORIQUE ── */}
       {onglet==="historique"&&(
