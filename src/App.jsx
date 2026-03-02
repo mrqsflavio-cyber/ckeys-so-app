@@ -28,6 +28,39 @@ const FIREBASE_CONFIG = {
 };
 const FIREBASE_DOC_PATH = "app/ckeys-data";
 
+// ─── Google Maps API Key ───────────────────────────────────────────────────────
+// ⚠️ IMPORTANT : Remplace cette valeur par ta nouvelle clé Google Maps
+// APIs à activer dans Google Cloud Console :
+//   - Maps JavaScript API, Directions API, Geocoding API, Street View Static API
+const GOOGLE_MAPS_KEY = "AIzaSyBKuVAHiR-qOfcf2smAKlALMIDVQqmcBjQ";
+
+// ─── Chargement unique de l'API Google Maps ───────────────────────────────────
+let _gmapsReady = false;
+let _gmapsLoading = false;
+let _gmapsCallbacks = [];
+function loadGoogleMapsAPI(){
+  return new Promise(resolve=>{
+    if(_gmapsReady&&window.google?.maps){resolve(true);return;}
+    _gmapsCallbacks.push(resolve);
+    if(_gmapsLoading)return;
+    _gmapsLoading=true;
+    window.__gmapsCallback=()=>{
+      _gmapsReady=true;_gmapsLoading=false;
+      _gmapsCallbacks.forEach(cb=>cb(true));_gmapsCallbacks=[];
+    };
+    const s=document.createElement("script");
+    s.src=`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}&libraries=places&callback=__gmapsCallback&language=fr`;
+    s.async=true;s.defer=true;
+    s.onerror=()=>{_gmapsLoading=false;_gmapsCallbacks.forEach(cb=>cb(false));_gmapsCallbacks=[];};
+    document.head.appendChild(s);
+  });
+}
+function useGoogleMaps(){
+  const [ready,setReady]=useState(_gmapsReady&&!!window.google?.maps);
+  useEffect(()=>{if(ready)return;loadGoogleMapsAPI().then(ok=>setReady(ok));},[]);
+  return ready;
+}
+
 let _db = null;
 let _getDoc, _setDoc, _doc, _onSnapshot;
 let _fbReady = false;
@@ -503,6 +536,11 @@ function ModalEmploye({form,setForm,onSave,onDelete,onClose}){
         <input style={S.inp} type="tel" placeholder="06 12 34 56 78" value={form.tel||""} onChange={e=>setForm(f=>({...f,tel:e.target.value}))}/>
         <label style={S.lbl}>✉️ Email</label>
         <input style={S.inp} type="email" placeholder="prenom@email.fr" value={form.email||""} onChange={e=>setForm(f=>({...f,email:e.target.value}))}/>
+        <label style={S.lbl}>🏠 Adresse personnelle</label>
+        <input style={S.inp} placeholder="Ex : 5 Rue des Roses, 68500 Guebwiller" value={form.adressePerso||""} onChange={e=>setForm(f=>({...f,adressePerso:e.target.value}))}/>
+        <div style={{fontSize:11,color:TXT3,marginTop:-6,marginBottom:10,paddingLeft:2}}>
+          Utilisée pour calculer et optimiser la tournée journalière depuis votre domicile
+        </div>
         <label style={S.lbl}>🔢 Code PIN (4 chiffres)</label>
         <div style={{display:"flex",gap:8,marginBottom:10,alignItems:"center"}}>
           <input style={{...S.inp,marginBottom:0,flex:1,letterSpacing:8,fontSize:20,textAlign:"center"}}
@@ -1121,12 +1159,30 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
       {/* Logements du jour sélectionné */}
       {isAujourdhui?(
         <>
-          {/* ── Miniature(s) trajet par employé ──
-              Si un employé est sélectionné → 1 carte pour cet employé
-              Si vue "Tous" → 1 carte par employé qui a des logements avec adresse */}
-          {data.suiviKmActif&&(()=>{
+          {/* ── EMPLOYÉ (non-admin) : miniature trajet depuis domicile ──
+              Toujours affichée si l'employé a des logements aujourd'hui */}
+          {!isAdmin&&logsAvecTaches.length>0&&(()=>{
+            const emp=data.employes.find(e=>e.id===currentUserId);
+            const zonesAvecAdr=logsAvecTaches.filter(z=>z.adresse&&z.adresse.trim());
+            if(zonesAvecAdr.length===0)return(
+              <div style={{margin:"8px 12px 10px",borderRadius:18,background:"#f8fafc",border:"1.5px dashed #e2e8f0",padding:"16px",textAlign:"center"}}>
+                <div style={{fontSize:24,marginBottom:6}}>🗺️</div>
+                <div style={{fontSize:12,fontWeight:700,color:TXT2}}>Carte du trajet non disponible</div>
+                <div style={{fontSize:11,color:TXT3,marginTop:4}}>Ajoutez des adresses aux logements pour voir votre trajet optimisé</div>
+              </div>
+            );
+            return(
+              <MiniatureTrajetEmploye
+                emp={emp}
+                zones={zonesAvecAdr}
+                date={dateLabel}
+              />
+            );
+          })()}
+
+          {/* ── ADMIN : miniature(s) par employé ── */}
+          {isAdmin&&data.suiviKmActif&&(()=>{
             if(empSelAdmin){
-              // Employé sélectionné : afficher SA miniature avec ses logements
               const zonesEmp=zonesAffichees.filter(z=>z.adresse&&z.adresse.trim());
               if(zonesEmp.length===0)return null;
               return(
@@ -1140,7 +1196,6 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
                 />
               );
             } else {
-              // Vue "Tous" : une miniature par employé actif qui a des tâches aujourd'hui
               return empActifs.map(emp=>{
                 const zonesEmp=[...new Set(tJour.filter(t=>t.employeId===emp.id).map(t=>t.zoneId))]
                   .map(id=>data.zones.find(z=>z.id===id))
@@ -1159,8 +1214,8 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
             }
           })()}
 
-          {/* Badge optimisation en cours */}
-          {data.suiviKmActif&&trajetLoading&&(
+          {/* Badge optimisation en cours (admin) */}
+          {isAdmin&&data.suiviKmActif&&trajetLoading&&(
             <div style={{margin:"0 12px 8px"}}>
               <span style={{fontSize:11,color:TXT3,fontStyle:"italic"}}>🔄 Optimisation du trajet…</span>
             </div>
@@ -1201,7 +1256,14 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
       ):(
         /* Vue DEMAIN — logements complets avec CarteLogement */
         <>
-          {data.suiviKmActif&&zonesAffichees.filter(z=>z.adresse).length>=1&&(
+          {/* Employé non-admin : miniature tournée de demain */}
+          {!isAdmin&&logsAvecTaches.length>0&&(()=>{
+            const emp=data.employes.find(e=>e.id===currentUserId);
+            const zonesAvecAdr=logsAvecTaches.filter(z=>z.adresse&&z.adresse.trim());
+            if(zonesAvecAdr.length===0)return null;
+            return <MiniatureTrajetEmploye emp={emp} zones={zonesAvecAdr} date={dateLabel}/>;
+          })()}
+          {isAdmin&&data.suiviKmActif&&zonesAffichees.filter(z=>z.adresse).length>=1&&(
             <MiniatureTrajet zones={zonesAffichees} date={dateLabel} empNom={empSelNom} totalKm={totalKm} totalMins={totalMins}/>
           )}
           {logsAvecTaches.length===0&&(
@@ -1570,24 +1632,93 @@ function Equipe({data,onEdit}){
 // ══════════════════════════════════════════════════════════════════════════════
 function StreetViewThumb({adresse}){
   const [show,setShow]=useState(false);
-  if(!adresse) return null;
+  const [mode,setMode]=useState("street");
+  const svRef=useRef(null);
+  const mapRef=useRef(null);
+  const svInitDone=useRef(false);
+  const mapInitDone=useRef(false);
+  const gmReady=useGoogleMaps();
+
+  useEffect(()=>{
+    if(!show||!gmReady||!window.google?.maps)return;
+    if(mode==="street"&&svRef.current&&!svInitDone.current){
+      svInitDone.current=true;
+      const geocoder=new window.google.maps.Geocoder();
+      geocoder.geocode({address:adresse,region:"fr"},(results,status)=>{
+        if(status==="OK"&&results[0]&&svRef.current){
+          const loc=results[0].geometry.location;
+          const svService=new window.google.maps.StreetViewService();
+          svService.getPanorama({location:loc,radius:100,source:window.google.maps.StreetViewSource.OUTDOOR},(data,st)=>{
+            if(!svRef.current)return;
+            if(st==="OK"){
+              new window.google.maps.StreetViewPanorama(svRef.current,{
+                pano:data.location.pano,
+                pov:{heading:165,pitch:0},zoom:1,
+                addressControl:true,fullscreenControl:true,motionTracking:false,
+              });
+            } else {
+              svRef.current.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#f0f2f5;color:#64748b;gap:8px"><span style="font-size:28px">🛣️</span><span style="font-size:12px;font-weight:700">Street View non disponible ici</span></div>`;
+            }
+          });
+        }
+      });
+    }
+    if(mode==="map"&&mapRef.current&&!mapInitDone.current){
+      mapInitDone.current=true;
+      const geocoder=new window.google.maps.Geocoder();
+      geocoder.geocode({address:adresse,region:"fr"},(results,status)=>{
+        if(status==="OK"&&results[0]&&mapRef.current){
+          const loc=results[0].geometry.location;
+          const map=new window.google.maps.Map(mapRef.current,{
+            center:loc,zoom:17,mapTypeId:"hybrid",
+            mapTypeControl:false,streetViewControl:true,fullscreenControl:true,
+          });
+          new window.google.maps.Marker({position:loc,map,title:adresse});
+        }
+      });
+    }
+  },[show,gmReady,adresse,mode]);
+
+  if(!adresse)return null;
+  const extUrl=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(adresse)}`;
+
   return(
     <div style={{marginBottom:8}}>
       {!show?(
-        <button onClick={()=>setShow(true)} style={{width:"100%",background:"linear-gradient(135deg,#0d0d0d,#1c1808)",border:"none",borderRadius:10,padding:"10px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:10,color:"white"}}>
-          <span style={{fontSize:20}}>🛣️</span>
-          <div style={{textAlign:"left"}}>
-            <div style={{fontSize:12,fontWeight:700}}>Vue Street View</div>
-            <div style={{fontSize:10,opacity:.6,marginTop:1}}>Appuyez pour voir la rue</div>
+        <button onClick={()=>setShow(true)} style={{width:"100%",background:"linear-gradient(135deg,#0d0d0d,#1a2035)",border:"none",borderRadius:12,padding:"11px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:10,color:"white",boxShadow:"0 3px 12px rgba(0,0,0,.25)"}}>
+          <div style={{width:36,height:36,borderRadius:10,background:"rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>🛣️</div>
+          <div style={{textAlign:"left",flex:1}}>
+            <div style={{fontSize:12,fontWeight:800,color:"white"}}>Street View & Vue satellite</div>
+            <div style={{fontSize:10,opacity:.6,marginTop:1,color:"rgba(255,255,255,.7)"}}>Explorer le logement en 360°</div>
           </div>
-          <span style={{marginLeft:"auto",fontSize:14,opacity:.5}}>▸</span>
+          <div style={{fontSize:10,background:"rgba(26,115,232,.3)",color:"#7cb9ff",borderRadius:20,padding:"3px 10px",fontWeight:700,flexShrink:0}}>Explorer ▸</div>
         </button>
       ):(
-        <div style={{borderRadius:12,overflow:"hidden",position:"relative"}}>
-          <iframe title="street-view" width="100%" height="180" frameBorder="0" style={{display:"block",borderRadius:12}}
-            src={`https://maps.google.com/maps?q=${encodeURIComponent(adresse)}&layer=c&cbll=0,0&cbp=12,0,,0,0&output=svembed`} allowFullScreen/>
-          <button onClick={()=>setShow(false)} style={{position:"absolute",top:6,right:6,background:"rgba(0,0,0,.55)",border:"none",borderRadius:20,color:"white",fontSize:11,fontWeight:700,padding:"3px 10px",cursor:"pointer"}}>✕ Fermer</button>
-          <a href={mapsUrl(adresse)} target="_blank" rel="noreferrer" style={{position:"absolute",bottom:6,right:6,background:"rgba(15,52,96,.85)",border:"none",borderRadius:8,color:"white",fontSize:10,fontWeight:700,padding:"4px 10px",textDecoration:"none",display:"block"}}>📍 Ouvrir Maps</a>
+        <div style={{borderRadius:14,overflow:"hidden",border:"1.5px solid #e2e8f0",boxShadow:"0 4px 18px rgba(0,0,0,.15)"}}>
+          <div style={{display:"flex",background:"#1a2035",alignItems:"center"}}>
+            <button onClick={()=>setMode("street")} style={{flex:1,padding:"8px 12px",border:"none",background:mode==="street"?"rgba(26,115,232,.35)":"transparent",color:mode==="street"?"#7cb9ff":"rgba(255,255,255,.5)",fontSize:11,fontWeight:700,cursor:"pointer",borderBottom:mode==="street"?"2.5px solid #1a73e8":"2.5px solid transparent"}}>
+              🛣️ Street View
+            </button>
+            <button onClick={()=>setMode("map")} style={{flex:1,padding:"8px 12px",border:"none",background:mode==="map"?"rgba(26,115,232,.35)":"transparent",color:mode==="map"?"#7cb9ff":"rgba(255,255,255,.5)",fontSize:11,fontWeight:700,cursor:"pointer",borderBottom:mode==="map"?"2.5px solid #1a73e8":"2.5px solid transparent"}}>
+              🛰️ Satellite
+            </button>
+            <div style={{display:"flex",alignItems:"center",gap:4,paddingRight:8}}>
+              <a href={extUrl} target="_blank" rel="noreferrer" style={{fontSize:9,background:"rgba(26,115,232,.25)",color:"#7cb9ff",borderRadius:12,padding:"3px 8px",textDecoration:"none",fontWeight:700}}>↗ Maps</a>
+              <button onClick={()=>setShow(false)} style={{background:"rgba(255,255,255,.1)",border:"none",borderRadius:8,color:"rgba(255,255,255,.6)",fontSize:13,fontWeight:900,padding:"2px 7px",cursor:"pointer"}}>✕</button>
+            </div>
+          </div>
+          <div style={{position:"relative",height:220,display:mode==="street"?"block":"none"}}>
+            {!gmReady&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"#f0f2f5",gap:8,flexDirection:"column"}}><div style={{width:28,height:28,border:"3px solid #1a73e8",borderTopColor:"transparent",borderRadius:"50%"}}/><span style={{fontSize:11,color:"#64748b"}}>Chargement…</span></div>}
+            <div ref={svRef} style={{width:"100%",height:"100%",background:"#e8edf1"}}/>
+          </div>
+          <div style={{position:"relative",height:220,display:mode==="map"?"block":"none"}}>
+            {!gmReady&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"#f0f2f5",gap:8,flexDirection:"column"}}><div style={{width:28,height:28,border:"3px solid #1a73e8",borderTopColor:"transparent",borderRadius:"50%"}}/><span style={{fontSize:11,color:"#64748b"}}>Chargement…</span></div>}
+            <div ref={mapRef} style={{width:"100%",height:"100%"}}/>
+          </div>
+          <div style={{background:"white",padding:"7px 12px",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:13}}>📍</span>
+            <span style={{fontSize:11,color:"#374151",fontWeight:600,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{adresse}</span>
+          </div>
         </div>
       )}
     </div>
@@ -2450,242 +2581,281 @@ function DistanceKmBadge({adresse,coordsCache}){
   );
 }
 
-// ── MiniatureTrajetEmp — carte par employé dans la vue "Tous" ──
-// Gère sa propre optimisation de trajet
-function MiniatureTrajetEmp({emp, zones, date, tJour}){
-  const [orderedZones,setOrderedZones]=useState(zones);
+// ── MiniatureTrajetEmploye — Google Maps interactive — vue employé ──
+function MiniatureTrajetEmploye({emp, zones, date}){
   const [totalKm,setTotalKm]=useState(0);
   const [totalMins,setTotalMins]=useState(0);
-  const [loading,setLoading]=useState(false);
-  const cacheRef=useRef({});
+  const [loading,setLoading]=useState(true);
+  const [expanded,setExpanded]=useState(true);
+  const [orderedZones,setOrderedZones]=useState(zones.filter(z=>z.adresse&&z.adresse.trim()));
+  const mapDivRef=useRef(null);
+  const mapObjRef=useRef(null);
+  const rendererRef=useRef(null);
+  const gmReady=useGoogleMaps();
+  const couleur=emp?.couleur||GOLD;
+  const hasDepart=emp?.adressePerso&&emp.adressePerso.trim();
+  const zonesAdr=zones.filter(z=>z.adresse&&z.adresse.trim());
 
+  // Calcul Directions API
   useEffect(()=>{
-    if(zones.length<2){setOrderedZones(zones);return;}
-    let cancelled=false;
-    async function run(){
-      setLoading(true);
-      const withCoords=[];
-      for(const z of zones){
-        let coords=cacheRef.current[z.adresse];
-        if(!coords){
-          coords=await geocodeAdresse(z.adresse);
-          if(coords)cacheRef.current[z.adresse]=coords;
-        }
-        if(coords)withCoords.push({...z,coords});
-        if(cancelled)return;
+    if(!gmReady||!window.google?.maps||zonesAdr.length===0){setLoading(false);return;}
+    setLoading(true);
+    const svc=new window.google.maps.DirectionsService();
+    const origin=hasDepart?emp.adressePerso:zonesAdr[0].adresse;
+    const dest=zonesAdr[zonesAdr.length-1].adresse;
+    const wps=zonesAdr.slice(hasDepart?0:-1,zonesAdr.length-1).map(z=>({location:z.adresse,stopover:true}));
+    svc.route({origin,destination:dest,waypoints:wps,optimizeWaypoints:true,travelMode:window.google.maps.TravelMode.DRIVING,region:"fr"},(result,status)=>{
+      if(status==="OK"&&result){
+        let km=0,mins=0;
+        result.routes[0].legs.forEach(leg=>{km+=leg.distance.value/1000;mins+=Math.round(leg.duration.value/60);});
+        setTotalKm(parseFloat(km.toFixed(1)));setTotalMins(mins);
+        const order=result.routes[0].waypoint_order;
+        if(order&&order.length>0)setOrderedZones(order.map(i=>zonesAdr[hasDepart?i:i+1]).filter(Boolean));
       }
-      if(withCoords.length<2){setOrderedZones(zones);setLoading(false);return;}
-      const optimized=optimiserTrajet(withCoords,null);
-      let km=0,mins=0;
-      for(let i=1;i<optimized.length;i++){
-        const s=calcSegment(optimized[i-1].coords,optimized[i].coords);
-        km+=s.km;mins+=s.mins;
-      }
-      if(!cancelled){
-        setOrderedZones(optimized);
-        setTotalKm(parseFloat(km.toFixed(1)));
-        setTotalMins(mins);
-        setLoading(false);
-      }
+      setLoading(false);
+    });
+  },[gmReady,zones.map(z=>z.id).join(","),emp?.adressePerso]);
+
+  // Rendu carte
+  useEffect(()=>{
+    if(!gmReady||!window.google?.maps||!mapDivRef.current||!expanded)return;
+    if(!mapObjRef.current){
+      mapObjRef.current=new window.google.maps.Map(mapDivRef.current,{zoom:12,mapTypeControl:false,streetViewControl:false,fullscreenControl:true,gestureHandling:"cooperative"});
     }
-    run();
-    return()=>{cancelled=true;};
-  },[zones.map(z=>z.id).join(",")]);
+    if(!rendererRef.current){
+      rendererRef.current=new window.google.maps.DirectionsRenderer({polylineOptions:{strokeColor:couleur,strokeWeight:4,strokeOpacity:.85}});
+      rendererRef.current.setMap(mapObjRef.current);
+    }
+    if(zonesAdr.length===0)return;
+    const svc=new window.google.maps.DirectionsService();
+    const origin=hasDepart?emp.adressePerso:zonesAdr[0].adresse;
+    const dest=zonesAdr[zonesAdr.length-1].adresse;
+    const wps=zonesAdr.slice(hasDepart?0:-1,zonesAdr.length-1).map(z=>({location:z.adresse,stopover:true}));
+    svc.route({origin,destination:dest,waypoints:wps,optimizeWaypoints:true,travelMode:window.google.maps.TravelMode.DRIVING,region:"fr"},(result,status)=>{
+      if(status==="OK")rendererRef.current.setDirections(result);
+    });
+  },[gmReady,expanded,zones.map(z=>z.id).join(","),emp?.adressePerso]);
 
-  // Entête coloré avec avatar employé
-  const zonesAvecAdresse=orderedZones.filter(z=>z.adresse&&z.adresse.trim());
-  if(zonesAvecAdresse.length===0)return null;
+  function fmtMins(m){if(!m)return null;const h=Math.floor(m/60),mn=m%60;return h>0?`${h}h${mn>0?mn+"min":""}`:mn+"min";}
+  const extUrl=(()=>{
+    if(zonesAdr.length===0)return null;
+    const enc=a=>encodeURIComponent(a);
+    const dest=enc(zonesAdr[zonesAdr.length-1].adresse);
+    const wps=zonesAdr.slice(0,-1).map(z=>enc(z.adresse)).join("|");
+    return hasDepart?`https://www.google.com/maps/dir/?api=1&origin=${enc(emp.adressePerso)}&destination=${dest}${wps?`&waypoints=${wps}`:""}&travelmode=driving`:buildGoogleMapsUrl(zonesAdr);
+  })();
 
-  const mapsUrl=buildGoogleMapsUrl(zonesAvecAdresse);
-  const origin=zonesAvecAdresse[0].adresse;
-  const dest=zonesAvecAdresse[zonesAvecAdresse.length-1].adresse;
-  const wps=zonesAvecAdresse.slice(1,-1).map(z=>encodeURIComponent(z.adresse)).join("|");
-  const embedUrl=zonesAvecAdresse.length===1
-    ?`https://maps.google.com/maps?q=${encodeURIComponent(origin)}&output=embed&z=14`
-    :`https://maps.google.com/maps?saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(dest)}${wps?`%7C${wps}`:""}&output=embed`;
-
-  function fmtMins(m){if(!m)return null;const h=Math.floor(m/60),min=m%60;return h>0?`${h}h${min>0?min+"min":""}`:`${min}min`;}
+  if(zonesAdr.length===0&&!loading)return null;
+  const zonesAff=orderedZones.length>0?orderedZones:zonesAdr;
 
   return(
-    <div style={{margin:"6px 12px 10px",borderRadius:20,overflow:"hidden",boxShadow:"0 4px 20px rgba(0,0,0,.13)",border:`2px solid ${emp.couleur||GOLD}44`}}>
-      {/* Bandeau employé */}
-      <div style={{background:`linear-gradient(135deg,${emp.couleur||GOLD}ee,${emp.couleur||GOLD}aa)`,padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
-        <Avatar emp={emp} size={32}/>
-        <div style={{flex:1}}>
-          <div style={{fontWeight:800,fontSize:14,color:"white"}}>{emp.nom}</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.8)"}}>{zonesAvecAdresse.length} arrêt{zonesAvecAdresse.length>1?"s":""} · {date}</div>
+    <div style={{margin:"8px 12px 14px",borderRadius:22,overflow:"hidden",boxShadow:"0 6px 28px rgba(0,0,0,.16)",border:`2.5px solid ${couleur}55`}}>
+      <div style={{background:`linear-gradient(135deg,${couleur}f0,${couleur}b0)`,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,cursor:"pointer"}} onClick={()=>setExpanded(e=>!e)}>
+        <Avatar emp={emp} size={40}/>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontWeight:900,fontSize:15,color:"white",lineHeight:1.2}}>🗺️ Ma tournée du jour</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.85)",marginTop:3,display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+            <span>📅 {date}</span>
+            {hasDepart&&<><span style={{opacity:.6}}>·</span><span>🏠 Depuis domicile</span></>}
+            <span style={{opacity:.6}}>·</span>
+            <span>{zonesAff.length} arrêt{zonesAff.length!==1?"s":""}</span>
+          </div>
         </div>
-        {loading&&<span style={{fontSize:11,color:"rgba(255,255,255,.8)",fontStyle:"italic"}}>🔄 Calcul…</span>}
-        {!loading&&totalKm>0&&(
-          <div style={{textAlign:"right"}}>
-            <div style={{fontWeight:900,fontSize:15,color:"white"}}>{fmtMins(totalMins)}</div>
-            <div style={{fontSize:10,color:"rgba(255,255,255,.8)"}}>{totalKm} km</div>
+        {loading?(
+          <div style={{background:"rgba(255,255,255,.2)",borderRadius:12,padding:"8px 12px",flexShrink:0}}>
+            <div style={{fontSize:10,color:"white",fontStyle:"italic"}}>🔄 Calcul…</div>
+          </div>
+        ):(totalKm>0||totalMins>0)&&(
+          <div style={{background:"white",borderRadius:14,padding:"8px 12px",textAlign:"center",flexShrink:0,boxShadow:"0 2px 10px rgba(0,0,0,.15)"}}>
+            <div style={{fontWeight:900,fontSize:18,color:"#1a73e8",lineHeight:1}}>{fmtMins(totalMins)||"–"}</div>
+            <div style={{fontSize:10,color:"#5f6368",marginTop:2}}>{totalKm>0?`${totalKm} km`:""}</div>
           </div>
         )}
+        <div style={{color:"rgba(255,255,255,.7)",fontSize:14,transform:expanded?"rotate(90deg)":"rotate(0deg)",transition:"transform .3s",flexShrink:0}}>▶</div>
       </div>
-
-      {/* Carte */}
-      <div style={{position:"relative",height:240,background:"#e8edf1"}}>
-        <iframe
-          src={embedUrl}
-          style={{width:"100%",height:"100%",border:"none",display:"block"}}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          title={`Trajet ${emp.nom}`}
-        />
-        {/* Badge style Google */}
-        {(totalKm>0||totalMins>0)&&(
-          <div style={{position:"absolute",top:10,left:10,background:"white",borderRadius:12,padding:"8px 12px",boxShadow:"0 3px 12px rgba(0,0,0,.2)",pointerEvents:"none",zIndex:10}}>
-            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
-              <span style={{fontSize:13}}>🚗</span>
-              <span style={{fontWeight:900,fontSize:17,color:"#1a73e8",lineHeight:1}}>{fmtMins(totalMins)||"–"}</span>
-            </div>
-            <div style={{fontSize:10,color:"#5f6368"}}>
-              {totalKm>0&&<span>{totalKm} km · </span>}
-              <span style={{color:"#1a73e8",fontWeight:600}}>{zonesAvecAdresse.length} arrêt{zonesAvecAdresse.length>1?"s":""}</span>
-            </div>
-          </div>
-        )}
-        <a href={mapsUrl} target="_blank" rel="noreferrer"
-          style={{position:"absolute",bottom:10,right:10,background:"#1a73e8",color:"white",borderRadius:22,padding:"7px 14px",fontSize:11,fontWeight:700,textDecoration:"none",boxShadow:"0 2px 10px rgba(26,115,232,.5)",display:"flex",alignItems:"center",gap:5,zIndex:10}}>
-          🗺️ Ouvrir Maps
-        </a>
-      </div>
-
-      {/* Barre d'arrêts */}
-      <div style={{background:"white",padding:"8px 14px",borderTop:"1px solid #f0f0f0"}}>
-        <div style={{display:"flex",alignItems:"center",gap:3,overflowX:"auto",scrollbarWidth:"none"}}>
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flexShrink:0}}>
-            <div style={{width:18,height:18,borderRadius:"50%",background:"#4285f4",border:"2.5px solid white",boxShadow:"0 0 0 2px #4285f4"}}/>
-            <div style={{fontSize:8,color:"#5f6368",fontWeight:600,whiteSpace:"nowrap"}}>Départ</div>
-          </div>
-          {zonesAvecAdresse.map((z,i)=>(
-            <div key={z.id||i} style={{display:"flex",alignItems:"center",flexShrink:0}}>
-              <div style={{display:"flex",alignItems:"center",margin:"0 2px",marginBottom:12}}>
-                {[0,1,2].map(d=><div key={d} style={{width:4,height:1.5,background:"#dadce0",borderRadius:1,margin:"0 1px"}}/>)}
+      {expanded&&(
+        <>
+          <div style={{position:"relative",height:280,background:"#e8edf1"}}>
+            {!gmReady&&<div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,background:"#e8edf1",zIndex:5}}><div style={{width:32,height:32,border:"3px solid #1a73e8",borderTopColor:"transparent",borderRadius:"50%"}}/><span style={{fontSize:12,color:"#5f6368"}}>Chargement Google Maps…</span></div>}
+            <div ref={mapDivRef} style={{width:"100%",height:"100%"}}/>
+            {!loading&&(totalKm>0||totalMins>0)&&(
+              <div style={{position:"absolute",top:10,left:10,background:"white",borderRadius:14,padding:"10px 14px",boxShadow:"0 3px 14px rgba(0,0,0,.22)",pointerEvents:"none",zIndex:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}><span style={{fontSize:14}}>🚗</span><span style={{fontWeight:900,fontSize:20,color:"#1a73e8",lineHeight:1}}>{fmtMins(totalMins)||"–"}</span></div>
+                <div style={{fontSize:11,color:"#5f6368",lineHeight:1.4}}>{totalKm>0&&<div>{totalKm} km au total</div>}<div style={{color:"#1a73e8",fontWeight:600}}>{zonesAff.length} arrêt{zonesAff.length!==1?"s":""}</div></div>
               </div>
-              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-                <div style={{width:20,height:20,borderRadius:"50% 50% 50% 0",background:i===zonesAvecAdresse.length-1?"#ea4335":emp.couleur||GOLD,transform:"rotate(-45deg)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 1px 4px rgba(0,0,0,.2)"}}>
-                  <span style={{transform:"rotate(45deg)",color:"white",fontSize:8,fontWeight:900}}>{i===zonesAvecAdresse.length-1?"🏁":(i+1)}</span>
+            )}
+            {extUrl&&<a href={extUrl} target="_blank" rel="noreferrer" style={{position:"absolute",bottom:12,right:12,background:"#1a73e8",color:"white",borderRadius:26,padding:"9px 18px",fontSize:13,fontWeight:700,textDecoration:"none",boxShadow:"0 3px 14px rgba(26,115,232,.55)",display:"flex",alignItems:"center",gap:6,zIndex:10}}><span>🗺️</span> Naviguer</a>}
+          </div>
+          <div style={{background:"white",padding:"10px 16px",borderTop:"1px solid #f0f0f0"}}>
+            <div style={{display:"flex",alignItems:"center",gap:3,overflowX:"auto",scrollbarWidth:"none",paddingBottom:4}}>
+              {hasDepart&&<div style={{display:"flex",alignItems:"center",flexShrink:0}}><div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}><div style={{width:22,height:22,borderRadius:"50%",background:"#4285f4",border:"2.5px solid white",boxShadow:"0 0 0 2px #4285f4",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10}}>🏠</div><div style={{fontSize:8,color:"#5f6368",fontWeight:600,whiteSpace:"nowrap"}}>Domicile</div></div></div>}
+              {zonesAff.map((z,i)=>(
+                <div key={z.id||i} style={{display:"flex",alignItems:"center",flexShrink:0}}>
+                  <div style={{display:"flex",alignItems:"center",margin:"0 2px",marginBottom:12}}>{[0,1,2,3].map(d=><div key={d} style={{width:4,height:1.5,background:"#dadce0",borderRadius:1,margin:"0 1.5px"}}/>)}</div>
+                  <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                    <div style={{width:22,height:22,borderRadius:"50% 50% 50% 0",background:i===zonesAff.length-1?"#ea4335":couleur,transform:"rotate(-45deg)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(0,0,0,.22)",flexShrink:0}}>
+                      <span style={{transform:"rotate(45deg)",color:"white",fontSize:i===zonesAff.length-1?9:8,fontWeight:900}}>{i===zonesAff.length-1?"🏁":(i+1)}</span>
+                    </div>
+                    <div style={{fontSize:8,color:"#202124",fontWeight:700,maxWidth:60,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{z.nom}</div>
+                  </div>
                 </div>
-                <div style={{fontSize:8,color:"#202124",fontWeight:700,maxWidth:56,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{z.nom}</div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+            {!hasDepart&&<div style={{fontSize:10,color:TXT3,marginTop:6,display:"flex",alignItems:"center",gap:5}}><span>💡</span><span>Ajoutez votre adresse dans vos paramètres pour optimiser depuis votre domicile</span></div>}
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
-// ── Miniature trajet — grande carte style Google Maps (toujours visible) ──
-function MiniatureTrajet({zones, date, empNom, empCouleur, totalKm, totalMins}){
-  const zonesAvecAdresse=zones.filter(z=>z.adresse&&z.adresse.trim());
-  if(zonesAvecAdresse.length===0)return null;
+// ── MiniatureTrajetEmp — Google Maps interactive — vue admin par employé ──
+function MiniatureTrajetEmp({emp, zones, date, tJour}){
+  const [totalKm,setTotalKm]=useState(0);
+  const [totalMins,setTotalMins]=useState(0);
+  const [loading,setLoading]=useState(true);
+  const [expanded,setExpanded]=useState(false);
+  const [orderedZones,setOrderedZones]=useState(zones.filter(z=>z.adresse&&z.adresse.trim()));
+  const mapDivRef=useRef(null);
+  const mapObjRef=useRef(null);
+  const rendererRef=useRef(null);
+  const gmReady=useGoogleMaps();
+  const zonesAdr=zones.filter(z=>z.adresse&&z.adresse.trim());
+  const hasDepart=emp?.adressePerso&&emp.adressePerso.trim();
 
-  const mapsUrl=buildGoogleMapsUrl(zonesAvecAdresse);
-  const origin=zonesAvecAdresse[0].adresse;
-  const dest=zonesAvecAdresse[zonesAvecAdresse.length-1].adresse;
-  const wps=zonesAvecAdresse.slice(1,-1).map(z=>encodeURIComponent(z.adresse)).join("|");
-  const embedUrl=zonesAvecAdresse.length===1
-    ?`https://maps.google.com/maps?q=${encodeURIComponent(origin)}&output=embed&z=14`
-    :`https://maps.google.com/maps?saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(dest)}${wps?`%7C${wps}`:""}&output=embed`;
+  useEffect(()=>{
+    if(!gmReady||!window.google?.maps||zonesAdr.length===0){setLoading(false);return;}
+    setLoading(true);
+    const svc=new window.google.maps.DirectionsService();
+    const origin=hasDepart?emp.adressePerso:zonesAdr[0].adresse;
+    const dest=zonesAdr[zonesAdr.length-1].adresse;
+    const wps=zonesAdr.slice(hasDepart?0:-1,zonesAdr.length-1).map(z=>({location:z.adresse,stopover:true}));
+    svc.route({origin,destination:dest,waypoints:wps,optimizeWaypoints:true,travelMode:window.google.maps.TravelMode.DRIVING,region:"fr"},(result,status)=>{
+      if(status==="OK"&&result){
+        let km=0,mins=0;
+        result.routes[0].legs.forEach(leg=>{km+=leg.distance.value/1000;mins+=Math.round(leg.duration.value/60);});
+        setTotalKm(parseFloat(km.toFixed(1)));setTotalMins(mins);
+        const order=result.routes[0].waypoint_order;
+        if(order&&order.length>0)setOrderedZones(order.map(i=>zonesAdr[hasDepart?i:i+1]).filter(Boolean));
+      }
+      setLoading(false);
+    });
+  },[gmReady,zones.map(z=>z.id).join(","),emp?.adressePerso]);
 
-  function fmtMins(m){if(!m)return null;const h=Math.floor(m/60),min=m%60;return h>0?`${h}h${min>0?min+"min":""}`:`${min}min`;}
+  useEffect(()=>{
+    if(!gmReady||!window.google?.maps||!mapDivRef.current||!expanded)return;
+    if(!mapObjRef.current){
+      mapObjRef.current=new window.google.maps.Map(mapDivRef.current,{zoom:12,mapTypeControl:false,streetViewControl:false,fullscreenControl:true,gestureHandling:"cooperative"});
+    }
+    if(!rendererRef.current){
+      rendererRef.current=new window.google.maps.DirectionsRenderer({polylineOptions:{strokeColor:emp.couleur||GOLD,strokeWeight:4,strokeOpacity:.85}});
+      rendererRef.current.setMap(mapObjRef.current);
+    }
+    if(zonesAdr.length===0)return;
+    const svc=new window.google.maps.DirectionsService();
+    const origin=hasDepart?emp.adressePerso:zonesAdr[0].adresse;
+    const dest=zonesAdr[zonesAdr.length-1].adresse;
+    const wps=zonesAdr.slice(hasDepart?0:-1,zonesAdr.length-1).map(z=>({location:z.adresse,stopover:true}));
+    svc.route({origin,destination:dest,waypoints:wps,optimizeWaypoints:true,travelMode:window.google.maps.TravelMode.DRIVING,region:"fr"},(result,status)=>{
+      if(status==="OK")rendererRef.current.setDirections(result);
+    });
+  },[gmReady,expanded,zones.map(z=>z.id).join(","),emp?.adressePerso]);
+
+  function fmtMins(m){if(!m)return null;const h=Math.floor(m/60),mn=m%60;return h>0?`${h}h${mn>0?mn+"min":""}`:mn+"min";}
+  if(zonesAdr.length===0&&!loading)return null;
+  const zonesAff=orderedZones.length>0?orderedZones:zonesAdr;
+  const mapsUrl=buildGoogleMapsUrl(zonesAff);
 
   return(
-    <div style={{margin:"8px 12px 12px",borderRadius:20,overflow:"hidden",boxShadow:"0 4px 24px rgba(0,0,0,.18)",position:"relative",border:`2px solid ${empCouleur?empCouleur+"66":"rgba(255,255,255,.15)"}`}}>
-
-      {/* Bandeau employé si sélectionné */}
-      {empNom&&(
-        <div style={{background:`linear-gradient(135deg,${empCouleur||GOLD}ee,${empCouleur||GOLD}aa)`,padding:"10px 16px",display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(255,255,255,.25)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:900,color:"white",flexShrink:0}}>
-            {empNom[0].toUpperCase()}
-          </div>
-          <div style={{flex:1}}>
-            <div style={{fontWeight:800,fontSize:13,color:"white"}}>{empNom}</div>
-            <div style={{fontSize:10,color:"rgba(255,255,255,.8)"}}>{zonesAvecAdresse.length} arrêt{zonesAvecAdresse.length>1?"s":""} · {date}</div>
-          </div>
-          {(totalKm>0||totalMins>0)&&(
-            <div style={{textAlign:"right"}}>
-              <div style={{fontWeight:900,fontSize:15,color:"white"}}>{fmtMins(totalMins)||"–"}</div>
-              <div style={{fontSize:10,color:"rgba(255,255,255,.8)"}}>{totalKm>0?totalKm+" km":""}</div>
-            </div>
-          )}
+    <div style={{margin:"6px 12px 10px",borderRadius:20,overflow:"hidden",boxShadow:"0 4px 20px rgba(0,0,0,.13)",border:`2px solid ${emp.couleur||GOLD}44`}}>
+      <div style={{background:`linear-gradient(135deg,${emp.couleur||GOLD}ee,${emp.couleur||GOLD}aa)`,padding:"10px 14px",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={()=>setExpanded(e=>!e)}>
+        <Avatar emp={emp} size={32}/>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:800,fontSize:14,color:"white"}}>{emp.nom}</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.8)"}}>{zonesAff.length} arrêt{zonesAff.length>1?"s":""} · {date}</div>
+        </div>
+        {loading&&<span style={{fontSize:11,color:"rgba(255,255,255,.8)",fontStyle:"italic"}}>🔄</span>}
+        {!loading&&totalKm>0&&<div style={{textAlign:"right"}}><div style={{fontWeight:900,fontSize:15,color:"white"}}>{fmtMins(totalMins)}</div><div style={{fontSize:10,color:"rgba(255,255,255,.8)"}}>{totalKm} km</div></div>}
+        <div style={{color:"rgba(255,255,255,.7)",fontSize:12,transform:expanded?"rotate(90deg)":"rotate(0deg)",transition:"transform .3s",flexShrink:0}}>▶</div>
+      </div>
+      {expanded&&(
+        <div style={{position:"relative",height:240,background:"#e8edf1"}}>
+          {!gmReady&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"#e8edf1",zIndex:5,flexDirection:"column",gap:8}}><div style={{width:28,height:28,border:"3px solid #1a73e8",borderTopColor:"transparent",borderRadius:"50%"}}/><span style={{fontSize:11,color:"#5f6368"}}>Chargement…</span></div>}
+          <div ref={mapDivRef} style={{width:"100%",height:"100%"}}/>
+          {mapsUrl&&<a href={mapsUrl} target="_blank" rel="noreferrer" style={{position:"absolute",bottom:10,right:10,background:"#1a73e8",color:"white",borderRadius:22,padding:"7px 14px",fontSize:11,fontWeight:700,textDecoration:"none",boxShadow:"0 2px 10px rgba(26,115,232,.5)",display:"flex",alignItems:"center",gap:5,zIndex:10}}>🗺️ Ouvrir Maps</a>}
         </div>
       )}
+    </div>
+  );
+}
 
-      {/* ── CARTE GOOGLE MAPS — grande et centrée ── */}
-      <div style={{position:"relative",height:260,background:"#e8edf1"}}>
-        <iframe
-          src={embedUrl}
-          style={{width:"100%",height:"100%",border:"none",display:"block"}}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          title="Trajet du jour"
-        />
+// ── MiniatureTrajet — Google Maps interactive — vue admin sélection ──
+function MiniatureTrajet({zones, date, empNom, empCouleur, totalKm, totalMins}){
+  const [expanded,setExpanded]=useState(true);
+  const mapDivRef=useRef(null);
+  const mapObjRef=useRef(null);
+  const rendererRef=useRef(null);
+  const gmReady=useGoogleMaps();
+  const zonesAdr=zones.filter(z=>z.adresse&&z.adresse.trim());
 
-        {/* Overlay badge infos style Google Maps — coin supérieur gauche */}
-        <div style={{position:"absolute",top:12,left:12,display:"flex",flexDirection:"column",gap:6,pointerEvents:"none",zIndex:10}}>
-          {/* Badge temps + distance */}
-          {(totalKm>0||totalMins>0)&&(
-            <div style={{background:"white",borderRadius:14,padding:"10px 14px",boxShadow:"0 3px 14px rgba(0,0,0,.22)",minWidth:110}}>
-              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-                <span style={{fontSize:14}}>🚗</span>
-                <span style={{fontWeight:900,fontSize:18,color:"#1a73e8",lineHeight:1}}>{fmtMins(totalMins)||"–"}</span>
-              </div>
-              <div style={{fontSize:11,color:"#5f6368",fontWeight:500,lineHeight:1.3}}>
-                {totalKm>0&&<div>{totalKm} km</div>}
-                <div style={{color:"#1a73e8",fontWeight:600}}>{zonesAvecAdresse.length} arrêt{zonesAvecAdresse.length>1?"s":""}</div>
-              </div>
-            </div>
-          )}
-        </div>
+  useEffect(()=>{
+    if(!gmReady||!window.google?.maps||!mapDivRef.current||!expanded||zonesAdr.length===0)return;
+    if(!mapObjRef.current){
+      mapObjRef.current=new window.google.maps.Map(mapDivRef.current,{zoom:12,mapTypeControl:false,streetViewControl:false,fullscreenControl:true,gestureHandling:"cooperative"});
+    }
+    if(!rendererRef.current){
+      rendererRef.current=new window.google.maps.DirectionsRenderer({polylineOptions:{strokeColor:empCouleur||GOLD,strokeWeight:4,strokeOpacity:.85}});
+      rendererRef.current.setMap(mapObjRef.current);
+    }
+    const svc=new window.google.maps.DirectionsService();
+    const origin=zonesAdr[0].adresse;
+    const dest=zonesAdr[zonesAdr.length-1].adresse;
+    const wps=zonesAdr.slice(1,-1).map(z=>({location:z.adresse,stopover:true}));
+    svc.route({origin,destination:dest,waypoints:wps,optimizeWaypoints:true,travelMode:window.google.maps.TravelMode.DRIVING,region:"fr"},(result,status)=>{
+      if(status==="OK")rendererRef.current.setDirections(result);
+    });
+  },[gmReady,expanded,zones.map(z=>z.id).join(",")]);
 
-        {/* Bouton ouvrir Maps — coin inférieur droit, style Google */}
-        <a href={mapsUrl} target="_blank" rel="noreferrer"
-          style={{position:"absolute",bottom:12,right:12,background:"#1a73e8",color:"white",borderRadius:24,padding:"8px 16px",fontSize:12,fontWeight:700,textDecoration:"none",boxShadow:"0 3px 12px rgba(26,115,232,.5)",display:"flex",alignItems:"center",gap:6,zIndex:10}}>
-          <span style={{fontSize:14}}>🗺️</span> Ouvrir Maps
-        </a>
-      </div>
+  function fmtMins(m){if(!m)return null;const h=Math.floor(m/60),mn=m%60;return h>0?`${h}h${mn>0?mn+"min":""}`:mn+"min";}
+  const mapsUrl=buildGoogleMapsUrl(zonesAdr);
+  if(zonesAdr.length===0)return null;
 
-      {/* ── Barre d'arrêts scrollable en bas ── */}
-      <div style={{background:"white",padding:"10px 14px",borderTop:"1px solid #f0f0f0"}}>
-        <div style={{display:"flex",alignItems:"center",gap:4,overflowX:"auto",scrollbarWidth:"none"}}>
-          {/* Lieu de départ (position) */}
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flexShrink:0}}>
-            <div style={{width:20,height:20,borderRadius:"50%",background:"#4285f4",border:"3px solid white",boxShadow:"0 0 0 2px #4285f4",flexShrink:0}}/>
-            <div style={{fontSize:8,color:"#5f6368",fontWeight:600,textAlign:"center",whiteSpace:"nowrap"}}>Départ</div>
+  return(
+    <div style={{margin:"8px 12px 12px",borderRadius:20,overflow:"hidden",boxShadow:"0 4px 24px rgba(0,0,0,.18)",border:`2px solid ${empCouleur?empCouleur+"66":"rgba(255,255,255,.15)"}`}}>
+      {empNom&&(
+        <div style={{background:`linear-gradient(135deg,${empCouleur||GOLD}ee,${empCouleur||GOLD}aa)`,padding:"10px 16px",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={()=>setExpanded(e=>!e)}>
+          <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(255,255,255,.25)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:900,color:"white",flexShrink:0}}>{empNom[0].toUpperCase()}</div>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:800,fontSize:13,color:"white"}}>{empNom}</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,.8)"}}>{zonesAdr.length} arrêt{zonesAdr.length>1?"s":""} · {date}</div>
           </div>
-
-          {zonesAvecAdresse.map((z,i)=>(
-            <div key={z.id||i} style={{display:"flex",alignItems:"center",flexShrink:0}}>
-              {/* Ligne pointillée */}
-              <div style={{display:"flex",alignItems:"center",margin:"0 2px",marginBottom:12}}>
-                {[0,1,2].map(d=><div key={d} style={{width:5,height:2,background:"#dadce0",borderRadius:1,margin:"0 1px"}}/>)}
-              </div>
-              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-                {/* Pin rouge style Google */}
-                <div style={{width:22,height:22,borderRadius:"50% 50% 50% 0",background:i===zonesAvecAdresse.length-1?"#ea4335":GOLD,transform:"rotate(-45deg)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(0,0,0,.25)"}}>
-                  <span style={{transform:"rotate(45deg)",color:"white",fontSize:9,fontWeight:900}}>
-                    {i===zonesAvecAdresse.length-1?"🏁":i+1}
-                  </span>
+          {(totalKm>0||totalMins>0)&&<div style={{textAlign:"right"}}><div style={{fontWeight:900,fontSize:15,color:"white"}}>{fmtMins(totalMins)||"–"}</div><div style={{fontSize:10,color:"rgba(255,255,255,.8)"}}>{totalKm>0?totalKm+" km":""}</div></div>}
+          <div style={{color:"rgba(255,255,255,.7)",fontSize:12,transform:expanded?"rotate(90deg)":"rotate(0deg)",transition:"transform .3s",flexShrink:0}}>▶</div>
+        </div>
+      )}
+      {expanded&&(
+        <>
+          <div style={{position:"relative",height:260,background:"#e8edf1"}}>
+            {!gmReady&&<div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,background:"#e8edf1",zIndex:5}}><div style={{width:32,height:32,border:"3px solid #1a73e8",borderTopColor:"transparent",borderRadius:"50%"}}/><span style={{fontSize:12,color:"#5f6368"}}>Chargement Google Maps…</span></div>}
+            <div ref={mapDivRef} style={{width:"100%",height:"100%"}}/>
+            {(totalKm>0||totalMins>0)&&<div style={{position:"absolute",top:12,left:12,display:"flex",flexDirection:"column",gap:6,pointerEvents:"none",zIndex:10}}><div style={{background:"white",borderRadius:14,padding:"10px 14px",boxShadow:"0 3px 14px rgba(0,0,0,.22)",minWidth:110}}><div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}><span style={{fontSize:14}}>🚗</span><span style={{fontWeight:900,fontSize:18,color:"#1a73e8",lineHeight:1}}>{fmtMins(totalMins)||"–"}</span></div><div style={{fontSize:11,color:"#5f6368",lineHeight:1.3}}>{totalKm>0&&<div>{totalKm} km</div>}<div style={{color:"#1a73e8",fontWeight:600}}>{zonesAdr.length} arrêt{zonesAdr.length>1?"s":""}</div></div></div></div>}
+            {mapsUrl&&<a href={mapsUrl} target="_blank" rel="noreferrer" style={{position:"absolute",bottom:12,right:12,background:"#1a73e8",color:"white",borderRadius:24,padding:"8px 16px",fontSize:12,fontWeight:700,textDecoration:"none",boxShadow:"0 3px 12px rgba(26,115,232,.5)",display:"flex",alignItems:"center",gap:6,zIndex:10}}><span style={{fontSize:14}}>🗺️</span> Ouvrir Maps</a>}
+          </div>
+          <div style={{background:"white",padding:"10px 14px",borderTop:"1px solid #f0f0f0"}}>
+            <div style={{display:"flex",alignItems:"center",gap:4,overflowX:"auto",scrollbarWidth:"none"}}>
+              {zonesAdr.map((z,i)=>(
+                <div key={z.id||i} style={{display:"flex",alignItems:"center",flexShrink:0}}>
+                  {i>0&&<div style={{display:"flex",alignItems:"center",margin:"0 2px",marginBottom:12}}>{[0,1,2].map(d=><div key={d} style={{width:5,height:2,background:"#dadce0",borderRadius:1,margin:"0 1px"}}/>)}</div>}
+                  <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                    <div style={{width:22,height:22,borderRadius:"50% 50% 50% 0",background:i===zonesAdr.length-1?"#ea4335":empCouleur||GOLD,transform:"rotate(-45deg)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(0,0,0,.25)"}}><span style={{transform:"rotate(45deg)",color:"white",fontSize:9,fontWeight:900}}>{i===zonesAdr.length-1?"🏁":i+1}</span></div>
+                    <div style={{fontSize:8,color:"#202124",fontWeight:700,maxWidth:60,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{z.nom}</div>
+                  </div>
                 </div>
-                <div style={{fontSize:8,color:"#202124",fontWeight:700,maxWidth:60,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{z.nom}</div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-
-        {/* Nom employé si filtré */}
-        {empNom&&(
-          <div style={{fontSize:10,color:"#5f6368",marginTop:6,display:"flex",alignItems:"center",gap:4}}>
-            <span>👤</span><span style={{fontWeight:600}}>{empNom}</span>
-            <span style={{marginLeft:4}}>·</span>
-            <span>{date}</span>
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
@@ -4399,7 +4569,7 @@ function AppInner(){
   const saveEmp=useCallback(()=>{
     if(!form.nom)return toast_("Nom requis","err");
     if(form.id){setData(d=>({...d,employes:d.employes.map(e=>e.id===form.id?form:e)}));}
-    else{setData(d=>({...d,employes:[...d.employes,{...form,id:Date.now(),couleur:COLORS[d.employes.length%COLORS.length],actif:true,photo:null,tel:form.tel||"",email:form.email||"",pin:form.pin||"",role:form.role||"employe"}]}));}
+    else{setData(d=>({...d,employes:[...d.employes,{...form,id:Date.now(),couleur:COLORS[d.employes.length%COLORS.length],actif:true,photo:null,tel:form.tel||"",email:form.email||"",pin:form.pin||"",role:form.role||"employe",adressePerso:form.adressePerso||""}]}));}
     close();toast_("Employé enregistré ✓");
   },[form,toast_,close]);
 
@@ -4416,7 +4586,7 @@ function AppInner(){
 
   const openNewTache=(date=TODAY)=>{setForm({date,type:(data.typesPerso||DEFAULT_TYPES)[0],heure:"08:00",recurrence:"quotidien",checkItems:[],checkDone:[]});setModal("tache");};
   const openEditTache=(t)=>{setForm({...t,checkItems:t.checkItems||[],checkDone:t.checkDone||[]});setModal("tache_edit");};
-  const openEditEmp=(e)=>{setForm(e?{...e}:{actif:true,photo:null,tel:"",email:"",pin:"",role:"employe"});setModal("employe");};
+  const openEditEmp=(e)=>{setForm(e?{...e}:{actif:true,photo:null,tel:"",email:"",pin:"",role:"employe",adressePerso:""});setModal("employe");};
   const openEditZone=(z)=>{setForm(z?{...z}:{});setModal("zone");};
 
   // Écran PIN si pas connecté
