@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef, Component } from "react";
 class ErrorBoundary extends Component {
   constructor(props){super(props);this.state={err:null};}
   static getDerivedStateFromError(e){return{err:e};}
+  componentDidCatch(error,info){console.error("CKeys ErrorBoundary:",error,info);}
   render(){
     if(this.state.err) return(
       <div style={{padding:24,background:"#1a0000",minHeight:"100vh",color:"white",fontFamily:"monospace"}}>
@@ -10,6 +11,24 @@ class ErrorBoundary extends Component {
         <pre style={{background:"#2a0000",padding:16,borderRadius:8,whiteSpace:"pre-wrap",fontSize:13,color:"#ffaaaa"}}>{this.state.err?.message}</pre>
         <pre style={{background:"#2a0000",padding:16,borderRadius:8,whiteSpace:"pre-wrap",fontSize:11,color:"#ff8888",marginTop:12}}>{this.state.err?.stack}</pre>
         <button onClick={()=>this.setState({err:null})} style={{marginTop:16,padding:"10px 20px",background:"#c9a84c",border:"none",borderRadius:8,color:"black",fontWeight:700,cursor:"pointer"}}>🔄 Réessayer</button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
+// ErrorBoundary locale pour les cartes (n'englobe pas toute l'app)
+class MapErrorBoundary extends Component {
+  constructor(props){super(props);this.state={err:null};}
+  static getDerivedStateFromError(e){return{err:e};}
+  componentDidCatch(error){console.error("Erreur carte Maps:",error);}
+  render(){
+    if(this.state.err) return(
+      <div style={{margin:"8px 12px 14px",borderRadius:16,background:"#f8fafc",border:"1.5px dashed #e2e8f0",padding:"16px",textAlign:"center"}}>
+        <div style={{fontSize:24,marginBottom:6}}>🗺️</div>
+        <div style={{fontSize:12,fontWeight:700,color:"#64748b"}}>Carte temporairement indisponible</div>
+        <div style={{fontSize:11,color:"#94a3b8",marginTop:4}}>Vérifiez votre clé Google Maps dans les paramètres</div>
+        <button onClick={()=>this.setState({err:null})} style={{marginTop:10,padding:"6px 14px",background:"#c9a84c",border:"none",borderRadius:8,color:"black",fontWeight:700,cursor:"pointer",fontSize:11}}>↺ Réessayer</button>
       </div>
     );
     return this.props.children;
@@ -67,7 +86,8 @@ let _fbReady = false;
 const _fbListeners = [];
 
 async function initFirebase() {
-  if (FIREBASE_CONFIG.apiKey === "REMPLACE_MOI") return false;
+  // Vérifier que la clé API est bien configurée (pas vide, pas placeholder)
+  if (!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey === "REMPLACE_MOI" || FIREBASE_CONFIG.apiKey === "undefined") return false;
   try {
     const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
     const { getFirestore, doc, getDoc, setDoc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
@@ -1095,7 +1115,7 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
   const {orderedZones,totalKm,totalMins,loading:trajetLoading}=useTrajetOptimise(
     logsAvecTaches, dateAffichee, data.suiviKmActif||false
   );
-  const zonesAffichees=data.suiviKmActif&&orderedZones.length>0?orderedZones:logsAvecTaches;
+  const zonesAffichees=orderedZones.length>0?orderedZones:logsAvecTaches;
   const empSelNom=empSelAdmin?.nom||null;
 
   // Dernier jour du mois — plus utilisé dans l'accueil
@@ -1159,11 +1179,11 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
       {/* Logements du jour sélectionné */}
       {isAujourdhui?(
         <>
-          {/* ── EMPLOYÉ (non-admin) : miniature trajet depuis domicile ──
-              Toujours affichée si l'employé a des logements aujourd'hui */}
-          {!isAdmin&&logsAvecTaches.length>0&&(()=>{
+          {/* ── EMPLOYÉ / MANAGER : tournée du jour ── */}
+          {!isAdmin&&(()=>{
             const emp=data.employes.find(e=>e.id===currentUserId);
             const zonesAvecAdr=logsAvecTaches.filter(z=>z.adresse&&z.adresse.trim());
+            if(logsAvecTaches.length===0)return null;
             if(zonesAvecAdr.length===0)return(
               <div style={{margin:"8px 12px 10px",borderRadius:18,background:"#f8fafc",border:"1.5px dashed #e2e8f0",padding:"16px",textAlign:"center"}}>
                 <div style={{fontSize:24,marginBottom:6}}>🗺️</div>
@@ -1172,54 +1192,52 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
               </div>
             );
             return(
-              <MiniatureTrajetEmploye
-                emp={emp}
-                zones={zonesAvecAdr}
-                date={dateLabel}
-              />
+              <MapErrorBoundary>
+                <MiniatureTrajetEmploye emp={emp} zones={zonesAvecAdr} date={dateLabel}/>
+              </MapErrorBoundary>
             );
           })()}
 
-          {/* ── ADMIN : miniature(s) par employé ── */}
-          {isAdmin&&data.suiviKmActif&&(()=>{
+          {/* ── ADMIN : swipe entre tournées de chaque employé ── */}
+          {isAdmin&&(()=>{
+            // Construire la liste des employés qui ont des zones avec adresse aujourd'hui
+            const empsAvecTournee=empActifs.map(emp=>{
+              const zonesEmp=[...new Set(tJour.filter(t=>t.employeId===emp.id).map(t=>t.zoneId))]
+                .map(id=>data.zones.find(z=>z.id===id))
+                .filter(z=>z&&z.adresse&&z.adresse.trim());
+              return{emp,zones:zonesEmp};
+            }).filter(x=>x.zones.length>0);
+
+            if(empsAvecTournee.length===0)return null;
+
+            // empIdx 0 = "Tous" → on affiche toutes les tournées en liste
+            // empIdx > 0 → on affiche la tournée de l'employé sélectionné
             if(empSelAdmin){
-              const zonesEmp=zonesAffichees.filter(z=>z.adresse&&z.adresse.trim());
-              if(zonesEmp.length===0)return null;
+              const found=empsAvecTournee.find(x=>x.emp.id===empSelAdmin.id);
+              if(!found)return(
+                <div style={{margin:"8px 12px 10px",borderRadius:18,background:"#f8fafc",border:"1.5px dashed #e2e8f0",padding:"14px",textAlign:"center"}}>
+                  <div style={{fontSize:20,marginBottom:4}}>📭</div>
+                  <div style={{fontSize:12,fontWeight:700,color:TXT2}}>Aucune tournée aujourd'hui pour {empSelAdmin.nom}</div>
+                </div>
+              );
               return(
-                <MiniatureTrajet
-                  zones={zonesEmp}
-                  date={dateLabel}
-                  empNom={empSelAdmin.nom}
-                  empCouleur={empSelAdmin.couleur}
-                  totalKm={totalKm}
-                  totalMins={totalMins}
-                />
+                <MapErrorBoundary>
+                  <MiniatureTrajetEmploye emp={found.emp} zones={found.zones} date={dateLabel}/>
+                </MapErrorBoundary>
               );
             } else {
-              return empActifs.map(emp=>{
-                const zonesEmp=[...new Set(tJour.filter(t=>t.employeId===emp.id).map(t=>t.zoneId))]
-                  .map(id=>data.zones.find(z=>z.id===id))
-                  .filter(z=>z&&z.adresse&&z.adresse.trim());
-                if(zonesEmp.length===0)return null;
-                return(
-                  <MiniatureTrajetEmp
-                    key={emp.id}
-                    emp={emp}
-                    zones={zonesEmp}
-                    date={dateLabel}
-                    tJour={tJour}
-                  />
-                );
-              });
+              // Vue "Tous" : une carte par employé
+              return(
+                <div>
+                  {empsAvecTournee.map(({emp,zones})=>(
+                    <MapErrorBoundary key={emp.id}>
+                      <MiniatureTrajetEmp emp={emp} zones={zones} date={dateLabel} tJour={tJour}/>
+                    </MapErrorBoundary>
+                  ))}
+                </div>
+              );
             }
           })()}
-
-          {/* Badge optimisation en cours (admin) */}
-          {isAdmin&&data.suiviKmActif&&trajetLoading&&(
-            <div style={{margin:"0 12px 8px"}}>
-              <span style={{fontSize:11,color:TXT3,fontStyle:"italic"}}>🔄 Optimisation du trajet…</span>
-            </div>
-          )}
 
           {zonesAffichees.map((z,idx)=>(
             <CarteLogement key={z.id} zone={z}
@@ -1256,16 +1274,31 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
       ):(
         /* Vue DEMAIN — logements complets avec CarteLogement */
         <>
-          {/* Employé non-admin : miniature tournée de demain */}
+          {/* Employé/Manager : tournée de demain */}
           {!isAdmin&&logsAvecTaches.length>0&&(()=>{
             const emp=data.employes.find(e=>e.id===currentUserId);
             const zonesAvecAdr=logsAvecTaches.filter(z=>z.adresse&&z.adresse.trim());
             if(zonesAvecAdr.length===0)return null;
-            return <MiniatureTrajetEmploye emp={emp} zones={zonesAvecAdr} date={dateLabel}/>;
+            return <MapErrorBoundary><MiniatureTrajetEmploye emp={emp} zones={zonesAvecAdr} date={dateLabel}/></MapErrorBoundary>;
           })()}
-          {isAdmin&&data.suiviKmActif&&zonesAffichees.filter(z=>z.adresse).length>=1&&(
-            <MiniatureTrajet zones={zonesAffichees} date={dateLabel} empNom={empSelNom} totalKm={totalKm} totalMins={totalMins}/>
-          )}
+          {/* Admin demain : swipe par employé */}
+          {isAdmin&&(()=>{
+            const empsAvecTournee=empActifs.map(emp=>{
+              const zonesEmp=[...new Set(tJour.filter(t=>t.employeId===emp.id).map(t=>t.zoneId))]
+                .map(id=>data.zones.find(z=>z.id===id))
+                .filter(z=>z&&z.adresse&&z.adresse.trim());
+              return{emp,zones:zonesEmp};
+            }).filter(x=>x.zones.length>0);
+            if(empsAvecTournee.length===0)return null;
+            if(empSelAdmin){
+              const found=empsAvecTournee.find(x=>x.emp.id===empSelAdmin.id);
+              if(!found)return null;
+              return <MapErrorBoundary><MiniatureTrajetEmploye emp={found.emp} zones={found.zones} date={dateLabel}/></MapErrorBoundary>;
+            }
+            return <div>{empsAvecTournee.map(({emp,zones})=>(
+              <MapErrorBoundary key={emp.id}><MiniatureTrajetEmp emp={emp} zones={zones} date={dateLabel} tJour={tJour}/></MapErrorBoundary>
+            ))}</div>;
+          })()}
           {logsAvecTaches.length===0&&(
             <div style={{...S.card,color:"#94a3b8",textAlign:"center",fontSize:14,padding:"28px 16px"}}>
               🌅 Aucune tâche planifiée pour demain
@@ -2046,14 +2079,16 @@ function GestionPieces({data,setData,toast_}){
 // ══════════════════════════════════════════════════════════════════════════════
 function HistoriqueHeuresDeplacements({data,toast_}){
   const [page,setPage]=useState(0); // 0=heures, 1=déplacements
-  const [empSel,setEmpSel]=useState("tous");
+  // Vue par employé : index dans empActifs (-1 = tous)
+  const [empIdx,setEmpIdx]=useState(-1); // -1=tous, 0..n=employé
   const [moisSel,setMoisSel]=useState(()=>{
     const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;
   });
-  const swipeRef=useRef(null);
   const swipeStartX=useRef(null);
+  const swipeEmpStartX=useRef(null);
 
   const empActifs=data.employes.filter(e=>e.actif);
+  const empSel=empIdx===-1?"tous":String(empActifs[empIdx]?.id||"tous");
 
   const moisDispo=Array.from({length:12},(_,i)=>{
     const d=new Date();d.setMonth(d.getMonth()-i);
@@ -2063,14 +2098,12 @@ function HistoriqueHeuresDeplacements({data,toast_}){
   });
 
   // Tâches du mois filtré
-  const tachesMois=data.taches.filter(t=>{
+  const tachesMoisTous=data.taches.filter(t=>{
     if(!t.date)return false;
     const[y,m]=t.date.split("-");
-    if(`${y}-${m.padStart(2,"0")}`!==moisSel)return false;
-    if(empSel!=="tous"&&t.employeId!==parseInt(empSel))return false;
-    return true;
+    return`${y}-${m.padStart(2,"0")}`===moisSel;
   });
-
+  const tachesMois=empSel==="tous"?tachesMoisTous:tachesMoisTous.filter(t=>t.employeId===parseInt(empSel));
   const tachesAvecHeures=tachesMois.filter(t=>t.heureArriveeReel&&t.heureDepartReel);
 
   function diffMins(a,d){
@@ -2081,7 +2114,7 @@ function HistoriqueHeuresDeplacements({data,toast_}){
   function fmtDuree(m){if(m<=0)return"0min";const h=Math.floor(m/60),min=m%60;return h>0?`${h}h${min>0?String(min).padStart(2,"0")+"min":""}`:`${min}min`;}
   function fmtDate(d){return new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});}
 
-  // Swipe handlers
+  // Swipe handlers pour les pages (heures/déplacements)
   function onTouchStart(e){swipeStartX.current=e.touches[0].clientX;}
   function onTouchEnd(e){
     if(swipeStartX.current===null)return;
@@ -2089,6 +2122,33 @@ function HistoriqueHeuresDeplacements({data,toast_}){
     if(Math.abs(dx)>50){setPage(p=>dx<0?Math.min(p+1,1):Math.max(p-1,0));}
     swipeStartX.current=null;
   }
+  // Swipe handlers pour sélection employé
+  function onEmpTouchStart(e){swipeEmpStartX.current=e.touches[0].clientX;}
+  function onEmpTouchEnd(e){
+    if(swipeEmpStartX.current===null)return;
+    const dx=e.changedTouches[0].clientX-swipeEmpStartX.current;
+    const total=empActifs.length; // -1=tous(idx=-1), 0..total-1=employés
+    if(Math.abs(dx)>40){
+      if(dx<0) setEmpIdx(i=>Math.min(i+1,total-1));
+      else setEmpIdx(i=>Math.max(i-1,-1));
+    }
+    swipeEmpStartX.current=null;
+  }
+
+  // ── Stats mensuelles par employé (pour la bannière en haut) ──
+  const statsEmp=(empId)=>{
+    const tEmp=tachesAvecHeures.filter(t=>t.employeId===empId);
+    const totalMins=tEmp.reduce((acc,t)=>{const m=diffMins(t.heureArriveeReel,t.heureDepartReel);return acc+(m>0?m:0);},0);
+    const joursMap={};
+    tachesMoisTous.filter(t=>t.employeId===empId&&t.date).forEach(t=>{
+      if(!joursMap[t.date])joursMap[t.date]=new Set();
+      const zone=data.zones.find(z=>z.id===t.zoneId);
+      if(zone?.adresse)joursMap[t.date].add(zone.id);
+    });
+    const zonesUniqIds=new Set(tachesMoisTous.filter(t=>t.employeId===empId).map(t=>t.zoneId));
+    const nbZones=zonesUniqIds.size;
+    return{totalMins,nbTaches:tEmp.length,nbZones};
+  };
 
   // ── PAGE 0 : Heures de travail ──
   const pageHeures=()=>{
@@ -2101,9 +2161,6 @@ function HistoriqueHeuresDeplacements({data,toast_}){
     });
     const empList=Object.values(parEmp).sort((a,b)=>b.totalMins-a.totalMins);
     const totalGlobal=empList.reduce((a,e)=>a+e.totalMins,0);
-
-    // Grouper par date pour chaque employé
-    const joursUniques=[...new Set(tachesAvecHeures.map(t=>t.date))].sort().reverse();
 
     return(
       <div>
@@ -2133,7 +2190,7 @@ function HistoriqueHeuresDeplacements({data,toast_}){
           </div>
         )}
 
-        {/* Par employé — résumé */}
+        {/* Par employé — résumé avec heures arrivée/départ */}
         {empList.map(ep=>{
           const emp=data.employes.find(e=>e.id===ep.empId);
           if(!emp)return null;
@@ -2155,26 +2212,35 @@ function HistoriqueHeuresDeplacements({data,toast_}){
               <div style={{height:6,borderRadius:10,background:"#f1f5f9",overflow:"hidden",marginBottom:10}}>
                 <div style={{height:"100%",width:pct+"%",background:`linear-gradient(90deg,${emp.couleur||GOLD},${emp.couleur||GOLD}99)`,borderRadius:10,transition:"width .4s"}}/>
               </div>
-              {/* Détail par jour */}
-              {ep.taches.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map((t,i,arr)=>{
+              {/* Détail par jour avec heure arrivée/départ réelle bien visible */}
+              {ep.taches.sort((a,b)=>b.date.localeCompare(a.date)).map((t,i,arr)=>{
                 const zone=data.zones.find(z=>z.id===t.zoneId);
                 return(
-                  <div key={t.id} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 0",borderBottom:i<Math.min(arr.length-1,4)?"1px solid #f8fafc":"none"}}>
-                    <div style={{width:8,height:8,borderRadius:"50%",background:emp.couleur||GOLD,flexShrink:0}}/>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:12,fontWeight:600,color:TXT,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.type} · {zone?.nom||"?"}</div>
-                      <div style={{fontSize:10,color:TXT3}}>{fmtDate(t.date)}</div>
+                  <div key={t.id} style={{padding:"9px 0",borderBottom:i<arr.length-1?"1px solid #f8fafc":"none"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <div style={{width:8,height:8,borderRadius:"50%",background:emp.couleur||GOLD,flexShrink:0}}/>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:12,fontWeight:600,color:TXT,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.type} · {zone?.nom||"?"}</div>
+                        <div style={{fontSize:10,color:TXT3}}>{fmtDate(t.date)}</div>
+                      </div>
+                      <div style={{flexShrink:0,textAlign:"right"}}>
+                        <div style={{fontSize:12,fontWeight:700,color:TXT}}>{fmtDuree(t.duree)}</div>
+                      </div>
                     </div>
-                    <div style={{flexShrink:0,textAlign:"right"}}>
-                      <div style={{fontSize:12,fontWeight:700,color:TXT}}>{fmtDuree(t.duree)}</div>
-                      <div style={{fontSize:10,color:TXT3}}>{t.heureArriveeReel} → {t.heureDepartReel}</div>
+                    {/* Heure arrivée / départ réelles — bien mis en avant */}
+                    <div style={{display:"flex",gap:6,marginTop:6,marginLeft:16}}>
+                      <div style={{display:"flex",alignItems:"center",gap:4,background:"#ecfdf5",borderRadius:20,padding:"3px 10px",border:"1px solid #bbf7d0"}}>
+                        <span style={{fontSize:10}}>🟢</span>
+                        <span style={{fontSize:11,fontWeight:700,color:"#166534"}}>Arrivée {t.heureArriveeReel}</span>
+                      </div>
+                      <div style={{display:"flex",alignItems:"center",gap:4,background:"#fff1f2",borderRadius:20,padding:"3px 10px",border:"1px solid #fecdd3"}}>
+                        <span style={{fontSize:10}}>🔴</span>
+                        <span style={{fontSize:11,fontWeight:700,color:"#9f1239"}}>Départ {t.heureDepartReel}</span>
+                      </div>
                     </div>
                   </div>
                 );
               })}
-              {ep.taches.length>5&&(
-                <div style={{fontSize:11,color:TXT3,textAlign:"center",marginTop:6}}>+{ep.taches.length-5} tâches supplémentaires</div>
-              )}
             </div>
           );
         })}
@@ -2190,7 +2256,7 @@ function HistoriqueHeuresDeplacements({data,toast_}){
                 txt+=`👤 ${emp?.nom||"?"} — Total : ${fmtDuree(ep.totalMins)}\n`;
                 ep.taches.forEach(t=>{
                   const zone=data.zones.find(z=>z.id===t.zoneId);
-                  txt+=`   ${t.date} ${t.heureArriveeReel}→${t.heureDepartReel} (${fmtDuree(t.duree)}) — ${t.type} @ ${zone?.nom||"?"}\n`;
+                  txt+=`   ${t.date} Arrivée:${t.heureArriveeReel} Départ:${t.heureDepartReel} (${fmtDuree(t.duree)}) — ${t.type} @ ${zone?.nom||"?"}\n`;
                 });
                 txt+="\n";
               });
@@ -2309,22 +2375,63 @@ function HistoriqueHeuresDeplacements({data,toast_}){
     {id:1,label:"🗺️ Déplacements",  icon:"🗺️"},
   ];
 
+  // Employé actuellement sélectionné pour la bannière
+  const empCourant=empIdx===-1?null:empActifs[empIdx];
+  // Stats mensuelles de l'employé sélectionné
+  const statsCourant=empCourant?statsEmp(empCourant.id):null;
+
   return(
     <div>
       {/* Titre */}
       <div style={{padding:"0 12px 10px",fontWeight:900,fontSize:16,color:TXT}}>⏱️ Heures & Déplacements</div>
 
-      {/* Sélecteurs — mois + employé */}
-      <div style={{display:"flex",gap:8,padding:"0 12px",marginBottom:12}}>
+      {/* Sélecteur de mois */}
+      <div style={{padding:"0 12px",marginBottom:10}}>
         <select value={moisSel} onChange={e=>setMoisSel(e.target.value)}
-          style={{flex:1,borderRadius:10,border:`1px solid ${BORDER}`,padding:"8px 10px",fontSize:12,fontWeight:600,color:TXT,background:"#f8fafc"}}>
+          style={{width:"100%",borderRadius:10,border:`1px solid ${BORDER}`,padding:"8px 10px",fontSize:12,fontWeight:600,color:TXT,background:"#f8fafc"}}>
           {moisDispo.map(m=><option key={m.v} value={m.v}>{m.l}</option>)}
         </select>
-        <select value={empSel} onChange={e=>setEmpSel(e.target.value)}
-          style={{flex:1,borderRadius:10,border:`1px solid ${BORDER}`,padding:"8px 10px",fontSize:12,fontWeight:600,color:TXT,background:"#f8fafc"}}>
-          <option value="tous">👥 Tous</option>
-          {empActifs.map(e=><option key={e.id} value={e.id}>👤 {e.nom}</option>)}
-        </select>
+      </div>
+
+      {/* ── Sélecteur employé par swipe ── */}
+      <div style={{padding:"0 12px",marginBottom:10}}>
+        <div onTouchStart={onEmpTouchStart} onTouchEnd={onEmpTouchEnd}
+          style={{background:empCourant?`${empCourant.couleur||GOLD}18`:"#f8fafc",borderRadius:16,padding:"12px 14px",border:`1.5px solid ${empCourant?empCourant.couleur||GOLD:BORDER}`,cursor:"pointer"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            {empCourant?<Avatar emp={empCourant} size={38}/>:<div style={{width:38,height:38,borderRadius:"50%",background:GOLD,display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontWeight:900,fontSize:18}}>👥</div>}
+            <div style={{flex:1}}>
+              <div style={{fontWeight:800,fontSize:14,color:empCourant?empCourant.couleur||GOLD:GOLD}}>{empCourant?empCourant.nom:"Toute l'équipe"}</div>
+              {empCourant&&statsCourant&&(
+                <div style={{display:"flex",gap:6,marginTop:3,flexWrap:"wrap"}}>
+                  <span style={{fontSize:10,background:"#fdf8ed",borderRadius:20,padding:"2px 8px",color:GOLD_DARK,fontWeight:700,border:`1px solid ${GOLD}44`}}>⏱️ {fmtDuree(statsCourant.totalMins)}</span>
+                  <span style={{fontSize:10,background:"#ecfdf5",borderRadius:20,padding:"2px 8px",color:"#166534",fontWeight:700,border:"1px solid #bbf7d0"}}>✅ {statsCourant.nbTaches} tâches</span>
+                  <span style={{fontSize:10,background:"#eff6ff",borderRadius:20,padding:"2px 8px",color:"#1e3a8a",fontWeight:700,border:"1px solid #bfdbfe"}}>🏠 {statsCourant.nbZones} logements</span>
+                </div>
+              )}
+              {!empCourant&&<div style={{fontSize:10,color:TXT3}}>{empActifs.length} employés · swipe pour filtrer</div>}
+            </div>
+            <div style={{fontSize:10,color:TXT3,fontWeight:600}}>← swipe →</div>
+          </div>
+        </div>
+        {/* Indicateur dots */}
+        <div style={{display:"flex",justifyContent:"center",gap:5,marginTop:8}}>
+          {[-1,...empActifs.map((_,i)=>i)].map(i=>(
+            <div key={i} onClick={()=>setEmpIdx(i)}
+              style={{width:i===empIdx?22:8,height:6,borderRadius:10,background:i===empIdx?(empIdx===-1?GOLD:empActifs[i]?.couleur||GOLD):"#d1d5db",transition:"all .3s",cursor:"pointer"}}/>
+          ))}
+        </div>
+        <div style={{display:"flex",overflowX:"auto",gap:6,paddingBottom:4,marginTop:8,scrollbarWidth:"none"}}>
+          <button onClick={()=>setEmpIdx(-1)}
+            style={{flexShrink:0,padding:"5px 12px",borderRadius:20,border:`1.5px solid ${empIdx===-1?GOLD:BORDER}`,background:empIdx===-1?GOLD:"white",color:empIdx===-1?"white":TXT2,fontSize:11,fontWeight:700,cursor:"pointer"}}>
+            👥 Tous
+          </button>
+          {empActifs.map((e,i)=>(
+            <button key={e.id} onClick={()=>setEmpIdx(i)}
+              style={{flexShrink:0,padding:"5px 12px",borderRadius:20,border:`1.5px solid ${i===empIdx?e.couleur||GOLD:BORDER}`,background:i===empIdx?e.couleur||GOLD:"white",color:i===empIdx?"white":TXT2,fontSize:11,fontWeight:700,cursor:"pointer"}}>
+              {e.nom}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Sélecteur de page — liste scrollable */}
@@ -2337,7 +2444,6 @@ function HistoriqueHeuresDeplacements({data,toast_}){
             </button>
           ))}
         </div>
-        {/* Indicateur swipe */}
         <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:8}}>
           {PAGES.map(p=>(
             <div key={p.id} style={{width:page===p.id?22:8,height:4,borderRadius:10,background:page===p.id?GOLD:"#d1d5db",transition:"all .3s",cursor:"pointer"}} onClick={()=>setPage(p.id)}/>
@@ -2603,7 +2709,7 @@ function MiniatureTrajetEmploye({emp, zones, date}){
     const svc=new window.google.maps.DirectionsService();
     const origin=hasDepart?emp.adressePerso:zonesAdr[0].adresse;
     const dest=zonesAdr[zonesAdr.length-1].adresse;
-    const wps=zonesAdr.slice(hasDepart?0:-1,zonesAdr.length-1).map(z=>({location:z.adresse,stopover:true}));
+    const wps=zonesAdr.slice(hasDepart?0:1,zonesAdr.length-1).map(z=>({location:z.adresse,stopover:true}));
     svc.route({origin,destination:dest,waypoints:wps,optimizeWaypoints:true,travelMode:window.google.maps.TravelMode.DRIVING,region:"fr"},(result,status)=>{
       if(status==="OK"&&result){
         let km=0,mins=0;
@@ -2630,7 +2736,7 @@ function MiniatureTrajetEmploye({emp, zones, date}){
     const svc=new window.google.maps.DirectionsService();
     const origin=hasDepart?emp.adressePerso:zonesAdr[0].adresse;
     const dest=zonesAdr[zonesAdr.length-1].adresse;
-    const wps=zonesAdr.slice(hasDepart?0:-1,zonesAdr.length-1).map(z=>({location:z.adresse,stopover:true}));
+    const wps=zonesAdr.slice(hasDepart?0:1,zonesAdr.length-1).map(z=>({location:z.adresse,stopover:true}));
     svc.route({origin,destination:dest,waypoints:wps,optimizeWaypoints:true,travelMode:window.google.maps.TravelMode.DRIVING,region:"fr"},(result,status)=>{
       if(status==="OK")rendererRef.current.setDirections(result);
     });
@@ -2729,7 +2835,7 @@ function MiniatureTrajetEmp({emp, zones, date, tJour}){
     const svc=new window.google.maps.DirectionsService();
     const origin=hasDepart?emp.adressePerso:zonesAdr[0].adresse;
     const dest=zonesAdr[zonesAdr.length-1].adresse;
-    const wps=zonesAdr.slice(hasDepart?0:-1,zonesAdr.length-1).map(z=>({location:z.adresse,stopover:true}));
+    const wps=zonesAdr.slice(hasDepart?0:1,zonesAdr.length-1).map(z=>({location:z.adresse,stopover:true}));
     svc.route({origin,destination:dest,waypoints:wps,optimizeWaypoints:true,travelMode:window.google.maps.TravelMode.DRIVING,region:"fr"},(result,status)=>{
       if(status==="OK"&&result){
         let km=0,mins=0;
@@ -2755,7 +2861,7 @@ function MiniatureTrajetEmp({emp, zones, date, tJour}){
     const svc=new window.google.maps.DirectionsService();
     const origin=hasDepart?emp.adressePerso:zonesAdr[0].adresse;
     const dest=zonesAdr[zonesAdr.length-1].adresse;
-    const wps=zonesAdr.slice(hasDepart?0:-1,zonesAdr.length-1).map(z=>({location:z.adresse,stopover:true}));
+    const wps=zonesAdr.slice(hasDepart?0:1,zonesAdr.length-1).map(z=>({location:z.adresse,stopover:true}));
     svc.route({origin,destination:dest,waypoints:wps,optimizeWaypoints:true,travelMode:window.google.maps.TravelMode.DRIVING,region:"fr"},(result,status)=>{
       if(status==="OK")rendererRef.current.setDirections(result);
     });
@@ -2870,7 +2976,8 @@ function useTrajetOptimise(zones, dateStr, suiviKmActif){
   const cacheRef=useRef({}); // adresse -> coords
 
   useEffect(()=>{
-    if(!suiviKmActif||zones.length<2){setOrderedZones(zones);return;}
+    // Optimisation automatique, toujours activée dès qu'il y a des adresses
+    if(zones.length<2){setOrderedZones(zones);return;}
     const zonesAvecAdresse=zones.filter(z=>z.adresse&&z.adresse.trim());
     if(zonesAvecAdresse.length<2){setOrderedZones(zones);return;}
 
@@ -4115,6 +4222,7 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
   });
   const [tel,setTel]=useState(emp.tel||"");
   const [email,setEmail]=useState(emp.email||"");
+  const [adressePerso,setAdressePerso]=useState(emp.adressePerso||"");
 
   function sauvegarderPin(){
     if(emp.pin&&emp.pin.trim()!==""){
@@ -4129,8 +4237,8 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
   }
 
   function sauvegarderProfil(){
-    setData(d=>({...d,employes:d.employes.map(e=>e.id===emp.id?{...e,tel,email}:e)}));
-    setCurrentUser(u=>({...u,tel,email}));
+    setData(d=>({...d,employes:d.employes.map(e=>e.id===emp.id?{...e,tel,email,adressePerso}:e)}));
+    setCurrentUser(u=>({...u,tel,email,adressePerso}));
     toast_("Profil mis à jour ✓");
   }
 
@@ -4226,6 +4334,15 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
               value={email} onChange={e=>setEmail(e.target.value)}/>
             {email&&<a href={`mailto:${email}`} style={{display:"block",fontSize:11,color:GOLD_DARK,marginTop:-6,marginBottom:10,fontWeight:600}}>✉️ Envoyer un email</a>}
             <button style={S.bPri} onClick={sauvegarderProfil}>💾 Enregistrer les coordonnées</button>
+          </div>
+          <div style={S.card}>
+            <div style={{fontWeight:700,fontSize:13,color:TXT,marginBottom:6}}>🏠 Mon adresse de départ</div>
+            <div style={{fontSize:11,color:TXT3,marginBottom:10}}>Utilisée pour optimiser automatiquement votre trajet depuis votre domicile.</div>
+            <label style={S.lbl}>Adresse personnelle</label>
+            <input style={S.inp} placeholder="5 Rue des Roses, 68500 Guebwiller"
+              value={adressePerso} onChange={e=>setAdressePerso(e.target.value)}/>
+            {adressePerso&&<a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(adressePerso)}`} target="_blank" rel="noreferrer" style={{display:"block",fontSize:11,color:GOLD_DARK,marginTop:-6,marginBottom:10,fontWeight:600}}>📍 Voir sur Maps</a>}
+            <button style={S.bPri} onClick={sauvegarderProfil}>💾 Enregistrer l'adresse</button>
           </div>
         </div>
       )}
@@ -4346,6 +4463,7 @@ function AppInner(){
     return {...SEED};
   });
   const [fbStatus,setFbStatus]=useState("init");
+  const [loadTimeout,setLoadTimeout]=useState(false);
   const saveTimeoutRef=useRef(null);
   const _lastSaveTs=useRef(0);
   const [view,setView]=useState("accueil");
@@ -4358,8 +4476,8 @@ function AppInner(){
   const [lightboxSrc,setLightboxSrc]=useState(null);
   const [currentUser,setCurrentUser]=useState(()=>{
     try{
-      const saved=localStorage.getItem("ckeys_currentUser");
-      if(saved){const u=JSON.parse(saved);if(u&&u.id)return u;}
+      const s=localStorage.getItem("ckeys_session");
+      if(s){const u=JSON.parse(s);if(u&&u.id&&u.nom)return u;}
     }catch(e){}
     return null;
   });
@@ -4396,13 +4514,23 @@ function AppInner(){
     try{localStorage.setItem("ckeys_textsize",textSize);}catch{}
   },[textSize]);
 
-  // ── Persistance session utilisateur ─────────────────────────────────────────
+  // ── Persistance session (survit au refresh et à la fermeture) ───────────────
   useEffect(()=>{
     try{
-      if(currentUser){localStorage.setItem("ckeys_currentUser",JSON.stringify(currentUser));}
-      else{localStorage.removeItem("ckeys_currentUser");}
+      if(currentUser){
+        localStorage.setItem("ckeys_session", JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem("ckeys_session");
+      }
     }catch(e){}
   },[currentUser]);
+
+  // ── Timeout : si Firebase ne répond pas en 5s, on affiche quand même le login ─
+  useEffect(()=>{
+    if(fbStatus !== "init") return;
+    const t = setTimeout(()=>setLoadTimeout(true), 5000);
+    return ()=>clearTimeout(t);
+  },[fbStatus]);
 
   const toggleNightMode=useCallback(()=>{
     setNightMode(n=>!n);
@@ -4456,13 +4584,16 @@ function AppInner(){
           }
         }
         setFbStatus("online");
-        // Synchroniser currentUser avec les données fraîches Firebase
+        // Mettre à jour le profil currentUser si modifié par l'admin
         setCurrentUser(cu=>{
-          if(!cu)return cu;
-          const snap2=snap.data()?.data;
-          if(!snap2?.employes)return cu;
-          const fresh=snap2.employes.find(e=>e.id===cu.id);
-          return fresh?{...cu,...fresh}:cu;
+          if(!cu) return cu;
+          const freshData=snap.data()?.data;
+          if(!freshData?.employes) return cu;
+          const freshUser=freshData.employes.find(e=>e.id===cu.id);
+          if(!freshUser) return cu;
+          const updated={...cu,...freshUser};
+          try{localStorage.setItem("ckeys_session",JSON.stringify(updated));}catch(e){}
+          return updated;
         });
       },()=>setFbStatus("offline"));
     });
@@ -4611,15 +4742,7 @@ function AppInner(){
   const openEditEmp=(e)=>{setForm(e?{...e}:{actif:true,photo:null,tel:"",email:"",pin:"",role:"employe",adressePerso:""});setModal("employe");};
   const openEditZone=(z)=>{setForm(z?{...z}:{});setModal("zone");};
 
-  // Timeout écran de chargement (max 6s puis on affiche quand même l'écran PIN)
-  const [loadTimeout,setLoadTimeout]=useState(false);
-  useEffect(()=>{
-    if(fbStatus!=="init")return;
-    const t=setTimeout(()=>setLoadTimeout(true),6000);
-    return()=>clearTimeout(t);
-  },[fbStatus]);
-
-  // Écran de chargement pendant init Firebase (sauf si timeout atteint)
+  // ── Écran de chargement (seulement si pas déjà une session et Firebase pas prêt) ─
   if(!currentUser && fbStatus==="init" && !loadTimeout){
     return(
       <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${NOIR},#141408)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:20}}>
@@ -4634,9 +4757,9 @@ function AppInner(){
   // Écran PIN si pas connecté
   if(!currentUser){
     return <EcranPin employes={data.employes.filter(e=>e.actif)} onLogin={u=>{
+      try{localStorage.setItem("ckeys_session",JSON.stringify(u));}catch(e){}
       setCurrentUser(u);
       setView("accueil");
-      try{localStorage.setItem("ckeys_currentUser",JSON.stringify(u));}catch(e){}
     }}/>;
   }
 
@@ -4797,7 +4920,7 @@ function AppInner(){
           {canCreerTaches&&(view==="accueil"||view==="planning")&&(
             <button onClick={()=>openNewTache()} style={{width:"100%",padding:"11px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:"#1a0d00",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>＋ Nouvelle tâche</button>
           )}
-          <button onClick={()=>{setCurrentUser(null);try{localStorage.removeItem('ckeys_currentUser');}catch(e){}}} style={{width:"100%",padding:"9px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.5)",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:600}}>↩ Déconnexion</button>
+          <button onClick={()=>{try{localStorage.removeItem("ckeys_session");}catch(e){}setCurrentUser(null);}} style={{width:"100%",padding:"9px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.5)",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:600}}>↩ Déconnexion</button>
         </div>
       </div>
       {/* Contenu */}
@@ -4848,7 +4971,7 @@ function AppInner(){
           })}
         </nav>
         <div style={{padding:"8px 0 14px",borderTop:"1px solid rgba(255,255,255,.06)",width:"100%",display:"flex",justifyContent:"center"}}>
-          <button onClick={()=>{setCurrentUser(null);try{localStorage.removeItem('ckeys_currentUser');}catch(e){}}} style={{width:46,height:46,borderRadius:12,border:"none",background:"rgba(255,255,255,.05)",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}} title="Déconnexion">↩</button>
+          <button onClick={()=>{try{localStorage.removeItem("ckeys_session");}catch(e){}setCurrentUser(null);}} style={{width:46,height:46,borderRadius:12,border:"none",background:"rgba(255,255,255,.05)",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}} title="Déconnexion">↩</button>
         </div>
       </div>
       {/* Contenu tablette */}
@@ -4885,7 +5008,7 @@ function AppInner(){
             <img src={LOGO} alt="CKeys" style={{width:44,height:44,objectFit:"contain",borderRadius:10,background:"rgba(255,255,255,.08)",padding:3}}/>
             <div><div style={{...S.topSub}}>{fmtDate(new Date())} · {currentUser.nom}</div></div>
           </div>
-          <button onClick={()=>{setCurrentUser(null);try{localStorage.removeItem('ckeys_currentUser');}catch(e){}}} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.7)",borderRadius:10,padding:"6px 12px",cursor:"pointer",fontSize:11,fontWeight:600}}>↩ Quitter</button>
+          <button onClick={()=>{try{localStorage.removeItem("ckeys_session");}catch(e){}setCurrentUser(null);}} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.7)",borderRadius:10,padding:"6px 12px",cursor:"pointer",fontSize:11,fontWeight:600}}>↩ Quitter</button>
         </div>
       </div>
       {toast&&<div style={S.toast(toast.t)}>{toast.m}</div>}
