@@ -5270,6 +5270,60 @@ function AppInner(){
   const openEditEmp=(e)=>{setForm(e?{...e}:{actif:true,photo:null,tel:"",email:"",pin:"",role:"employe",adressePerso:""});setModal("employe");};
   const openEditZone=(z)=>{setForm(z?{...z}:{});setModal("zone");};
 
+  // ── GPS Présence automatique — Hooks AVANT tout return conditionnel (règle des Hooks React) ──
+  const _isAdminGPS = currentUser?.role==="admin"||currentUser?.role==="manager"||currentUser?.moderateur===true;
+  const tachesGPSJour = (data.taches||[]).filter(t=>{
+    if(!currentUser || _isAdminGPS) return false;
+    if(t.employeId!==currentUser.id || t.date!==TODAY) return false;
+    if(t.statut==="annule" || t.statut==="termine") return false;
+    return true;
+  });
+  const zonesGPSJour = (data.zones||[]).filter(z=>
+    tachesGPSJour.some(t=>t.zoneId===z.id)
+  );
+  const uneZoneActiveMaintenantGPS = zonesGPSJour.some(z=>{
+    const tZ = tachesGPSJour.filter(t=>t.zoneId===z.id);
+    return zoneActiveMaintenantPourEmploye(tZ);
+  });
+
+  const handleArriveeGPS = useCallback((zoneId, heure)=>{
+    if(!currentUser) return;
+    setData(d=>({...d,
+      taches: d.taches.map(t=>{
+        if(t.zoneId!==zoneId || t.employeId!==currentUser.id || t.date!==TODAY) return t;
+        if(t.heureArriveeGPS) return t;
+        return {...t, heureArriveeGPS: heure, presenceActive: true};
+      }),
+      gpsPresence: [...(d.gpsPresence||[]).filter(p=>!(p.empId===currentUser.id&&p.zoneId===zoneId&&p.date===TODAY&&!p.depart)),
+        {empId:currentUser.id, zoneId, date:TODAY, arrivee:heure, depart:null, ts:Date.now()}
+      ].slice(-200)
+    }));
+  },[currentUser?.id]);
+
+  const handleDepartGPS = useCallback((zoneId, heure)=>{
+    if(!currentUser) return;
+    setData(d=>({...d,
+      taches: d.taches.map(t=>{
+        if(t.zoneId!==zoneId || t.employeId!==currentUser.id || t.date!==TODAY) return t;
+        return {...t, heureDepartGPS: heure, presenceActive: false};
+      }),
+      gpsPresence: (d.gpsPresence||[]).map(p=>{
+        if(p.empId===currentUser.id && p.zoneId===zoneId && p.date===TODAY && !p.depart)
+          return {...p, depart:heure};
+        return p;
+      })
+    }));
+  },[currentUser?.id]);
+
+  // actif:false si pas encore connecté → le hook s'exécute mais ne fait rien
+  useGPSPresence({
+    zones: zonesGPSJour,
+    tachesJour: tachesGPSJour,
+    onArrivee: handleArriveeGPS,
+    onDepart: handleDepartGPS,
+    actif: !!currentUser && !_isAdminGPS && zonesGPSJour.length > 0 && !!(data.suiviGPSActif) && uneZoneActiveMaintenantGPS
+  });
+
   // ── Écran de chargement (seulement si pas déjà une session et Firebase pas prêt) ─
   if(!currentUser && fbStatus==="init" && !loadTimeout){
     return(
@@ -5293,63 +5347,6 @@ function AppInner(){
 
   const isAdmin=currentUser?.role==="admin"||currentUser?.role==="manager"||currentUser?.moderateur===true;
   const isEmp=!isAdmin;
-
-  // ── GPS Présence automatique ──────────────────────────────────────────────────
-  // Tâches du jour de l'employé connecté — uniquement celles non terminées/annulées
-  const tachesGPSJour = (data.taches||[]).filter(t=>{
-    if(isAdmin) return false; // admin ne déclenche pas le tracking employé
-    if(t.employeId!==currentUser.id || t.date!==TODAY) return false;
-    if(t.statut==="annule" || t.statut==="termine") return false; // tâche finie = pas de GPS
-    return true;
-  });
-  const zonesGPSJour = (data.zones||[]).filter(z=>
-    tachesGPSJour.some(t=>t.zoneId===z.id)
-  );
-  // Le GPS n'est actif que si au moins une zone est dans sa plage horaire maintenant
-  const uneZoneActiveMaintenantGPS = zonesGPSJour.some(z=>{
-    const tZ = tachesGPSJour.filter(t=>t.zoneId===z.id);
-    return zoneActiveMaintenantPourEmploye(tZ);
-  });
-
-  // Callback arrivée GPS : enregistre heureArriveeGPS sur toutes les tâches de cette zone
-  const handleArriveeGPS = useCallback((zoneId, heure)=>{
-    setData(d=>({...d,
-      taches: d.taches.map(t=>{
-        if(t.zoneId!==zoneId || t.employeId!==currentUser.id || t.date!==TODAY) return t;
-        if(t.heureArriveeGPS) return t; // déjà enregistré
-        return {...t, heureArriveeGPS: heure, presenceActive: true};
-      }),
-      // Historique GPS pour admin
-      gpsPresence: [...(d.gpsPresence||[]).filter(p=>!(p.empId===currentUser.id&&p.zoneId===zoneId&&p.date===TODAY&&!p.depart)),
-        {empId:currentUser.id, zoneId, date:TODAY, arrivee:heure, depart:null, ts:Date.now()}
-      ].slice(-200)
-    }));
-  },[currentUser?.id]);
-
-  // Callback départ GPS : enregistre heureDepartGPS sur toutes les tâches de cette zone
-  const handleDepartGPS = useCallback((zoneId, heure)=>{
-    setData(d=>({...d,
-      taches: d.taches.map(t=>{
-        if(t.zoneId!==zoneId || t.employeId!==currentUser.id || t.date!==TODAY) return t;
-        return {...t, heureDepartGPS: heure, presenceActive: false};
-      }),
-      // Mettre à jour l'historique GPS
-      gpsPresence: (d.gpsPresence||[]).map(p=>{
-        if(p.empId===currentUser.id && p.zoneId===zoneId && p.date===TODAY && !p.depart)
-          return {...p, depart:heure};
-        return p;
-      })
-    }));
-  },[currentUser?.id]);
-
-  // Activer le tracking GPS si l'employé a des tâches aujourd'hui
-  useGPSPresence({
-    zones: zonesGPSJour,
-    tachesJour: tachesGPSJour,
-    onArrivee: handleArriveeGPS,
-    onDepart: handleDepartGPS,
-    actif: isEmp && zonesGPSJour.length > 0 && !!(data.suiviGPSActif) && uneZoneActiveMaintenantGPS
-  });
 
   // Zones de l'utilisateur courant (pour badge messages)
   const myZoneIds=isAdmin
