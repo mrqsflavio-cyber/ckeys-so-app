@@ -1,0 +1,11 @@
+# ─── Firebase ────────────────────────────────────────────────────────────────
+VITE_FIREBASE_API_KEY=AIzaSyCiGkCCXDl4wID4tWOZFpNFpcraWkgccDs
+VITE_FIREBASE_AUTH_DOMAIN=ckeys-28750.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=ckeys-28750
+VITE_FIREBASE_STORAGE_BUCKET=ckeys-28750.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=809643703173
+VITE_FIREBASE_APP_ID=1:809643703173:web:ca7fde3394f6dd0bb222ec
+
+# ─── Google Maps ─────────────────────────────────────────────────────────────
+# ⚠️ Remplace par ta nouvelle clé Google Maps (après avoir révoqué l'ancienne)
+VITE_GOOGLE_MAPS_KEY=REMPLACE_PAR_TA_NOUVELLE_CLE

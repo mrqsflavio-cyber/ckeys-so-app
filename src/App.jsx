@@ -19,12 +19,12 @@ class ErrorBoundary extends Component {
 // INSTRUCTIONS : Remplace les valeurs ci-dessous par celles de ton projet Firebase
 // (firebase.google.com → Paramètres projet → Configuration web)
 const FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyCiGkCCXDl4wID4tWOZFpNFpcraWkgccDs",
-  authDomain:        "ckeys-28750.firebaseapp.com",
-  projectId:         "ckeys-28750",
-  storageBucket:     "ckeys-28750.firebasestorage.app",
-  messagingSenderId: "809643703173",
-  appId:             "1:809643703173:web:ca7fde3394f6dd0bb222ec",
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
 };
 const FIREBASE_DOC_PATH = "app/ckeys-data";
 
@@ -32,7 +32,7 @@ const FIREBASE_DOC_PATH = "app/ckeys-data";
 // ⚠️ IMPORTANT : Remplace cette valeur par ta nouvelle clé Google Maps
 // APIs à activer dans Google Cloud Console :
 //   - Maps JavaScript API, Directions API, Geocoding API, Street View Static API
-const GOOGLE_MAPS_KEY = "AIzaSyBKuVAHiR-qOfcf2smAKlALMIDVQqmcBjQ";
+const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY;
 
 // ─── Chargement unique de l'API Google Maps ───────────────────────────────────
 let _gmapsReady = false;
