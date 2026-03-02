@@ -1051,7 +1051,6 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
   const [jourOffset,setJourOffset]=useState(0);
   const empActifs=data.employes.filter(e=>e.actif);
   const [empIdx,setEmpIdx]=useState(0);
-  const [showRecapModal,setShowRecapModal]=useState(false);
   const swipeStartX=useRef(null);
   const swipeStartY=useRef(null);
 
@@ -1319,17 +1318,11 @@ function Accueil({data,updateSt,onEditTache,onToggleCheck,onSignalerProbleme,onS
       )}
 
       {/* ── Section équipe (admin) ou suivi perso (employé) ── */}
-      {showRecapModal&&<RecapMensuelTrajets data={data} onClose={()=>setShowRecapModal(false)}/>}
+
       {isAdmin?(<>
         <div style={S.sec}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
             <div style={S.secTit}>Suivi de l'équipe — {MOIS_LONG[NOW_M-1]}</div>
-            {data.suiviKmActif&&(
-              <button onClick={()=>setShowRecapModal(true)}
-                style={{fontSize:10,color:GOLD_DARK,fontWeight:700,background:GOLD_BG,borderRadius:20,padding:"3px 10px",border:`1px solid ${GOLD}44`,cursor:"pointer"}}>
-                📊 Trajets
-              </button>
-            )}
           </div>
         </div>
         <div style={S.card}>
@@ -3337,6 +3330,7 @@ function SuiviKm({data,setData,toast_}){
 // ══════════════════════════════════════════════════════════════════════════════
 function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pushEnabled,setPushEnabled,pushPermission,demanderNotifPush,onZoomPhoto,textSize,setTextSize}){
   const [onglet,setOnglet]=useState(null); // null = menu principal
+  const [menuTab,setMenuTab]=useState("general"); // "general" | "plus"
   const [notifDetail,setNotifDetail]=useState(null);
 
   // Mark notifications as read when opening notifs tab
@@ -3365,19 +3359,26 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
 
   const nbNotifsBadge=(data.notifications||[]).filter(n=>n.type==="probleme"&&!n.lu).length;
 
-  const menuItems=[
-    {id:"gestion_equipe",    icon:"👥", label:"Gestion Équipe",        desc:"Membres, rôles, droits et PIN"},
-    {id:"droits_roles",      icon:"🛡️", label:"Droits & Rôles",        desc:"Fonctionnalités accessibles par rôle"},
-    {id:"suivi_km",          icon:"🚗", label:"Suivi déplacements",    desc:"Calcul de distance vers les logements"},
-    {id:"heures_deplacements",icon:"⏱️",label:"Heures & Déplacements", desc:"Historique temps de travail et trajets"},
-    {id:"types_taches",      icon:"🗂️", label:"Types de tâches",       desc:"Personnaliser la liste des tâches"},
-    {id:"pieces",            icon:"🏠", label:"Pièces du logement",    desc:"Liste des pièces pour signalements"},
+  const menuItemsGeneral=[
     {id:"historique",        icon:"⧗", label:"Historique",            desc:"Tâches terminées & récapitulatif"},
     {id:"notifs",            icon:"🔔", label:"Notifications",         desc:"Activité récente", badge:nbNotifsBadge},
-    {id:"notifications",     icon:"🔔", label:"Notifications push",    desc:"Alertes en temps réel"},
-    {id:"nuit",              icon:"🌙", label:"Mode nuit",             desc:"Interface sombre"},
+    {id:"nuit",              icon:"🌙", label:"Mode nuit",             desc:nightMode?"Interface sombre activée":"Interface claire"},
     {id:"taille",            icon:"🔡", label:"Taille de l'écriture",  desc:textSize==="normal"?"Taille normale":textSize==="grand"?"Grands caractères":"Très grands caractères"},
+    {id:"notifications",     icon:"📲", label:"Notifications push",    desc:"Alertes en temps réel"},
+  ];
+
+  const menuItemsPlus=[
     {id:"tracking",          icon:"📍", label:"Tracking horaires",     desc:"Suivi arrivée/départ des employés"},
+    {id:"nuit",              icon:"🌙", label:"Mode nuit",             desc:nightMode?"Interface sombre activée":"Interface claire"},
+    {id:"taille",            icon:"🔡", label:"Taille de l'écriture",  desc:textSize==="normal"?"Taille normale":textSize==="grand"?"Grands caractères":"Très grands caractères"},
+    {id:"notifications",     icon:"📲", label:"Notifications push",    desc:"Alertes en temps réel"},
+    {id:"pieces",            icon:"🏠", label:"Pièces du logement",    desc:"Liste des pièces pour signalements"},
+    {id:"types_taches",      icon:"🗂️", label:"Types de tâches",       desc:"Personnaliser la liste des tâches"},
+    {id:"suivi_km",          icon:"🚗", label:"Suivi déplacements",    desc:"Calcul de distance vers les logements"},
+    {id:"trajets_recap",     icon:"📊", label:"Récap Trajets",         desc:"Distances et temps de trajet mensuel"},
+    {id:"heures_deplacements",icon:"⏱️",label:"Heures & Déplacements", desc:"Historique temps de travail et trajets"},
+    {id:"droits_roles",      icon:"🛡️", label:"Droits & Rôles",        desc:"Fonctionnalités accessibles par rôle"},
+    {id:"gestion_equipe",    icon:"👥", label:"Gestion Équipe",        desc:"Membres, rôles, droits et PIN"},
   ];
 
   // ── Menu principal vertical ──
@@ -3387,7 +3388,21 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
         <div style={{fontWeight:900,fontSize:16,color:TXT}}>⚙️ Options</div>
         <div style={{fontSize:11,color:GOLD_DARK,fontWeight:700,background:GOLD_BG,borderRadius:20,padding:"3px 10px",border:`1px solid ${GOLD}44`}}>v{APP_VERSION}</div>
       </div>
-      {menuItems.map((item,i)=>(
+
+      {/* Onglets Général / Plus d'options */}
+      <div style={{display:"flex",background:"#f1f5f9",borderRadius:14,padding:4,gap:3,marginBottom:16}}>
+        <button onClick={()=>setMenuTab("general")}
+          style={{flex:1,padding:"10px 8px",borderRadius:10,border:"none",background:menuTab==="general"?"white":"transparent",color:menuTab==="general"?GOLD_DARK:TXT2,fontWeight:700,fontSize:13,cursor:"pointer",transition:"all .2s",boxShadow:menuTab==="general"?"0 2px 8px rgba(0,0,0,.08)":"none"}}>
+          ⚙️ Général
+        </button>
+        <button onClick={()=>setMenuTab("plus")}
+          style={{flex:1,padding:"10px 8px",borderRadius:10,border:"none",background:menuTab==="plus"?"white":"transparent",color:menuTab==="plus"?GOLD_DARK:TXT2,fontWeight:700,fontSize:13,cursor:"pointer",transition:"all .2s",boxShadow:menuTab==="plus"?"0 2px 8px rgba(0,0,0,.08)":"none"}}>
+          ➕ Plus d'options
+        </button>
+      </div>
+
+      {/* Contenu onglet Général */}
+      {menuTab==="general"&&menuItemsGeneral.map((item)=>(
         <div key={item.id} onClick={()=>item.id==="notifs"?ouvrirNotifs():setOnglet(item.id)}
           style={{display:"flex",alignItems:"center",gap:14,background:CARD,borderRadius:14,padding:"14px 16px",marginBottom:10,border:`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}>
           <div style={{width:44,height:44,borderRadius:12,background:GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{item.icon}</div>
@@ -3399,6 +3414,24 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
           <span style={{color:TXT3,fontSize:20}}>›</span>
         </div>
       ))}
+
+      {/* Contenu onglet Plus d'options (Admin) */}
+      {menuTab==="plus"&&(
+        <div>
+          <div style={{fontSize:11,fontWeight:800,color:TXT3,textTransform:"uppercase",letterSpacing:.8,marginBottom:10,paddingLeft:4}}>🔧 Options avancées — Administrateur</div>
+          {menuItemsPlus.map((item)=>(
+            <div key={item.id} onClick={()=>setOnglet(item.id)}
+              style={{display:"flex",alignItems:"center",gap:14,background:CARD,borderRadius:14,padding:"14px 16px",marginBottom:10,border:`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}>
+              <div style={{width:44,height:44,borderRadius:12,background:GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{item.icon}</div>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:14,color:TXT}}>{item.label}</div>
+                <div style={{fontSize:12,color:TXT2,marginTop:2}}>{item.desc}</div>
+              </div>
+              <span style={{color:TXT3,fontSize:20}}>›</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 
@@ -3789,6 +3822,13 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
       {/* ── DROITS & RÔLES ── */}
       {onglet==="droits_roles"&&(
         <DroitsRoles data={data} setData={setData} toast_={toast_}/>
+      )}
+
+      {/* ── RÉCAP TRAJETS MENSUEL ── */}
+      {onglet==="trajets_recap"&&(
+        <div style={{padding:"0 12px 14px"}}>
+          <RecapMensuelTrajets data={data} onClose={()=>setOnglet(null)}/>
+        </div>
       )}
 
       {/* ── SUIVI DÉPLACEMENTS ── */}
