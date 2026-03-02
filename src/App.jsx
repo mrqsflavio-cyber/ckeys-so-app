@@ -4356,7 +4356,13 @@ function AppInner(){
   const [toast,setToast]=useState(null);
   const [problemeId,setProblemeId]=useState(null);
   const [lightboxSrc,setLightboxSrc]=useState(null);
-  const [currentUser,setCurrentUser]=useState(null);
+  const [currentUser,setCurrentUser]=useState(()=>{
+    try{
+      const saved=localStorage.getItem("ckeys_currentUser");
+      if(saved){const u=JSON.parse(saved);if(u&&u.id)return u;}
+    }catch(e){}
+    return null;
+  });
   const [nightMode,setNightMode]=useState(false);
   const [textSize,setTextSize]=useState(()=>{ try{return localStorage.getItem("ckeys_textsize")||"normal";}catch{return "normal";} });
   const [pushEnabled,setPushEnabled]=useState(false);
@@ -4389,6 +4395,14 @@ function AppInner(){
     }
     try{localStorage.setItem("ckeys_textsize",textSize);}catch{}
   },[textSize]);
+
+  // ── Persistance session utilisateur ─────────────────────────────────────────
+  useEffect(()=>{
+    try{
+      if(currentUser){localStorage.setItem("ckeys_currentUser",JSON.stringify(currentUser));}
+      else{localStorage.removeItem("ckeys_currentUser");}
+    }catch(e){}
+  },[currentUser]);
 
   const toggleNightMode=useCallback(()=>{
     setNightMode(n=>!n);
@@ -4442,6 +4456,14 @@ function AppInner(){
           }
         }
         setFbStatus("online");
+        // Synchroniser currentUser avec les données fraîches Firebase
+        setCurrentUser(cu=>{
+          if(!cu)return cu;
+          const snap2=snap.data()?.data;
+          if(!snap2?.employes)return cu;
+          const fresh=snap2.employes.find(e=>e.id===cu.id);
+          return fresh?{...cu,...fresh}:cu;
+        });
       },()=>setFbStatus("offline"));
     });
     return()=>{unsub&&unsub();};
@@ -4589,9 +4611,33 @@ function AppInner(){
   const openEditEmp=(e)=>{setForm(e?{...e}:{actif:true,photo:null,tel:"",email:"",pin:"",role:"employe",adressePerso:""});setModal("employe");};
   const openEditZone=(z)=>{setForm(z?{...z}:{});setModal("zone");};
 
+  // Timeout écran de chargement (max 6s puis on affiche quand même l'écran PIN)
+  const [loadTimeout,setLoadTimeout]=useState(false);
+  useEffect(()=>{
+    if(fbStatus!=="init")return;
+    const t=setTimeout(()=>setLoadTimeout(true),6000);
+    return()=>clearTimeout(t);
+  },[fbStatus]);
+
+  // Écran de chargement pendant init Firebase (sauf si timeout atteint)
+  if(!currentUser && fbStatus==="init" && !loadTimeout){
+    return(
+      <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${NOIR},#141408)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:20}}>
+        <img src={LOGO} alt="CKeys" style={{width:72,height:72,objectFit:"contain",borderRadius:18,background:"rgba(255,255,255,.06)",padding:6,marginBottom:4}}/>
+        <div style={{width:44,height:44,border:`3px solid ${GOLD}`,borderTopColor:"transparent",borderRadius:"50%",animation:"ckeys-spin 0.9s linear infinite"}}/>
+        <div style={{color:GOLD,fontSize:14,fontWeight:700,letterSpacing:1}}>Chargement…</div>
+        <style>{`@keyframes ckeys-spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    );
+  }
+
   // Écran PIN si pas connecté
   if(!currentUser){
-    return <EcranPin employes={data.employes.filter(e=>e.actif)} onLogin={u=>{setCurrentUser(u);setView("accueil");}}/>;
+    return <EcranPin employes={data.employes.filter(e=>e.actif)} onLogin={u=>{
+      setCurrentUser(u);
+      setView("accueil");
+      try{localStorage.setItem("ckeys_currentUser",JSON.stringify(u));}catch(e){}
+    }}/>;
   }
 
   const isAdmin=currentUser?.role==="admin"||currentUser?.role==="manager";
@@ -4751,7 +4797,7 @@ function AppInner(){
           {canCreerTaches&&(view==="accueil"||view==="planning")&&(
             <button onClick={()=>openNewTache()} style={{width:"100%",padding:"11px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:"#1a0d00",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>＋ Nouvelle tâche</button>
           )}
-          <button onClick={()=>setCurrentUser(null)} style={{width:"100%",padding:"9px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.5)",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:600}}>↩ Déconnexion</button>
+          <button onClick={()=>{setCurrentUser(null);try{localStorage.removeItem('ckeys_currentUser');}catch(e){}}} style={{width:"100%",padding:"9px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.5)",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:600}}>↩ Déconnexion</button>
         </div>
       </div>
       {/* Contenu */}
@@ -4802,7 +4848,7 @@ function AppInner(){
           })}
         </nav>
         <div style={{padding:"8px 0 14px",borderTop:"1px solid rgba(255,255,255,.06)",width:"100%",display:"flex",justifyContent:"center"}}>
-          <button onClick={()=>setCurrentUser(null)} style={{width:46,height:46,borderRadius:12,border:"none",background:"rgba(255,255,255,.05)",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}} title="Déconnexion">↩</button>
+          <button onClick={()=>{setCurrentUser(null);try{localStorage.removeItem('ckeys_currentUser');}catch(e){}}} style={{width:46,height:46,borderRadius:12,border:"none",background:"rgba(255,255,255,.05)",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}} title="Déconnexion">↩</button>
         </div>
       </div>
       {/* Contenu tablette */}
@@ -4839,7 +4885,7 @@ function AppInner(){
             <img src={LOGO} alt="CKeys" style={{width:44,height:44,objectFit:"contain",borderRadius:10,background:"rgba(255,255,255,.08)",padding:3}}/>
             <div><div style={{...S.topSub}}>{fmtDate(new Date())} · {currentUser.nom}</div></div>
           </div>
-          <button onClick={()=>setCurrentUser(null)} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.7)",borderRadius:10,padding:"6px 12px",cursor:"pointer",fontSize:11,fontWeight:600}}>↩ Quitter</button>
+          <button onClick={()=>{setCurrentUser(null);try{localStorage.removeItem('ckeys_currentUser');}catch(e){}}} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.7)",borderRadius:10,padding:"6px 12px",cursor:"pointer",fontSize:11,fontWeight:600}}>↩ Quitter</button>
         </div>
       </div>
       {toast&&<div style={S.toast(toast.t)}>{toast.m}</div>}
