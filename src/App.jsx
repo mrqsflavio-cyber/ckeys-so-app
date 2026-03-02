@@ -153,7 +153,7 @@ const TXT2        = "#52525b";  // texte secondaire
 const TXT3        = "#a1a1aa";  // texte muted
 const ACCENT      = "#c9a84c";
 const MSG_BLUE    = "#3b82f6";  // couleur messages
-const APP_VERSION = "1.6.0";
+const APP_VERSION = "2.0.1";
 
 const LOGO="data:image/png;base64,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";
 
@@ -428,13 +428,22 @@ function TacheCard({t,emp,zone,onEdit,onToggleCheck,onUpdateSt,compact=false}){
 // ══════════════════════════════════════════════════════════════════════════════
 // MODAL TÂCHE — sans champ date, heure déplacée après dates séjour
 // ══════════════════════════════════════════════════════════════════════════════
-function ModalTache({editMode,form,setForm,employes,zones,types,onSave,onDelete,onClose}){
+function ModalTache({editMode,form,setForm,employes,zones,types,sejourLocatairesActif=true,onSave,onDelete,onClose}){
   const checkItems=form.checkItems||[];
   function toggleType(t){
     const already=checkItems.includes(t);
     const newItems=already?checkItems.filter(x=>x!==t):[...checkItems,t];
     setForm(f=>({...f,checkItems:newItems,checkDone:(f.checkDone||[]).filter(x=>newItems.includes(x)),type:newItems[0]||t}));
   }
+  // Calcul heure de fin estimée selon tempsEstime du logement et heure d'intervention
+  const zoneSelectionnee = zones.find(z=>String(z.id)===String(form.zoneId));
+  const tempsEstimeZone = zoneSelectionnee?.tempsEstime;
+  const heureFinEstimee = (()=>{
+    if(!form.heure || !tempsEstimeZone || tempsEstimeZone<=0) return null;
+    const [h,m] = form.heure.split(":").map(Number);
+    const totalMins = h*60 + m + parseInt(tempsEstimeZone);
+    return `${String(Math.floor(totalMins/60)%24).padStart(2,"0")}:${String(totalMins%60).padStart(2,"0")}`;
+  })();
   return(
     <div style={S.modal} onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div style={S.mBox}>
@@ -480,24 +489,39 @@ function ModalTache({editMode,form,setForm,employes,zones,types,onSave,onDelete,
           </div>
         )}
 
-        {/* Dates séjour locataires */}
-        <div style={{background:"#f0f9ff",borderRadius:12,padding:"12px",marginBottom:10,border:"1.5px solid #bae6fd"}}>
-          <div style={{fontSize:11,fontWeight:800,color:GOLD_DARK,textTransform:"uppercase",letterSpacing:.8,marginBottom:10}}>🧳 Séjour locataires</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-            <div>
-              <label style={{...S.lbl,color:GOLD_DARK}}>📅 Arrivée</label>
-              <input type="date" style={{...S.inp,marginBottom:0,fontSize:14}} value={form.dateArrivee||""} onChange={e=>setForm(f=>({...f,dateArrivee:e.target.value}))}/>
-            </div>
-            <div>
-              <label style={{...S.lbl,color:GOLD_DARK}}>📅 Départ</label>
-              <input type="date" style={{...S.inp,marginBottom:0,fontSize:14}} value={form.dateDepart||""} onChange={e=>setForm(f=>({...f,dateDepart:e.target.value}))}/>
+        {/* Dates séjour locataires — affiché uniquement si option activée */}
+        {sejourLocatairesActif&&(
+          <div style={{background:"#f0f9ff",borderRadius:12,padding:"12px",marginBottom:10,border:"1.5px solid #bae6fd"}}>
+            <div style={{fontSize:11,fontWeight:800,color:GOLD_DARK,textTransform:"uppercase",letterSpacing:.8,marginBottom:10}}>🧳 Séjour locataires</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              <div>
+                <label style={{...S.lbl,color:GOLD_DARK}}>📅 Arrivée</label>
+                <input type="date" style={{...S.inp,marginBottom:0,fontSize:14}} value={form.dateArrivee||""} onChange={e=>setForm(f=>({...f,dateArrivee:e.target.value}))}/>
+              </div>
+              <div>
+                <label style={{...S.lbl,color:GOLD_DARK}}>📅 Départ</label>
+                <input type="date" style={{...S.inp,marginBottom:0,fontSize:14}} value={form.dateDepart||""} onChange={e=>setForm(f=>({...f,dateDepart:e.target.value}))}/>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Heure déplacée ici */}
+        {/* Heure d'intervention + heure de fin estimée */}
         <label style={S.lbl}>⏰ Heure d'intervention</label>
-        <input type="time" style={S.inp} value={form.heure||"08:00"} onChange={e=>setForm(f=>({...f,heure:e.target.value}))}/>
+        <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:10}}>
+          <input type="time" style={{...S.inp,marginBottom:0,flex:1}} value={form.heure||"08:00"} onChange={e=>setForm(f=>({...f,heure:e.target.value}))}/>
+          {heureFinEstimee&&(
+            <div style={{background:GOLD_BG,border:`1.5px solid ${GOLD}44`,borderRadius:10,padding:"8px 12px",flexShrink:0,textAlign:"center"}}>
+              <div style={{fontSize:9,fontWeight:700,color:GOLD_DARK,textTransform:"uppercase",letterSpacing:.5,marginBottom:2}}>Fin estimée</div>
+              <div style={{fontSize:15,fontWeight:900,color:GOLD_DARK}}>⏱ {heureFinEstimee}</div>
+            </div>
+          )}
+        </div>
+        {heureFinEstimee&&(
+          <div style={{fontSize:11,color:TXT3,marginTop:-6,marginBottom:10,paddingLeft:2}}>
+            Durée estimée pour ce logement : {Math.floor(tempsEstimeZone/60)>0?`${Math.floor(tempsEstimeZone/60)}h`:""}{tempsEstimeZone%60>0?`${tempsEstimeZone%60}min`:""}
+          </div>
+        )}
 
         <label style={S.lbl}>Récurrence</label>
         <select style={S.sel} value={form.recurrence||"quotidien"} onChange={e=>setForm(f=>({...f,recurrence:e.target.value}))}>
@@ -609,6 +633,25 @@ function ModalLogement({form,setForm,onSave,onDelete,onClose}){
         <input style={S.inp} placeholder="12 Rue des Fleurs, 68500 Guebwiller" value={form.adresse||""} onChange={e=>setForm(f=>({...f,adresse:e.target.value}))}/>
         <label style={S.lbl}>🔑 Code boîte à clé</label>
         <input style={{...S.inp,fontWeight:800,fontSize:20,letterSpacing:5,textAlign:"center"}} placeholder="1234" value={form.codeBoite||""} onChange={e=>setForm(f=>({...f,codeBoite:e.target.value}))}/>
+        <label style={S.lbl}>⏱️ Temps estimé <span style={{fontWeight:400,color:"#94a3b8",fontSize:11}}>(facultatif)</span></label>
+        <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:10}}>
+          <div style={{flex:1,position:"relative"}}>
+            <input type="number" min="0" max="600" step="5"
+              style={{...S.inp,marginBottom:0,paddingRight:40}}
+              placeholder="Ex : 90"
+              value={form.tempsEstime||""}
+              onChange={e=>setForm(f=>({...f,tempsEstime:e.target.value?parseInt(e.target.value):""}))}/>
+            <span style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",fontSize:12,color:TXT3,pointerEvents:"none"}}>min</span>
+          </div>
+          {form.tempsEstime>0&&(
+            <div style={{background:GOLD_BG,border:`1px solid ${GOLD}44`,borderRadius:10,padding:"8px 12px",fontSize:12,fontWeight:700,color:GOLD_DARK,whiteSpace:"nowrap",flexShrink:0}}>
+              {Math.floor(form.tempsEstime/60)>0?`${Math.floor(form.tempsEstime/60)}h`:""}{form.tempsEstime%60>0?`${form.tempsEstime%60}min`:""}
+            </div>
+          )}
+        </div>
+        <div style={{fontSize:11,color:TXT3,marginTop:-6,marginBottom:10,paddingLeft:2}}>
+          Utilisé pour calculer l'heure de fin dans les nouvelles tâches
+        </div>
         <button style={S.bPri} onClick={onSave}>💾 Enregistrer</button>
         {form.id&&<button style={S.bDng} onClick={()=>onDelete(form.id)}>🗑️ Supprimer ce logement</button>}
         <button style={S.bGhost} onClick={onClose}>Annuler</button>
@@ -2029,20 +2072,45 @@ function HistoriqueComplet({data,toast_,compact=false}){
               const heureArr=taches.find(t=>t.heureArriveeReel)?.heureArriveeReel;
               const heureDep=[...taches].reverse().find(t=>t.heureDepartReel)?.heureDepartReel;
               const minsZone=taches.reduce((acc,t)=>acc+diffMins(t.heureArriveeReel,t.heureDepartReel),0);
+              // Heures GPS automatiques
+              const heureArrGPS=taches.find(t=>t.heureArriveeGPS)?.heureArriveeGPS;
+              const heureDepGPS=[...taches].reverse().find(t=>t.heureDepartGPS)?.heureDepartGPS;
+              const minsGPS=heureArrGPS&&heureDepGPS?diffMins(heureArrGPS,heureDepGPS):0;
+              const hasGPS=heureArrGPS||heureDepGPS;
+              // Écart entre heures déclarées et GPS (en minutes)
+              const ecartArr=heureArr&&heureArrGPS?(()=>{const[ah,am]=heureArr.split(":").map(Number);const[gh,gm]=heureArrGPS.split(":").map(Number);return(ah*60+am)-(gh*60+gm);})():null;
               return(
-                <div key={z?.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:zi<zarr.length-1?"1px solid #f8fafc":"none"}}>
-                  <div style={{width:36,height:36,borderRadius:9,overflow:"hidden",background:"#f1f5f9",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid #e8edf3"}}>
-                    {z?.photo?<img src={z.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:16}}>🏠</span>}
-                  </div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontWeight:700,fontSize:13,color:TXT,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{z?.nom||"?"}</div>
-                    {(heureArr||heureDep||minsZone>0)&&(
-                      <div style={{display:"flex",gap:5,marginTop:3,flexWrap:"wrap"}}>
-                        {heureArr&&<span style={{fontSize:10,background:"#dcfce7",color:"#16a34a",borderRadius:6,padding:"1px 7px",fontWeight:700}}>🟢 {heureArr}</span>}
-                        {heureDep&&<span style={{fontSize:10,background:"#fef2f2",color:"#dc2626",borderRadius:6,padding:"1px 7px",fontWeight:700}}>🔴 {heureDep}</span>}
-                        {minsZone>0&&<span style={{fontSize:10,background:"#f0f9ff",color:"#0369a1",borderRadius:6,padding:"1px 7px",fontWeight:700}}>⏳ {fmtDuree(minsZone)}</span>}
-                      </div>
-                    )}
+                <div key={z?.id} style={{padding:"8px 0",borderBottom:zi<zarr.length-1?"1px solid #f8fafc":"none"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <div style={{width:36,height:36,borderRadius:9,overflow:"hidden",background:"#f1f5f9",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid #e8edf3"}}>
+                      {z?.photo?<img src={z.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:16}}>🏠</span>}
+                    </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontWeight:700,fontSize:13,color:TXT,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{z?.nom||"?"}</div>
+                      {/* Heures déclarées (tracking manuel) */}
+                      {(heureArr||heureDep||minsZone>0)&&(
+                        <div style={{display:"flex",gap:4,marginTop:3,flexWrap:"wrap",alignItems:"center"}}>
+                          <span style={{fontSize:9,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.4}}>Déclaré</span>
+                          {heureArr&&<span style={{fontSize:10,background:"#dcfce7",color:"#16a34a",borderRadius:6,padding:"1px 7px",fontWeight:700}}>🟢 {heureArr}</span>}
+                          {heureDep&&<span style={{fontSize:10,background:"#fef2f2",color:"#dc2626",borderRadius:6,padding:"1px 7px",fontWeight:700}}>🔴 {heureDep}</span>}
+                          {minsZone>0&&<span style={{fontSize:10,background:"#f0f9ff",color:"#0369a1",borderRadius:6,padding:"1px 7px",fontWeight:700}}>⏳ {fmtDuree(minsZone)}</span>}
+                        </div>
+                      )}
+                      {/* Heures GPS automatiques */}
+                      {hasGPS&&(
+                        <div style={{display:"flex",gap:4,marginTop:3,flexWrap:"wrap",alignItems:"center"}}>
+                          <span style={{fontSize:9,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:.4}}>📍 GPS réel</span>
+                          {heureArrGPS&&<span style={{fontSize:10,background:"#ede9fe",color:"#6d28d9",borderRadius:6,padding:"1px 7px",fontWeight:700}}>🟢 {heureArrGPS}</span>}
+                          {heureDepGPS&&<span style={{fontSize:10,background:"#fdf4ff",color:"#7c3aed",borderRadius:6,padding:"1px 7px",fontWeight:700}}>🔴 {heureDepGPS}</span>}
+                          {minsGPS>0&&<span style={{fontSize:10,background:"#ede9fe",color:"#6d28d9",borderRadius:6,padding:"1px 7px",fontWeight:700}}>⏳ {fmtDuree(minsGPS)}</span>}
+                          {ecartArr!==null&&Math.abs(ecartArr)>=5&&(
+                            <span style={{fontSize:9,background:ecartArr>15?"#fef2f2":ecartArr>5?"#fff7ed":"#f0fdf4",color:ecartArr>15?"#dc2626":ecartArr>5?"#d97706":"#16a34a",borderRadius:6,padding:"1px 7px",fontWeight:700,border:`1px solid ${ecartArr>15?"#fecaca":ecartArr>5?"#fde68a":"#bbf7d0"}`}}>
+                              {ecartArr>0?`+${ecartArr}min déclaré`:ecartArr<0?`${ecartArr}min déclaré`:""} vs GPS
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -2075,20 +2143,42 @@ function HistoriqueComplet({data,toast_,compact=false}){
               const heureDep=[...taches].reverse().find(t=>t.heureDepartReel)?.heureDepartReel;
               const minsMembre=taches.reduce((acc,t)=>acc+diffMins(t.heureArriveeReel,t.heureDepartReel),0);
               const datesTaches=[...new Set(taches.map(t=>t.date))].sort();
+              // GPS
+              const heureArrGPS=taches.find(t=>t.heureArriveeGPS)?.heureArriveeGPS;
+              const heureDepGPS=[...taches].reverse().find(t=>t.heureDepartGPS)?.heureDepartGPS;
+              const minsGPS=heureArrGPS&&heureDepGPS?diffMins(heureArrGPS,heureDepGPS):0;
+              const ecartArr=heureArr&&heureArrGPS?(()=>{const[ah,am]=heureArr.split(":").map(Number);const[gh,gm]=heureArrGPS.split(":").map(Number);return(ah*60+am)-(gh*60+gm);})():null;
               return(
-                <div key={e?.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:mi<marr.length-1?"1px solid #f8fafc":"none"}}>
-                  <div style={{width:30,height:30,borderRadius:"50%",background:e?.couleur||"#ccc",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"white",fontWeight:900,overflow:"hidden"}}>
-                    {e?.photo?<img src={e.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:(e?.nom||"?")[0]}
+                <div key={e?.id} style={{padding:"8px 0",borderBottom:mi<marr.length-1?"1px solid #f8fafc":"none"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <div style={{width:30,height:30,borderRadius:"50%",background:e?.couleur||"#ccc",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"white",fontWeight:900,overflow:"hidden"}}>
+                      {e?.photo?<img src={e.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:(e?.nom||"?")[0]}
+                    </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontWeight:700,fontSize:12,color:e?.couleur||TXT}}>{e?.nom||"?"}</div>
+                      {datesTaches.length>0&&<div style={{fontSize:10,color:"#94a3b8"}}>{datesTaches.map(d=>{const dt=new Date(d+"T12:00:00");return`${dt.getDate()} ${MOIS_COURT_H[dt.getMonth()]}`;}).join(", ")}</div>}
+                    </div>
+                    <div style={{textAlign:"right",flexShrink:0}}>
+                      {/* Heures déclarées */}
+                      {heureArr&&<div style={{fontSize:10,color:"#16a34a",fontWeight:700}}>🟢 {heureArr}</div>}
+                      {heureDep&&<div style={{fontSize:10,color:"#dc2626",fontWeight:700}}>🔴 {heureDep}</div>}
+                      {minsMembre>0&&<div style={{fontSize:11,fontWeight:800,color:GOLD_DARK}}>⏱️ {fmtDuree(minsMembre)}</div>}
+                    </div>
                   </div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontWeight:700,fontSize:12,color:e?.couleur||TXT}}>{e?.nom||"?"}</div>
-                    {datesTaches.length>0&&<div style={{fontSize:10,color:"#94a3b8"}}>{datesTaches.map(d=>{const dt=new Date(d+"T12:00:00");return`${dt.getDate()} ${MOIS_COURT_H[dt.getMonth()]}`;}).join(", ")}</div>}
-                  </div>
-                  <div style={{textAlign:"right",flexShrink:0}}>
-                    {heureArr&&<div style={{fontSize:10,color:"#16a34a",fontWeight:700}}>🟢 {heureArr}</div>}
-                    {heureDep&&<div style={{fontSize:10,color:"#dc2626",fontWeight:700}}>🔴 {heureDep}</div>}
-                    {minsMembre>0&&<div style={{fontSize:11,fontWeight:800,color:GOLD_DARK}}>⏱️ {fmtDuree(minsMembre)}</div>}
-                  </div>
+                  {/* Heures GPS en dessous */}
+                  {(heureArrGPS||heureDepGPS)&&(
+                    <div style={{marginTop:5,marginLeft:40,display:"flex",gap:4,flexWrap:"wrap",alignItems:"center"}}>
+                      <span style={{fontSize:9,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:.4}}>📍 GPS réel</span>
+                      {heureArrGPS&&<span style={{fontSize:9,background:"#ede9fe",color:"#6d28d9",borderRadius:6,padding:"1px 7px",fontWeight:700}}>🟢 {heureArrGPS}</span>}
+                      {heureDepGPS&&<span style={{fontSize:9,background:"#fdf4ff",color:"#7c3aed",borderRadius:6,padding:"1px 7px",fontWeight:700}}>🔴 {heureDepGPS}</span>}
+                      {minsGPS>0&&<span style={{fontSize:9,background:"#ede9fe",color:"#6d28d9",borderRadius:6,padding:"1px 7px",fontWeight:700}}>⏳ {fmtDuree(minsGPS)}</span>}
+                      {ecartArr!==null&&Math.abs(ecartArr)>=5&&(
+                        <span style={{fontSize:9,background:ecartArr>15?"#fef2f2":ecartArr>5?"#fff7ed":"#f0fdf4",color:ecartArr>15?"#dc2626":ecartArr>5?"#d97706":"#16a34a",borderRadius:6,padding:"1px 7px",fontWeight:700}}>
+                          {Math.abs(ecartArr)}min {ecartArr>0?"en avance":"en retard"} vs GPS
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -2361,6 +2451,142 @@ function DroitsRoles({data,setData,toast_}){
 // ══════════════════════════════════════════════════════════════════════════════
 // UTILS GÉO — Haversine + Geocode + TSP optimisation trajet
 // ══════════════════════════════════════════════════════════════════════════════
+
+// ── Rayon de détection de présence devant un logement (en mètres) ──
+const ZONE_PRESENCE_RADIUS = 150; // 150m = on considère l'employé "sur place"
+
+// ── Cache global geocode pour éviter requêtes multiples ──
+const _geocodeCache = {};
+
+// ── Géocoder avec cache global ──
+async function geocodeWithCache(adresse){
+  if(!adresse||!adresse.trim()) return null;
+  if(_geocodeCache[adresse]) return _geocodeCache[adresse];
+  const r = await geocodeAdresse(adresse);
+  if(r) _geocodeCache[adresse] = r;
+  return r;
+}
+
+// ── Hook GPS Présence : surveille la position de l'employé et détecte arrivée/départ par zone ──
+// zones : [{id, adresse, nom}]
+// tachesJour : tâches du jour de l'employé
+// onArrivee(zoneId, heure) / onDepart(zoneId, heure) : callbacks appelés automatiquement
+// Convertit "HH:MM" en minutes depuis minuit
+function hhmm2mins(h){if(!h)return null;const[hh,mm]=h.split(":").map(Number);return hh*60+mm;}
+
+// Vérifie si l'heure courante est dans la plage active d'une zone :
+// - 30 min avant la première tâche jusqu'à 3h après la dernière
+function zoneActiveMaintenantPourEmploye(tachesZone){
+  const maintenant = hhmm2mins(new Date().toTimeString().slice(0,5));
+  if(maintenant===null) return false;
+  const heures = tachesZone.map(t=>hhmm2mins(t.heure)).filter(m=>m!==null);
+  if(heures.length===0) return true; // pas d'heure définie → toujours actif
+  const debut = Math.min(...heures) - 30;  // 30 min avant la première tâche
+  const fin   = Math.max(...heures) + 180; // 3h après la dernière tâche
+  return maintenant >= debut && maintenant <= fin;
+}
+
+function useGPSPresence({zones, tachesJour, onArrivee, onDepart, actif}){
+  const presenceRef = useRef({}); // {zoneId: {dedans:bool, depuis:timestamp}}
+  const coordsRef = useRef({}); // {adresse: {lat,lon}}
+  const watchIdRef = useRef(null);
+  const intervalRef = useRef(null); // vérifie toutes les minutes si la plage est active
+
+  useEffect(()=>{
+    if(!actif || !navigator.geolocation) return;
+
+    // Zones éligibles : adresse renseignée + tâches non annulées non terminées
+    const zonesEligibles = zones.filter(z => {
+      const tachesZ = tachesJour.filter(t => t.zoneId === z.id && t.statut !== "annule" && t.statut !== "termine");
+      return z.adresse && z.adresse.trim() && tachesZ.length > 0;
+    });
+    if(zonesEligibles.length === 0) return;
+
+    // Pré-géocoder toutes les adresses
+    let cancelled = false;
+    (async()=>{
+      for(const z of zonesEligibles){
+        if(cancelled) break;
+        const c = await geocodeWithCache(z.adresse);
+        if(c && !cancelled) coordsRef.current[z.id] = c;
+      }
+    })();
+
+    const handlePos = (pos)=>{
+      const {latitude:lat, longitude:lng} = pos.coords;
+      const hNow = new Date().toTimeString().slice(0,5); // "HH:MM"
+
+      zonesEligibles.forEach(z=>{
+        const coords = coordsRef.current[z.id];
+        if(!coords) return;
+
+        // ── Vérification plage horaire : GPS actif seulement pendant les heures de travail ──
+        const tachesZ = tachesJour.filter(t => t.zoneId === z.id && t.statut !== "annule" && t.statut !== "termine");
+        const dansLaPlage = zoneActiveMaintenantPourEmploye(tachesZ);
+        if(!dansLaPlage){
+          // Hors plage : si l'employé était "dedans", enregistrer départ
+          const etat = presenceRef.current[z.id];
+          if(etat && etat.dedans){
+            presenceRef.current[z.id] = {dedans:false, depuis:null};
+            onDepart && onDepart(z.id, hNow);
+          }
+          return; // ne pas traiter cette zone hors horaire
+        }
+
+        const distM = haversine(lat, lng, coords.lat, coords.lon) * 1000;
+        const estDedans = distM <= ZONE_PRESENCE_RADIUS;
+        const etat = presenceRef.current[z.id] || {dedans:false, depuis:null};
+
+        if(estDedans && !etat.dedans){
+          // Arrivée détectée
+          presenceRef.current[z.id] = {dedans:true, depuis:Date.now()};
+          onArrivee && onArrivee(z.id, hNow);
+        } else if(!estDedans && etat.dedans){
+          // Départ détecté
+          presenceRef.current[z.id] = {dedans:false, depuis:null};
+          onDepart && onDepart(z.id, hNow);
+        }
+      });
+    };
+
+    // Démarrer le watchPosition
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      handlePos,
+      (e)=>console.warn("GPS watch error:", e),
+      {enableHighAccuracy:true, maximumAge:15000, timeout:20000}
+    );
+
+    // Vérifier toutes les 60s si on est encore dans les heures de travail
+    // (pour forcer un arrêt propre une fois les tâches toutes terminées ou la plage dépassée)
+    intervalRef.current = setInterval(()=>{
+      const encoreDesTachesActives = zonesEligibles.some(z=>{
+        const tachesZ = tachesJour.filter(t=>t.zoneId===z.id&&t.statut!=="annule"&&t.statut!=="termine");
+        return tachesZ.length > 0 && zoneActiveMaintenantPourEmploye(tachesZ);
+      });
+      if(!encoreDesTachesActives && watchIdRef.current !== null){
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }, 60000);
+
+    return()=>{
+      cancelled = true;
+      if(watchIdRef.current !== null){
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      if(intervalRef.current !== null){
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  },[actif, zones.map(z=>z.id+z.adresse).join(","), tachesJour.map(t=>t.id+t.statut+t.heure).join(",")]);
+
+  return presenceRef.current;
+}
+
 function haversine(lat1,lon1,lat2,lon2){
   const R=6371;
   const dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
@@ -3110,10 +3336,338 @@ function SuiviKm({data,setData,toast_}){
 }
 
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUIVI GPS TEMPS RÉEL — Vue admin : présence des employés par logement
+// ══════════════════════════════════════════════════════════════════════════════
+function SuiviGPS({data,setData,toast_}){
+  const TODAY_GPS=new Date().toISOString().split("T")[0];
+  // Activer/désactiver le suivi GPS global
+  const gpsActif=data.suiviGPSActif||false;
+
+  // Tâches du jour par employé et zone
+  const tachesAuj=(data.taches||[]).filter(t=>t.date===TODAY_GPS&&t.statut!=="annule");
+  const employes=(data.employes||[]).filter(e=>e.actif);
+
+  // Grouper : employé → zones du jour
+  const parEmp={};
+  tachesAuj.forEach(t=>{
+    const e=employes.find(x=>x.id===t.employeId);
+    const z=(data.zones||[]).find(x=>x.id===t.zoneId);
+    if(!e||!z) return;
+    if(!parEmp[t.employeId]) parEmp[t.employeId]={emp:e,zones:{}};
+    if(!parEmp[t.employeId].zones[t.zoneId]) parEmp[t.employeId].zones[t.zoneId]={zone:z,taches:[]};
+    parEmp[t.employeId].zones[t.zoneId].taches.push(t);
+  });
+
+  // Données GPS du jour depuis gpsPresence
+  const presJour=(data.gpsPresence||[]).filter(p=>p.date===TODAY_GPS);
+
+  function diffMins(a,d){if(!a||!d)return 0;const[ah,am]=a.split(":").map(Number);const[dh,dm]=d.split(":").map(Number);return Math.max(0,(dh*60+dm)-(ah*60+am));}
+  function fmtDuree(m){if(!m||m<=0)return null;const h=Math.floor(m/60),min=m%60;return h>0?`${h}h${min>0?String(min).padStart(2,"0")+"min":""}` :`${min}min`;}
+
+  return(
+    <div style={{padding:"0 12px 14px"}}>
+      <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:6}}>🛰️ Suivi GPS temps réel</div>
+      <p style={{fontSize:12,color:"#94a3b8",marginBottom:14,lineHeight:1.5}}>
+        Le GPS s'active automatiquement <strong>uniquement si l'employé a des tâches prévues</strong> et durant leur plage horaire (30 min avant → 3h après). Il se coupe dès que toutes les tâches sont terminées. Rayon de détection : {ZONE_PRESENCE_RADIUS}m.
+      </p>
+
+      {/* Toggle activation globale */}
+      <div style={{background:"white",borderRadius:14,padding:"16px",boxShadow:"0 2px 8px rgba(0,0,0,.06)",border:`1px solid ${BORDER}`,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div style={{width:48,height:48,borderRadius:14,background:gpsActif?"#ede9fe":"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>
+            🛰️
+          </div>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:700,fontSize:14,color:TXT}}>Suivi GPS automatique</div>
+            <div style={{fontSize:12,color:gpsActif?"#7c3aed":"#94a3b8",marginTop:1,fontWeight:gpsActif?700:400}}>
+              {gpsActif?"✅ Actif — les employés sont trackés dès qu'ils approchent d'un logement":"❌ Désactivé"}
+            </div>
+          </div>
+          <div onClick={()=>setData(d=>({...d,suiviGPSActif:!d.suiviGPSActif}))}
+            style={{width:52,height:28,borderRadius:14,background:gpsActif?"#7c3aed":"#d1d5db",position:"relative",cursor:"pointer",transition:"background .2s",flexShrink:0}}>
+            <div style={{position:"absolute",top:3,left:gpsActif?27:3,width:22,height:22,borderRadius:"50%",background:"white",boxShadow:"0 2px 5px rgba(0,0,0,.2)",transition:"left .2s"}}/>
+          </div>
+        </div>
+        <div style={{marginTop:12,padding:"10px 12px",background:"#f5f3ff",borderRadius:10,fontSize:12,color:"#6d28d9",lineHeight:1.5}}>
+          <strong>Comment ça marche :</strong><br/>
+          L'employé ouvre l'app sur son téléphone. Dès qu'il arrive à moins de {ZONE_PRESENCE_RADIUS}m du logement, l'heure d'arrivée GPS est enregistrée automatiquement. Quand il s'éloigne, l'heure de départ est notée. Tout apparaît dans Historique &amp; Heures avec comparaison vs heures déclarées.
+        </div>
+      </div>
+
+      {/* Vue du jour */}
+      <div style={{fontWeight:800,fontSize:12,color:TXT3,textTransform:"uppercase",letterSpacing:.7,marginBottom:10}}>
+        📅 Aujourd'hui — {Object.keys(parEmp).length} employé{Object.keys(parEmp).length!==1?"s":""} actif{Object.keys(parEmp).length!==1?"s":""}
+      </div>
+
+      {Object.keys(parEmp).length===0&&(
+        <div style={{background:"white",borderRadius:14,padding:"24px",textAlign:"center",boxShadow:"0 1px 4px rgba(0,0,0,.06)"}}>
+          <div style={{fontSize:32,marginBottom:8}}>📋</div>
+          <div style={{fontWeight:700,fontSize:13,color:TXT}}>Aucune tâche aujourd'hui</div>
+          <div style={{fontSize:11,color:TXT3,marginTop:4}}>Les données GPS apparaîtront ici dès que des tâches sont planifiées</div>
+        </div>
+      )}
+
+      {Object.values(parEmp).map(({emp,zones})=>(
+        <div key={emp.id} style={{background:"white",borderRadius:14,padding:"14px",boxShadow:"0 2px 8px rgba(0,0,0,.06)",border:`1px solid ${BORDER}`,marginBottom:10}}>
+          {/* Entête employé */}
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,paddingBottom:10,borderBottom:"1px solid #f1f5f9"}}>
+            <div style={{width:38,height:38,borderRadius:"50%",background:emp.couleur||GOLD,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:"white",fontWeight:900,overflow:"hidden",flexShrink:0}}>
+              {emp.photo?<img src={emp.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:emp.nom[0]}
+            </div>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:800,fontSize:14,color:emp.couleur||TXT}}>{emp.nom}</div>
+              <div style={{fontSize:11,color:TXT3}}>{Object.keys(zones).length} logement{Object.keys(zones).length!==1?"s":""} aujourd'hui</div>
+            </div>
+          </div>
+          {/* Zones avec données GPS */}
+          {Object.values(zones).map(({zone:z,taches})=>{
+            const pres=presJour.filter(p=>p.empId===emp.id&&p.zoneId===z.id);
+            const lastPres=pres[pres.length-1]||null;
+            const heureArrGPS=taches.find(t=>t.heureArriveeGPS)?.heureArriveeGPS;
+            const heureDepGPS=[...taches].reverse().find(t=>t.heureDepartGPS)?.heureDepartGPS;
+            const minsGPS=heureArrGPS&&heureDepGPS?diffMins(heureArrGPS,heureDepGPS):0;
+            const heureArrDecl=taches.find(t=>t.heureArriveeReel)?.heureArriveeReel;
+            const heureDepDecl=[...taches].reverse().find(t=>t.heureDepartReel)?.heureDepartReel;
+            const minsDecl=heureArrDecl&&heureDepDecl?diffMins(heureArrDecl,heureDepDecl):0;
+            const estPresent=lastPres&&!lastPres.depart;
+            const ecart=heureArrDecl&&heureArrGPS?(()=>{const[ah,am]=heureArrDecl.split(":").map(Number);const[gh,gm]=heureArrGPS.split(":").map(Number);return(ah*60+am)-(gh*60+gm);})():null;
+            return(
+              <div key={z.id} style={{padding:"8px 0",borderBottom:"1px solid #f8fafc"}}>
+                <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
+                  <div style={{width:34,height:34,borderRadius:9,overflow:"hidden",background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,position:"relative"}}>
+                    {z.photo?<img src={z.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:16}}>🏠</span>}
+                    {estPresent&&<div style={{position:"absolute",top:-3,right:-3,width:10,height:10,borderRadius:"50%",background:"#22c55e",border:"2px solid white"}}/>}
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:700,fontSize:13,color:TXT,display:"flex",alignItems:"center",gap:6}}>
+                      {z.nom}
+                      {estPresent&&<span style={{fontSize:9,background:"#dcfce7",color:"#16a34a",borderRadius:20,padding:"1px 7px",fontWeight:700,animation:"pulse 2s infinite"}}>● EN COURS</span>}
+                    </div>
+                    {/* Données GPS */}
+                    {(()=>{
+                      // Calculer plage active de cette zone pour cet employé
+                      const heuresT = taches.map(t=>hhmm2mins(t.heure)).filter(m=>m!==null);
+                      const plageDebut = heuresT.length>0?Math.min(...heuresT)-30:null;
+                      const plageFin   = heuresT.length>0?Math.max(...heuresT)+180:null;
+                      const maintenant = hhmm2mins(new Date().toTimeString().slice(0,5));
+                      const dansPlage  = plageDebut!==null ? (maintenant>=plageDebut&&maintenant<=plageFin) : true;
+                      const fmtH = m=>`${String(Math.floor(m/60)).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
+                      return heureArrGPS?(
+                        <div style={{display:"flex",gap:4,marginTop:4,flexWrap:"wrap",alignItems:"center"}}>
+                          <span style={{fontSize:9,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:.4}}>📍 GPS</span>
+                          <span style={{fontSize:10,background:"#ede9fe",color:"#6d28d9",borderRadius:6,padding:"1px 7px",fontWeight:700}}>🟢 {heureArrGPS}</span>
+                          {heureDepGPS&&<span style={{fontSize:10,background:"#fdf4ff",color:"#7c3aed",borderRadius:6,padding:"1px 7px",fontWeight:700}}>🔴 {heureDepGPS}</span>}
+                          {minsGPS>0&&<span style={{fontSize:10,background:"#ede9fe",color:"#6d28d9",borderRadius:6,padding:"1px 7px",fontWeight:700}}>⏳ {fmtDuree(minsGPS)}</span>}
+                        </div>
+                      ):(
+                        <div style={{marginTop:4}}>
+                          {gpsActif?(
+                            dansPlage?(
+                              <span style={{fontSize:10,color:"#7c3aed",fontStyle:"italic"}}>📡 En attente d'arrivée GPS...</span>
+                            ):(
+                              <span style={{fontSize:10,color:TXT3,fontStyle:"italic"}}>
+                                ⏸ Hors plage horaire{plageDebut!==null?` · Actif de ${fmtH(plageDebut)} à ${fmtH(plageFin)}`:""}
+                              </span>
+                            )
+                          ):(
+                            <span style={{fontSize:10,color:TXT3,fontStyle:"italic"}}>GPS désactivé</span>
+                          )}
+                          {plageDebut!==null&&(
+                            <div style={{display:"flex",gap:4,marginTop:2,flexWrap:"wrap",alignItems:"center"}}>
+                              <span style={{fontSize:9,background:"#f1f5f9",color:TXT3,borderRadius:6,padding:"1px 7px"}}>
+                                🕐 Plage active : {fmtH(plageDebut)} → {fmtH(plageFin)}
+                              </span>
+                              <span style={{fontSize:9,background:dansPlage?"#dcfce7":"#f1f5f9",color:dansPlage?"#16a34a":TXT3,borderRadius:6,padding:"1px 7px",fontWeight:700}}>
+                                {dansPlage?"✅ Actif maintenant":"⏸ Inactif"}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                    {/* Heures déclarées */}
+                    {heureArrDecl&&(
+                      <div style={{display:"flex",gap:4,marginTop:3,flexWrap:"wrap",alignItems:"center"}}>
+                        <span style={{fontSize:9,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.4}}>Déclaré</span>
+                        <span style={{fontSize:10,background:"#dcfce7",color:"#16a34a",borderRadius:6,padding:"1px 7px",fontWeight:700}}>🟢 {heureArrDecl}</span>
+                        {heureDepDecl&&<span style={{fontSize:10,background:"#fef2f2",color:"#dc2626",borderRadius:6,padding:"1px 7px",fontWeight:700}}>🔴 {heureDepDecl}</span>}
+                        {minsDecl>0&&<span style={{fontSize:10,background:"#f0f9ff",color:"#0369a1",borderRadius:6,padding:"1px 7px",fontWeight:700}}>⏳ {fmtDuree(minsDecl)}</span>}
+                      </div>
+                    )}
+                    {/* Badge écart */}
+                    {ecart!==null&&Math.abs(ecart)>=5&&(
+                      <div style={{marginTop:4}}>
+                        <span style={{fontSize:9,background:Math.abs(ecart)>20?"#fef2f2":Math.abs(ecart)>10?"#fff7ed":"#fefce8",color:Math.abs(ecart)>20?"#dc2626":Math.abs(ecart)>10?"#d97706":"#854d0e",borderRadius:6,padding:"2px 8px",fontWeight:700,border:`1px solid ${Math.abs(ecart)>20?"#fecaca":Math.abs(ecart)>10?"#fde68a":"#fef08a"}`}}>
+                          ⚠️ Écart {Math.abs(ecart)} min — déclaré {ecart>0?"en avance":"en retard"} vs GPS
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+
+      {/* Légende */}
+      <div style={{background:"#f8fafc",borderRadius:12,padding:"12px 14px",marginTop:8,fontSize:11,color:TXT3,lineHeight:1.7}}>
+        <strong style={{color:TXT2}}>📖 Légende :</strong><br/>
+        🟢 Arrivée · 🔴 Départ · ⏳ Durée · ● Présent maintenant<br/>
+        <span style={{color:"#7c3aed"}}>📍 GPS = heure automatique par géolocalisation</span><br/>
+        Déclaré = heure saisie manuellement par l'employé<br/>
+        ⚠️ Un écart important entre GPS et déclaré peut indiquer une fausse déclaration.
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RÉINITIALISATION DE L'APP — Supprime tâches, logements, historique, messages
+// ══════════════════════════════════════════════════════════════════════════════
+function ReinitialisationApp({data,setData,toast_,onRetour}){
+  const [etape,setEtape]=useState("menu"); // "menu" | "confirm1" | "confirm2" | "done"
+  const [selection,setSelection]=useState({taches:true,zones:true,messages:true,notifications:true});
+
+  const labels={
+    taches:    {icon:"📋", label:"Tâches",          desc:"Toutes les tâches planifiées et ponctuelles"},
+    zones:     {icon:"🏠", label:"Logements",        desc:"Tous les logements et leurs données"},
+    messages:  {icon:"💬", label:"Messages & historique", desc:"Tous les messages et l'activité passée"},
+    notifications:{icon:"🔔", label:"Notifications", desc:"Toutes les notifications"},
+  };
+
+  function execReinit(){
+    setData(d=>{
+      const next={...d};
+      if(selection.taches)    next.taches=[];
+      if(selection.zones)     next.zones=[];
+      if(selection.messages)  next.messages=[];
+      if(selection.notifications) next.notifications=[];
+      return next;
+    });
+    setEtape("done");
+    toast_("✅ Réinitialisation effectuée");
+  }
+
+  if(etape==="done") return(
+    <div style={{padding:"20px 12px",textAlign:"center"}}>
+      <div style={{fontSize:56,marginBottom:16}}>✅</div>
+      <div style={{fontWeight:900,fontSize:18,color:"#16a34a",marginBottom:8}}>Réinitialisation effectuée</div>
+      <div style={{fontSize:13,color:TXT2,marginBottom:24}}>Les données sélectionnées ont été supprimées.<br/>Les comptes utilisateurs ont été conservés.</div>
+      <button onClick={onRetour} style={{padding:"12px 28px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:"#1a0d00",fontSize:14,fontWeight:700,cursor:"pointer"}}>
+        ← Retour aux options
+      </button>
+    </div>
+  );
+
+  if(etape==="confirm2") return(
+    <div style={{padding:"16px 12px"}}>
+      <div style={{background:"#fff1f2",border:"2px solid #fecdd3",borderRadius:16,padding:"20px",marginBottom:20,textAlign:"center"}}>
+        <div style={{fontSize:40,marginBottom:10}}>⚠️</div>
+        <div style={{fontWeight:900,fontSize:16,color:"#dc2626",marginBottom:8}}>Dernière confirmation</div>
+        <div style={{fontSize:13,color:"#7f1d1d",lineHeight:1.5}}>
+          Cette action est <strong>irréversible</strong>.<br/>
+          Les données suivantes seront <strong>définitivement supprimées</strong> :
+        </div>
+        <div style={{marginTop:12,display:"flex",flexDirection:"column",gap:6,alignItems:"center"}}>
+          {Object.entries(selection).filter(([,v])=>v).map(([k])=>(
+            <div key={k} style={{background:"#fecdd3",borderRadius:8,padding:"4px 14px",fontSize:12,fontWeight:700,color:"#b91c1c"}}>
+              {labels[k].icon} {labels[k].label}
+            </div>
+          ))}
+        </div>
+        <div style={{marginTop:14,fontSize:12,color:"#9f1239",fontStyle:"italic"}}>
+          Les comptes utilisateurs seront conservés.
+        </div>
+      </div>
+      <div style={{display:"flex",gap:10}}>
+        <button onClick={()=>setEtape("confirm1")}
+          style={{flex:1,padding:"13px",background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:12,color:TXT2,fontSize:13,fontWeight:700,cursor:"pointer"}}>
+          ← Annuler
+        </button>
+        <button onClick={execReinit}
+          style={{flex:1,padding:"13px",background:"linear-gradient(135deg,#dc2626,#b91c1c)",border:"none",borderRadius:12,color:"white",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+          🗑️ Supprimer définitivement
+        </button>
+      </div>
+    </div>
+  );
+
+  if(etape==="confirm1") return(
+    <div style={{padding:"16px 12px"}}>
+      <div style={{fontWeight:900,fontSize:16,color:"#dc2626",marginBottom:6}}>🔄 Réinitialisation de l'app</div>
+      <div style={{fontSize:12,color:TXT2,marginBottom:18,lineHeight:1.5}}>
+        Sélectionnez les données à supprimer. Les comptes utilisateurs ne seront jamais affectés.
+      </div>
+      <div style={{marginBottom:18,display:"flex",flexDirection:"column",gap:8}}>
+        {Object.entries(labels).map(([key,{icon,label,desc}])=>(
+          <div key={key} onClick={()=>setSelection(s=>({...s,[key]:!s[key]}))}
+            style={{display:"flex",alignItems:"center",gap:12,background:selection[key]?"#fff1f2":CARD,borderRadius:14,padding:"13px 16px",border:selection[key]?"1.5px solid #fecaca":`1px solid ${BORDER}`,cursor:"pointer",transition:"all .15s"}}>
+            <div style={{width:40,height:40,borderRadius:10,background:selection[key]?"#fdecea":GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{icon}</div>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:700,fontSize:13,color:selection[key]?"#dc2626":TXT}}>{label}</div>
+              <div style={{fontSize:11,color:TXT2,marginTop:2}}>{desc}</div>
+            </div>
+            <div style={{width:22,height:22,borderRadius:6,border:selection[key]?"2px solid #dc2626":"2px solid #d1d5db",background:selection[key]?"#dc2626":"transparent",display:"flex",alignItems:"center",justifyContent:"center",transition:"all .15s",flexShrink:0}}>
+              {selection[key]&&<span style={{color:"white",fontSize:13,fontWeight:700}}>✓</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{background:"#fef3c7",border:"1px solid #fde68a",borderRadius:12,padding:"10px 14px",marginBottom:16,fontSize:12,color:"#92400e"}}>
+        ⚠️ Cette action est irréversible. Vérifiez votre sélection avant de continuer.
+      </div>
+      <div style={{display:"flex",gap:10}}>
+        <button onClick={onRetour}
+          style={{flex:1,padding:"13px",background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:12,color:TXT2,fontSize:13,fontWeight:700,cursor:"pointer"}}>
+          ← Annuler
+        </button>
+        <button onClick={()=>{if(Object.values(selection).some(Boolean))setEtape("confirm2");}}
+          disabled={!Object.values(selection).some(Boolean)}
+          style={{flex:1,padding:"13px",background:Object.values(selection).some(Boolean)?"linear-gradient(135deg,#dc2626,#b91c1c)":"#e5e7eb",border:"none",borderRadius:12,color:Object.values(selection).some(Boolean)?"white":TXT3,fontSize:13,fontWeight:700,cursor:Object.values(selection).some(Boolean)?"pointer":"not-allowed"}}>
+          Continuer →
+        </button>
+      </div>
+    </div>
+  );
+
+  // Écran d'accueil (menu)
+  return(
+    <div style={{padding:"16px 12px"}}>
+      <div style={{fontWeight:900,fontSize:16,color:"#dc2626",marginBottom:6}}>🔄 Réinitialisation de l'app</div>
+      <div style={{fontSize:13,color:TXT2,marginBottom:20,lineHeight:1.5}}>
+        Supprimez toutes les données de test pour démarrer en production proprement.<br/>
+        <strong>Les comptes utilisateurs seront toujours conservés.</strong>
+      </div>
+      <div style={{background:"#fff8f8",border:"1.5px solid #fecaca",borderRadius:16,padding:"18px",marginBottom:20}}>
+        <div style={{fontWeight:800,fontSize:13,color:"#dc2626",marginBottom:12}}>🗑️ Données qui peuvent être supprimées :</div>
+        {Object.entries(labels).map(([key,{icon,label,desc}])=>(
+          <div key={key} style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:10}}>
+            <span style={{fontSize:18,flexShrink:0}}>{icon}</span>
+            <div>
+              <div style={{fontWeight:700,fontSize:13,color:TXT}}>{label}</div>
+              <div style={{fontSize:11,color:TXT3}}>{desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:12,padding:"12px 14px",marginBottom:20,fontSize:12,color:"#166534"}}>
+        ✅ <strong>Conservés :</strong> tous les comptes utilisateurs, leurs rôles et leurs PIN.
+      </div>
+      <button onClick={()=>setEtape("confirm1")}
+        style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#dc2626,#b91c1c)",border:"none",borderRadius:14,color:"white",fontSize:14,fontWeight:700,cursor:"pointer",boxShadow:"0 4px 14px rgba(220,38,38,.3)"}}>
+        🔄 Lancer la réinitialisation
+      </button>
+    </div>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE PARAMÈTRES — avec onglets : Équipe + Gestion droits + PIN + Général
 // ══════════════════════════════════════════════════════════════════════════════
-function Parametres({data,setData,onEditEmp,onEditZone,setCurrentUser,toast_,nightMode,toggleNightMode,pushEnabled,setPushEnabled,pushPermission,demanderNotifPush,onZoomPhoto,textSize,setTextSize}){
+function Parametres({data,setData,onEditEmp,onEditZone,setCurrentUser,toast_,nightMode,toggleNightMode,pushEnabled,setPushEnabled,pushPrefs,setPushPrefs,pushPermission,demanderNotifPush,onZoomPhoto,textSize,setTextSize}){
   const [onglet,setOnglet]=useState(null); // null = menu principal
   const [menuTab,setMenuTab]=useState("general"); // "general" | "plus"
   const [notifDetail,setNotifDetail]=useState(null);
@@ -3153,15 +3707,18 @@ function Parametres({data,setData,onEditEmp,onEditZone,setCurrentUser,toast_,nig
   ];
 
   const menuItemsPlus=[
+    {id:"suivi_gps",         icon:"🛰️", label:"Suivi GPS temps réel",  desc:"Localisation automatique et heures réelles"},
     {id:"tracking",          icon:"📍", label:"Tracking horaires",     desc:"Suivi arrivée/départ des employés"},
     {id:"nuit",              icon:"🌙", label:"Mode nuit",             desc:nightMode?"Interface sombre activée":"Interface claire"},
     {id:"taille",            icon:"🔡", label:"Taille de l'écriture",  desc:textSize==="normal"?"Taille normale":textSize==="grand"?"Grands caractères":"Très grands caractères"},
     {id:"notifications",     icon:"📲", label:"Notifications push",    desc:"Alertes en temps réel"},
     {id:"pieces",            icon:"🏠", label:"Pièces du logement",    desc:"Liste des pièces pour signalements"},
     {id:"types_taches",      icon:"🗂️", label:"Types de tâches",       desc:"Personnaliser la liste des tâches"},
+    {id:"sejour_locataires",  icon:"🧳", label:"Séjour locataires",       desc:data.sejourLocatairesActif!==false?"Champs activés dans nouvelle tâche":"Champs désactivés"},
     {id:"suivi_km",          icon:"🚗", label:"Suivi déplacements",    desc:"Calcul de distance vers les logements"},
     {id:"droits_roles",      icon:"🛡️", label:"Droits & Rôles",        desc:"Fonctionnalités accessibles par rôle"},
     {id:"gestion_equipe",    icon:"👥", label:"Gestion Équipe",        desc:"Membres, rôles, droits et PIN"},
+    {id:"reinitialisation",  icon:"🔄", label:"Réinitialisation de l'app", desc:"Supprimer tâches, logements et historique"},
   ];
 
   // ── Menu principal vertical ──
@@ -3208,10 +3765,10 @@ function Parametres({data,setData,onEditEmp,onEditZone,setCurrentUser,toast_,nig
           <div style={{fontSize:11,fontWeight:800,color:TXT3,textTransform:"uppercase",letterSpacing:.8,marginBottom:10,paddingLeft:4}}>🔧 Options avancées — Administrateur</div>
           {menuItemsPlus.map((item)=>(
             <div key={item.id} onClick={()=>setOnglet(item.id)}
-              style={{display:"flex",alignItems:"center",gap:14,background:CARD,borderRadius:14,padding:"14px 16px",marginBottom:10,border:`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}>
-              <div style={{width:44,height:44,borderRadius:12,background:GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{item.icon}</div>
+              style={{display:"flex",alignItems:"center",gap:14,background:item.id==="reinitialisation"?"#fff8f8":CARD,borderRadius:14,padding:"14px 16px",marginBottom:10,border:item.id==="reinitialisation"?"1.5px solid #fecaca":`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}>
+              <div style={{width:44,height:44,borderRadius:12,background:item.id==="reinitialisation"?"#fdecea":GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{item.icon}</div>
               <div style={{flex:1}}>
-                <div style={{fontWeight:700,fontSize:14,color:TXT}}>{item.label}</div>
+                <div style={{fontWeight:700,fontSize:14,color:item.id==="reinitialisation"?"#dc2626":TXT}}>{item.label}</div>
                 <div style={{fontSize:12,color:TXT2,marginTop:2}}>{item.desc}</div>
               </div>
               <span style={{color:TXT3,fontSize:20}}>›</span>
@@ -3316,6 +3873,12 @@ function Parametres({data,setData,onEditEmp,onEditZone,setCurrentUser,toast_,nig
       {/* ── PIÈCES DU LOGEMENT ── */}
       {onglet==="pieces"&&<GestionPieces data={data} setData={setData} toast_={toast_}/>}
 
+      {/* ── RÉINITIALISATION DE L'APP ── */}
+      {/* ── SUIVI GPS TEMPS RÉEL ── */}
+      {onglet==="suivi_gps"&&<SuiviGPS data={data} setData={setData} toast_={toast_}/>}
+
+      {onglet==="reinitialisation"&&<ReinitialisationApp data={data} setData={setData} toast_={toast_} onRetour={()=>setOnglet(null)}/>}
+
       {/* ── HISTORIQUE ── */}
       {onglet==="historique"&&(
         <div style={{padding:"0 12px 14px"}}>
@@ -3377,6 +3940,29 @@ function Parametres({data,setData,onEditEmp,onEditZone,setCurrentUser,toast_,nig
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── SÉJOUR LOCATAIRES ── */}
+      {onglet==="sejour_locataires"&&(
+        <div style={{padding:"0 12px 14px"}}>
+          <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:6}}>🧳 Séjour locataires</div>
+          <div style={{fontSize:12,color:TXT2,marginBottom:16,lineHeight:1.5}}>Lorsque cette option est activée, les champs "Arrivée" et "Départ" des locataires apparaissent dans le formulaire de nouvelle tâche.</div>
+          <div style={{...S.card,display:"flex",alignItems:"center",gap:14,padding:"16px",cursor:"pointer"}}
+            onClick={()=>setData(d=>({...d,sejourLocatairesActif:!(d.sejourLocatairesActif!==false)}))}>
+            <div style={{width:44,height:44,borderRadius:12,background:data.sejourLocatairesActif!==false?"#eff6ff":GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>
+              🧳
+            </div>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:700,fontSize:14,color:TXT}}>Dates séjour locataires</div>
+              <div style={{fontSize:12,color:data.sejourLocatairesActif!==false?"#1d4ed8":TXT2,marginTop:2,fontWeight:data.sejourLocatairesActif!==false?700:400}}>
+                {data.sejourLocatairesActif!==false?"✅ Activé — Champs visibles dans nouvelle tâche":"❌ Désactivé — Champs masqués"}
+              </div>
+            </div>
+            <div style={{width:48,height:26,borderRadius:13,background:data.sejourLocatairesActif!==false?"#3b82f6":"#d1d5db",position:"relative",transition:"background .2s",flexShrink:0}}>
+              <div style={{position:"absolute",top:3,left:data.sejourLocatairesActif!==false?24:3,width:20,height:20,borderRadius:"50%",background:"white",boxShadow:"0 1px 4px rgba(0,0,0,.2)",transition:"left .2s"}}/>
+            </div>
+          </div>
         </div>
       )}
 
@@ -3500,55 +4086,82 @@ function Parametres({data,setData,onEditEmp,onEditZone,setCurrentUser,toast_,nig
       {onglet==="notifications"&&(
         <div style={{padding:"0 12px 14px"}}>
           <div style={{fontWeight:900,fontSize:16,color:TXT,marginBottom:6}}>🔔 Notifications push</div>
-          <p style={{fontSize:12,color:"#94a3b8",marginBottom:16}}>Recevez des alertes instantanées lors de signalements de problèmes ou de tâches urgentes.</p>
-          <div style={{...S.card,padding:"18px 16px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-              <div style={{width:44,height:44,borderRadius:12,background:pushPermission==="granted"?"#dcfce7":"#fef3c7",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>
-                {pushPermission==="granted"?"🔔":"🔕"}
+          <p style={{fontSize:12,color:"#94a3b8",marginBottom:16}}>Choisissez les alertes que vous souhaitez recevoir en temps réel.</p>
+
+          {/* Statut permission navigateur */}
+          <div style={{...S.card,padding:"16px",marginBottom:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              <div style={{width:44,height:44,borderRadius:12,background:pushPermission==="granted"?"#dcfce7":pushPermission==="denied"?"#fef2f2":"#fef3c7",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>
+                {pushPermission==="granted"?"🔔":pushPermission==="denied"?"🚫":"🔕"}
               </div>
               <div style={{flex:1}}>
-                <div style={{fontWeight:700,fontSize:14,color:TXT}}>
-                  {pushPermission==="granted"?"Notifications activées":pushPermission==="denied"?"Notifications bloquées":"Notifications désactivées"}
+                <div style={{fontWeight:700,fontSize:14,color:pushPermission==="denied"?"#dc2626":TXT}}>
+                  {pushPermission==="granted"?"Notifications autorisées":pushPermission==="denied"?"Notifications bloquées par le navigateur":"Notifications non activées"}
                 </div>
                 <div style={{fontSize:12,color:"#94a3b8",marginTop:1}}>
-                  {pushPermission==="granted"?"Vous recevrez des alertes en temps réel":pushPermission==="denied"?"Autorisez dans les réglages du navigateur":"Activez pour recevoir des alertes"}
+                  {pushPermission==="granted"?"Vous pouvez choisir vos alertes ci-dessous":pushPermission==="denied"?"Autorisez dans les réglages de votre navigateur":"Activez d'abord les notifications"}
                 </div>
               </div>
               {pushPermission==="granted"&&(
-                <div style={{width:52,height:28,borderRadius:14,background:pushEnabled?GOLD:"#e2e8f0",cursor:"pointer",position:"relative",flexShrink:0}}
-                  onClick={()=>setPushEnabled(e=>!e)}>
-                  <div style={{width:22,height:22,borderRadius:"50%",background:"white",position:"absolute",top:3,left:pushEnabled?27:3,transition:"left .3s",boxShadow:"0 2px 6px rgba(0,0,0,.25)"}}/>
-                </div>
+                <span style={{fontSize:11,fontWeight:700,color:"#15803d",background:"#dcfce7",borderRadius:20,padding:"3px 10px"}}>✓ OK</span>
               )}
             </div>
             {pushPermission!=="granted"&&(
               <button onClick={demanderNotifPush}
-                style={{width:"100%",padding:"12px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:"#1a0d00",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                style={{width:"100%",padding:"12px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:"#1a0d00",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginTop:14}}>
                 🔔 Activer les notifications push
               </button>
             )}
             {pushPermission==="denied"&&(
-              <div style={{background:"#fef2f2",borderRadius:10,padding:"10px 12px",fontSize:12,color:"#dc2626",fontWeight:500}}>
-                ⚠️ Notifications bloquées. Allez dans les paramètres de votre navigateur pour les autoriser pour ce site.
+              <div style={{background:"#fef2f2",borderRadius:10,padding:"10px 12px",fontSize:12,color:"#dc2626",fontWeight:500,marginTop:10}}>
+                ⚠️ Pour débloquer : Paramètres navigateur → Confidentialité → Notifications → Autoriser ce site.
               </div>
             )}
           </div>
-          <div style={{...S.card,padding:"14px 16px",marginTop:0}}>
-            <div style={{fontSize:12,fontWeight:700,color:TXT,marginBottom:10}}>Alertes activées :</div>
+
+          {/* Choix par type — affiché même si pas encore granted pour montrer les options */}
+          <div style={{...S.card,padding:"14px 16px"}}>
+            <div style={{fontSize:12,fontWeight:800,color:TXT,marginBottom:14,textTransform:"uppercase",letterSpacing:.6}}>Choisir les alertes</div>
             {[
-              {icon:"⚠️",label:"Signalement de problème",active:true},
-              {icon:"✅",label:"Tâche terminée",active:pushEnabled&&pushPermission==="granted"},
-              {icon:"💬",label:"Nouveau message",active:pushEnabled&&pushPermission==="granted"},
-            ].map((a,i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:i<2?"1px solid #f1f5f9":"none"}}>
-                <span style={{fontSize:16}}>{a.icon}</span>
-                <span style={{flex:1,fontSize:13,color:TXT2}}>{a.label}</span>
-                <span style={{fontSize:11,fontWeight:700,color:a.active?"#15803d":"#94a3b8",background:a.active?"#dcfce7":"#f1f5f9",borderRadius:20,padding:"2px 9px"}}>
-                  {a.active?"Activé":"Inactif"}
-                </span>
-              </div>
-            ))}
+              {key:"probleme",    icon:"⚠️", label:"Signalement de problème", desc:"Quand un employé signale un problème sur un logement"},
+              {key:"tache",       icon:"📋", label:"Nouvelle tâche assignée",  desc:"Quand une tâche vous est attribuée"},
+              {key:"tacheTerminee",icon:"✅",label:"Tâche terminée",           desc:"Quand un employé valide une tâche"},
+              {key:"message",     icon:"💬", label:"Nouveau message",          desc:"Quand un employé envoie un message"},
+            ].map((item,i,arr)=>{
+              const actif=pushPrefs?.[item.key]??true;
+              const disabled=pushPermission!=="granted";
+              return(
+                <div key={item.key}
+                  onClick={()=>!disabled&&setPushPrefs(p=>({...p,[item.key]:!actif}))}
+                  style={{display:"flex",alignItems:"center",gap:12,padding:"12px 0",borderBottom:i<arr.length-1?"1px solid #f1f5f9":"none",cursor:disabled?"not-allowed":"pointer",opacity:disabled?0.5:1}}>
+                  <div style={{width:40,height:40,borderRadius:10,background:actif&&!disabled?"#f0fdf4":GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19,flexShrink:0}}>
+                    {item.icon}
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:700,fontSize:13,color:TXT}}>{item.label}</div>
+                    <div style={{fontSize:11,color:TXT3,marginTop:1,lineHeight:1.3}}>{item.desc}</div>
+                  </div>
+                  <div style={{width:46,height:25,borderRadius:13,background:actif&&!disabled?GOLD:"#e2e8f0",cursor:disabled?"not-allowed":"pointer",position:"relative",transition:"background .2s",flexShrink:0}}>
+                    <div style={{width:19,height:19,borderRadius:"50%",background:"white",position:"absolute",top:3,left:actif&&!disabled?24:3,transition:"left .2s",boxShadow:"0 2px 5px rgba(0,0,0,.2)"}}/>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+
+          {/* Bouton tout activer / tout désactiver */}
+          {pushPermission==="granted"&&(
+            <div style={{display:"flex",gap:8,marginTop:10}}>
+              <button onClick={()=>setPushPrefs({probleme:true,tache:true,tacheTerminee:true,message:true})}
+                style={{flex:1,padding:"10px",background:GOLD_BG,border:`1px solid ${GOLD}44`,borderRadius:10,color:GOLD_DARK,fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                ✅ Tout activer
+              </button>
+              <button onClick={()=>setPushPrefs({probleme:false,tache:false,tacheTerminee:false,message:false})}
+                style={{flex:1,padding:"10px",background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:10,color:TXT3,fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                🔕 Tout désactiver
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -4319,7 +4932,12 @@ function AppInner(){
   });
   const [nightMode,setNightMode]=useState(false);
   const [textSize,setTextSize]=useState(()=>{ try{return localStorage.getItem("ckeys_textsize")||"normal";}catch{return "normal";} });
-  const [pushEnabled,setPushEnabled]=useState(false);
+  const [pushPrefs,setPushPrefs]=useState(()=>{
+    try{const s=localStorage.getItem("ckeys_pushprefs");return s?JSON.parse(s):{probleme:true,tache:true,message:true,tacheTerminee:true};}
+    catch{return {probleme:true,tache:true,message:true,tacheTerminee:true};}
+  });
+  const pushEnabled=pushPrefs&&Object.values(pushPrefs).some(Boolean);
+  const setPushEnabled=()=>{}; // compat
   const [pushPermission,setPushPermission]=useState(()=>
     typeof Notification!=="undefined"?Notification.permission:"default"
   );
@@ -4349,6 +4967,11 @@ function AppInner(){
     }
     try{localStorage.setItem("ckeys_textsize",textSize);}catch{}
   },[textSize]);
+
+  // ── Persistance préférences push ──────────────────────────────────────────────
+  useEffect(()=>{
+    try{localStorage.setItem("ckeys_pushprefs",JSON.stringify(pushPrefs));}catch{}
+  },[pushPrefs]);
 
   // ── Persistance session (survit au refresh et à la fermeture) ───────────────
   useEffect(()=>{
@@ -4381,7 +5004,7 @@ function AppInner(){
     const perm=await Notification.requestPermission();
     setPushPermission(perm);
     if(perm==="granted"){
-      setPushEnabled(true);
+      setPushPrefs(p=>({...p,probleme:true,tache:true,message:true,tacheTerminee:true}));
       new Notification("✅ Notifications activées",{
         body:"Vous recevrez des alertes pour les signalements et tâches.",
         icon:"https://cdn.jsdelivr.net/npm/emoji-datasource-apple@15.0.1/img/apple/64/1f3e0.png"
@@ -4391,10 +5014,13 @@ function AppInner(){
 
   const envoyerNotifPush=useCallback((titre,corps,tag="notif")=>{
     if(typeof Notification==="undefined"||Notification.permission!=="granted") return;
+    // Vérifier les préférences par type de notification
+    const prefKey=tag==="signalement"?"probleme":tag==="message"?"message":tag==="tache_terminee"?"tacheTerminee":"tache";
+    if(pushPrefs&&!pushPrefs[prefKey]) return;
     try{
       new Notification(titre,{body:corps,tag,icon:"https://cdn.jsdelivr.net/npm/emoji-datasource-apple@15.0.1/img/apple/64/26a0.png"});
     }catch(e){console.warn("Push notif failed",e);}
-  },[]);
+  },[pushPrefs]);
 
 
   // ── Firebase : init + écoute temps réel ──────────────────────────────────
@@ -4601,6 +5227,64 @@ function AppInner(){
 
   const isAdmin=currentUser?.role==="admin"||currentUser?.role==="manager";
   const isEmp=!isAdmin;
+
+  // ── GPS Présence automatique ──────────────────────────────────────────────────
+  // Tâches du jour de l'employé connecté — uniquement celles non terminées/annulées
+  const tachesGPSJour = (data.taches||[]).filter(t=>{
+    if(isAdmin) return false; // admin ne déclenche pas le tracking employé
+    if(t.employeId!==currentUser.id || t.date!==TODAY) return false;
+    if(t.statut==="annule" || t.statut==="termine") return false; // tâche finie = pas de GPS
+    return true;
+  });
+  const zonesGPSJour = (data.zones||[]).filter(z=>
+    tachesGPSJour.some(t=>t.zoneId===z.id)
+  );
+  // Le GPS n'est actif que si au moins une zone est dans sa plage horaire maintenant
+  const uneZoneActiveMaintenantGPS = zonesGPSJour.some(z=>{
+    const tZ = tachesGPSJour.filter(t=>t.zoneId===z.id);
+    return zoneActiveMaintenantPourEmploye(tZ);
+  });
+
+  // Callback arrivée GPS : enregistre heureArriveeGPS sur toutes les tâches de cette zone
+  const handleArriveeGPS = useCallback((zoneId, heure)=>{
+    setData(d=>({...d,
+      taches: d.taches.map(t=>{
+        if(t.zoneId!==zoneId || t.employeId!==currentUser.id || t.date!==TODAY) return t;
+        if(t.heureArriveeGPS) return t; // déjà enregistré
+        return {...t, heureArriveeGPS: heure, presenceActive: true};
+      }),
+      // Historique GPS pour admin
+      gpsPresence: [...(d.gpsPresence||[]).filter(p=>!(p.empId===currentUser.id&&p.zoneId===zoneId&&p.date===TODAY&&!p.depart)),
+        {empId:currentUser.id, zoneId, date:TODAY, arrivee:heure, depart:null, ts:Date.now()}
+      ].slice(-200)
+    }));
+  },[currentUser?.id]);
+
+  // Callback départ GPS : enregistre heureDepartGPS sur toutes les tâches de cette zone
+  const handleDepartGPS = useCallback((zoneId, heure)=>{
+    setData(d=>({...d,
+      taches: d.taches.map(t=>{
+        if(t.zoneId!==zoneId || t.employeId!==currentUser.id || t.date!==TODAY) return t;
+        return {...t, heureDepartGPS: heure, presenceActive: false};
+      }),
+      // Mettre à jour l'historique GPS
+      gpsPresence: (d.gpsPresence||[]).map(p=>{
+        if(p.empId===currentUser.id && p.zoneId===zoneId && p.date===TODAY && !p.depart)
+          return {...p, depart:heure};
+        return p;
+      })
+    }));
+  },[currentUser?.id]);
+
+  // Activer le tracking GPS si l'employé a des tâches aujourd'hui
+  useGPSPresence({
+    zones: zonesGPSJour,
+    tachesJour: tachesGPSJour,
+    onArrivee: handleArriveeGPS,
+    onDepart: handleDepartGPS,
+    actif: isEmp && zonesGPSJour.length > 0 && !!(data.suiviGPSActif) && uneZoneActiveMaintenantGPS
+  });
+
   // Zones de l'utilisateur courant (pour badge messages)
   const myZoneIds=isAdmin
     ? (data.zones||[]).map(z=>z.id)
@@ -4694,7 +5378,7 @@ function AppInner(){
       {view==="zones"      &&isAdmin&&<Logements  data={data} onEdit={openEditZone} isReadOnly={false}/>}
       {view==="messages"   &&<Messages   data={data} setData={setData} currentUser={currentUser} toast_={toast_} envoyerNotifPush={envoyerNotifPush} onZoomPhoto={setLightboxSrc}/>}
 
-      {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} onEditZone={openEditZone} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushEnabled={pushEnabled} setPushEnabled={setPushEnabled} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush} onZoomPhoto={setLightboxSrc} textSize={textSize} setTextSize={setTextSize}/>}
+      {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} onEditZone={openEditZone} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushEnabled={pushEnabled} setPushEnabled={setPushEnabled} pushPrefs={pushPrefs} setPushPrefs={setPushPrefs} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush} onZoomPhoto={setLightboxSrc} textSize={textSize} setTextSize={setTextSize}/>}
       {view==="parametres" &&isEmp&&<EmpParametres emp={currentUser} setData={setData} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush} textSize={textSize} setTextSize={setTextSize}/>}
     </>
   );
@@ -4704,6 +5388,7 @@ function AppInner(){
       {(modal==="tache"||modal==="tache_edit")&&(
         <ModalTache editMode={modal==="tache_edit"} form={form} setForm={setForm}
           employes={data.employes} zones={data.zones} types={data.typesPerso||DEFAULT_TYPES}
+          sejourLocatairesActif={data.sejourLocatairesActif!==false}
           onSave={saveTache} onDelete={delTache} onClose={close}/>
       )}
       {modal==="employe"&&<ModalEmploye form={form} setForm={setForm} onSave={saveEmp} onDelete={delEmp} onClose={close}/>}
