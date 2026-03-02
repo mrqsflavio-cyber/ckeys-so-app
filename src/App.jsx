@@ -756,7 +756,10 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
   const photoRefLog=useRef();
   const emp=id=>employes.find(e=>e.id===id);
   // Tracking modal
-  const [heuresModal,setHeuresModal]=useState(null); // {tacheId, nomTache}
+  const [heuresModal,setHeuresModal]=useState(null);
+  // Session tracking pour détecter pause (30min) → nouvelle session = re-demander l'heure
+  const lastCheckTimeRef=useRef(null);
+  const SESSION_PAUSE_MS=30*60*1000;
 
   const nbTotal=tachesZone.length;
   const nbFin=tachesZone.filter(t=>t.statut==="termine").length;
@@ -865,8 +868,20 @@ function CarteLogement({zone,tachesZone,employes,onToggleCheck,onUpdateSt,onSign
                 style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:idx<allItems.length-1?"1px solid #f1f5f9":"none"}}>
                 <div onClick={()=>{
                   if(trackingActif&&!isDone){
-                    // Show heures modal before validating
-                    setHeuresModal({tacheId:ai.tacheId,nomTache:ai.item,isTacheEntiere:ai.isTacheEntiere,item:ai.item});
+                    // Compter les tâches restantes non cochées (hors celle-ci)
+                    const restantes=allItems.filter(x=>!x.checked&&!(x.tacheId===ai.tacheId&&x.item===ai.item));
+                    const isLastItem=restantes.length===0;
+                    // Détecter nouvelle session (pause > 30min depuis dernier check)
+                    const now=Date.now();
+                    const isNewSession=!lastCheckTimeRef.current||(now-lastCheckTimeRef.current>SESSION_PAUSE_MS);
+                    lastCheckTimeRef.current=now;
+                    if(isLastItem||isNewSession){
+                      // Dernière tâche du logement OU nouvelle session → demander l'heure
+                      setHeuresModal({tacheId:ai.tacheId,nomTache:ai.item,isTacheEntiere:ai.isTacheEntiere,item:ai.item});
+                    } else {
+                      // Pas la dernière → cocher sans demander l'heure
+                      ai.isTacheEntiere?onUpdateSt(ai.tacheId,"termine"):onToggleCheck(ai.tacheId,ai.item);
+                    }
                   } else {
                     ai.isTacheEntiere?onUpdateSt(ai.tacheId,isDone?"planifie":"termine"):onToggleCheck(ai.tacheId,ai.item);
                   }
@@ -1887,19 +1902,147 @@ function Historique({data,currentUser,isEmp,toast_}){
 function HistoriqueInline({data,toast_,nightMode}){
   const now=new Date();
   const [moisSel,setMoisSel]=useState(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`);
+  const [empFiltreId,setEmpFiltreId]=useState(null); // null = tous
   const MOIS_LONG_H=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
   const MOIS_COURT_H=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
   const moisDispo=Array.from({length:12},(_,i)=>{
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     return{v:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`,l:`${MOIS_LONG_H[d.getMonth()]} ${d.getFullYear()}`};
   });
-  const tachesMois=data.taches.filter(t=>{if(!t.date)return false;const[y,m]=t.date.split("-");return`${y}-${m}`===moisSel&&t.statut==="termine";});
+
+  const tachesMoisTout=data.taches.filter(t=>{if(!t.date)return false;const[y,m]=t.date.split("-");return`${y}-${m}`===moisSel&&t.statut==="termine";});
+  const tachesMois=empFiltreId?tachesMoisTout.filter(t=>t.employeId===empFiltreId):tachesMoisTout;
+
   const empH=id=>data.employes.find(e=>e.id===id);
   const zoneH=id=>data.zones.find(z=>z.id===id);
+
+  function diffMins(a,d){if(!a||!d)return 0;const[ah,am]=a.split(":").map(Number);const[dh,dm]=d.split(":").map(Number);return Math.max(0,(dh*60+dm)-(ah*60+am));}
+  function fmtDuree(m){if(m<=0)return null;const h=Math.floor(m/60),min=m%60;return h>0?`${h}h${min>0?String(min).padStart(2,"0")+"min":""}`:`${min}min`;}
+
+  // Stats globales du mois (avec filtre)
+  const nbTotal=tachesMois.length;
+  const empActifsIds=[...new Set(tachesMoisTout.map(t=>t.employeId))];
+  const empActifsMois=empActifsIds.map(id=>empH(id)).filter(Boolean);
+
+  // Si vue par employé : récap complet cet employé
+  // Sinon : vue par logement
+  if(empFiltreId){
+    const emp=empH(empFiltreId);
+    // Logements uniques faits ce mois
+    const zonesUniq=[...new Set(tachesMois.map(t=>t.zoneId))].map(id=>zoneH(id)).filter(Boolean);
+    // Total heures
+    const totalMins=tachesMois.reduce((acc,t)=>acc+diffMins(t.heureArriveeReel,t.heureDepartReel),0);
+    // Grouper par date → par logement
+    const parDate={};
+    tachesMois.forEach(t=>{
+      const d=t.date||"?";
+      if(!parDate[d])parDate[d]={date:d,zones:{}};
+      const zid=t.zoneId;
+      if(!parDate[d].zones[zid])parDate[d].zones[zid]={zone:zoneH(zid),taches:[]};
+      parDate[d].zones[zid].taches.push(t);
+    });
+    const dates=Object.keys(parDate).sort().reverse();
+
+    return(
+      <div>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+          <button onClick={()=>setEmpFiltreId(null)}
+            style={{display:"flex",alignItems:"center",gap:6,background:"transparent",border:"none",color:GOLD_DARK,fontWeight:700,fontSize:13,cursor:"pointer",padding:0}}>
+            ← Retour
+          </button>
+          <div style={{flex:1}}>
+            <select style={{borderRadius:8,border:"1px solid #e2e8f0",padding:"5px 8px",fontSize:12,background:"white",color:TXT,cursor:"pointer",width:"100%"}}
+              value={moisSel} onChange={e=>setMoisSel(e.target.value)}>
+              {moisDispo.map(m=><option key={m.v} value={m.v}>{m.l}</option>)}
+            </select>
+          </div>
+        </div>
+        {/* Bannière employé */}
+        <div style={{background:emp?.couleur?`${emp.couleur}18`:"#f8fafc",borderRadius:16,padding:"14px 16px",border:`1.5px solid ${emp?.couleur||GOLD}`,marginBottom:12,display:"flex",alignItems:"center",gap:12}}>
+          <Avatar emp={emp} size={48}/>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:900,fontSize:15,color:emp?.couleur||GOLD}}>{emp?.nom||"?"}</div>
+            <div style={{display:"flex",gap:6,marginTop:4,flexWrap:"wrap"}}>
+              <span style={{fontSize:10,background:"#ecfdf5",borderRadius:20,padding:"2px 8px",color:"#166534",fontWeight:700,border:"1px solid #bbf7d0"}}>✅ {nbTotal} tâche{nbTotal>1?"s":""}</span>
+              <span style={{fontSize:10,background:"#eff6ff",borderRadius:20,padding:"2px 8px",color:"#1e3a8a",fontWeight:700,border:"1px solid #bfdbfe"}}>🏠 {zonesUniq.length} logement{zonesUniq.length>1?"s":""}</span>
+              {totalMins>0&&<span style={{fontSize:10,background:"#fdf8ed",borderRadius:20,padding:"2px 8px",color:GOLD_DARK,fontWeight:700,border:`1px solid ${GOLD}44`}}>⏱️ {fmtDuree(totalMins)}</span>}
+            </div>
+          </div>
+        </div>
+        {nbTotal===0&&<div style={{textAlign:"center",color:"#94a3b8",fontSize:13,padding:"24px 0"}}>📭 Aucune tâche terminée ce mois-ci</div>}
+        {/* Détail par date */}
+        {dates.map(date=>{
+          const {zones}=parDate[date];
+          const d=new Date(date+"T12:00:00");
+          const dateLabel=`${d.getDate()} ${MOIS_COURT_H[d.getMonth()]}`;
+          const minsJour=Object.values(zones).flatMap(z=>z.taches).reduce((acc,t)=>acc+diffMins(t.heureArriveeReel,t.heureDepartReel),0);
+          return(
+            <div key={date} style={{background:"white",borderRadius:14,padding:14,marginBottom:8,boxShadow:"0 1px 4px rgba(0,0,0,.06)"}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,paddingBottom:8,borderBottom:"1px solid #f1f5f9"}}>
+                <div style={{fontWeight:800,fontSize:13,color:TXT}}>📅 {dateLabel}</div>
+                <div style={{display:"flex",gap:6}}>
+                  <span style={{fontSize:10,background:"#eff6ff",color:"#1e3a8a",borderRadius:20,padding:"2px 8px",fontWeight:700}}>🏠 {Object.keys(zones).length}</span>
+                  {minsJour>0&&<span style={{fontSize:10,background:"#fdf8ed",color:GOLD_DARK,borderRadius:20,padding:"2px 8px",fontWeight:700}}>⏱️ {fmtDuree(minsJour)}</span>}
+                </div>
+              </div>
+              {Object.values(zones).map(({zone:z,taches})=>{
+                const minsZone=taches.reduce((acc,t)=>acc+diffMins(t.heureArriveeReel,t.heureDepartReel),0);
+                const heureArr=taches.find(t=>t.heureArriveeReel)?.heureArriveeReel;
+                const heureDep=taches.slice().reverse().find(t=>t.heureDepartReel)?.heureDepartReel;
+                return(
+                  <div key={z?.id} style={{padding:"8px 0",borderBottom:"1px solid #f8fafc"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <div style={{width:30,height:30,borderRadius:8,overflow:"hidden",background:"#f1f5f9",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                        {z?.photo?<img src={z.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:14}}>🏠</span>}
+                      </div>
+                      <div style={{flex:1}}>
+                        <div style={{fontWeight:700,fontSize:12,color:TXT}}>{z?.nom||"?"}</div>
+                        <div style={{fontSize:10,color:"#94a3b8"}}>{taches.length} tâche{taches.length>1?"s":""}</div>
+                      </div>
+                      <div style={{textAlign:"right"}}>
+                        {minsZone>0&&<div style={{fontSize:11,fontWeight:700,color:GOLD_DARK}}>{fmtDuree(minsZone)}</div>}
+                        {heureArr&&heureDep&&<div style={{fontSize:9,color:"#94a3b8"}}>{heureArr} → {heureDep}</div>}
+                      </div>
+                    </div>
+                    {taches.map(t=>(
+                      <div key={t.id} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 0 0 38px"}}>
+                        <span style={{fontSize:10,color:"#22c55e",fontWeight:900}}>✓</span>
+                        <span style={{fontSize:11,color:TXT2,flex:1}}>{t.type}</span>
+                        {t.heureArriveeReel&&t.heureDepartReel&&<span style={{fontSize:9,color:"#94a3b8"}}>{t.heureArriveeReel}→{t.heureDepartReel}</span>}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+        {nbTotal>0&&(
+          <button style={{width:"100%",padding:"11px",background:GOLD_BG,color:GOLD_DARK,border:`1px solid ${GOLD}44`,borderRadius:12,fontSize:13,fontWeight:700,cursor:"pointer",marginTop:4}}
+            onClick={()=>{
+              const ml=moisDispo.find(m=>m.v===moisSel)?.l||moisSel;
+              let txt=`=== RÉCAP ${emp?.nom?.toUpperCase()} — ${ml.toUpperCase()} ===\n`;
+              txt+=`Logements : ${zonesUniq.length} · Tâches : ${nbTotal}${totalMins>0?` · Heures : ${fmtDuree(totalMins)}`:""}\n\n`;
+              dates.forEach(date=>{
+                const{zones}=parDate[date];
+                const d=new Date(date+"T12:00:00");
+                txt+=`📅 ${d.getDate()} ${MOIS_COURT_H[d.getMonth()]}\n`;
+                Object.values(zones).forEach(({zone:z,taches})=>{
+                  const mZ=taches.reduce((a,t)=>a+diffMins(t.heureArriveeReel,t.heureDepartReel),0);
+                  txt+=`  🏠 ${z?.nom||"?"}${mZ>0?` (${fmtDuree(mZ)})`:""}\n`;
+                  taches.forEach(t=>{ txt+=`     ✓ ${t.type}${t.heureArriveeReel?` ${t.heureArriveeReel}→${t.heureDepartReel}`:""}\n`; });
+                });
+              });
+              navigator.clipboard.writeText(txt).then(()=>toast_("📋 Copié !")).catch(()=>toast_("Erreur copie","err"));
+            }}>📋 Copier le récapitulatif</button>
+        )}
+      </div>
+    );
+  }
+
+  // ── Vue globale : résumé par employé ──
   const parLog={};
   tachesMois.forEach(t=>{if(!parLog[t.zoneId]){parLog[t.zoneId]={zone:zoneH(t.zoneId),taches:[]};}parLog[t.zoneId].taches.push(t);});
-  const nbTotal=tachesMois.length;
-  const empActifs=[...new Set(tachesMois.map(t=>t.employeId))];
 
   return(
     <div>
@@ -1913,8 +2056,38 @@ function HistoriqueInline({data,toast_,nightMode}){
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
         <div style={{background:"linear-gradient(135deg,#2d7a2d,#1a5c1a)",borderRadius:12,padding:"12px 8px",color:"white",textAlign:"center"}}><div style={{fontSize:22,fontWeight:900}}>{nbTotal}</div><div style={{fontSize:9,opacity:.85,marginTop:2}}>Tâches ✓</div></div>
         <div style={{background:"linear-gradient(135deg,#1a1408,#c9a84c)",borderRadius:12,padding:"12px 8px",color:"white",textAlign:"center"}}><div style={{fontSize:22,fontWeight:900}}>{Object.keys(parLog).length}</div><div style={{fontSize:9,opacity:.85,marginTop:2}}>Logements</div></div>
-        <div style={{background:"linear-gradient(135deg,#c9a84c,#9a7530)",borderRadius:12,padding:"12px 8px",color:"white",textAlign:"center"}}><div style={{fontSize:22,fontWeight:900}}>{empActifs.length}</div><div style={{fontSize:9,opacity:.85,marginTop:2}}>Employés</div></div>
+        <div style={{background:"linear-gradient(135deg,#c9a84c,#9a7530)",borderRadius:12,padding:"12px 8px",color:"white",textAlign:"center"}}><div style={{fontSize:22,fontWeight:900}}>{empActifsMois.length}</div><div style={{fontSize:9,opacity:.85,marginTop:2}}>Employés</div></div>
       </div>
+
+      {/* Sélecteur employé pour récap détaillé */}
+      <div style={{marginBottom:14}}>
+        <div style={{fontSize:11,fontWeight:800,color:TXT3,textTransform:"uppercase",letterSpacing:.8,marginBottom:8}}>Récap par employé</div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          {empActifsMois.map(e=>{
+            const nbT=tachesMoisTout.filter(t=>t.employeId===e.id).length;
+            const nbZ=new Set(tachesMoisTout.filter(t=>t.employeId===e.id).map(t=>t.zoneId)).size;
+            const totalM=tachesMoisTout.filter(t=>t.employeId===e.id).reduce((acc,t)=>acc+diffMins(t.heureArriveeReel,t.heureDepartReel),0);
+            return(
+              <div key={e.id} onClick={()=>setEmpFiltreId(e.id)}
+                style={{background:"white",borderRadius:14,padding:"12px 14px",border:`1.5px solid ${e.couleur||GOLD}44`,cursor:"pointer",boxShadow:"0 1px 4px rgba(0,0,0,.06)",display:"flex",alignItems:"center",gap:10,transition:"all .15s",flex:"1 1 140px"}}>
+                <Avatar emp={e} size={36}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:800,fontSize:13,color:TXT,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.nom}</div>
+                  <div style={{display:"flex",gap:5,marginTop:3,flexWrap:"wrap"}}>
+                    <span style={{fontSize:9,background:"#eff6ff",color:"#1e3a8a",borderRadius:20,padding:"1px 7px",fontWeight:700}}>🏠 {nbZ}</span>
+                    <span style={{fontSize:9,background:"#ecfdf5",color:"#166534",borderRadius:20,padding:"1px 7px",fontWeight:700}}>✅ {nbT}</span>
+                    {totalM>0&&<span style={{fontSize:9,background:"#fdf8ed",color:GOLD_DARK,borderRadius:20,padding:"1px 7px",fontWeight:700}}>⏱️ {fmtDuree(totalM)}</span>}
+                  </div>
+                </div>
+                <span style={{color:TXT3,fontSize:16}}>›</span>
+              </div>
+            );
+          })}
+        </div>
+        {empActifsMois.length===0&&<div style={{textAlign:"center",color:"#94a3b8",fontSize:13,padding:"16px 0"}}>📭 Aucune activité ce mois-ci</div>}
+      </div>
+
+      {/* Vue globale par logement */}
       {nbTotal===0&&<div style={{textAlign:"center",color:"#94a3b8",fontSize:13,padding:"24px 0"}}>📭 Aucune tâche terminée ce mois-ci</div>}
       {Object.values(parLog).map(({zone:z,taches})=>(
         <div key={z?.id} style={{background:"white",borderRadius:14,padding:14,marginBottom:8,boxShadow:"0 1px 4px rgba(0,0,0,.06)"}}>
@@ -2071,13 +2244,10 @@ function GestionPieces({data,setData,toast_}){
 // HISTORIQUE HEURES & DÉPLACEMENTS — onglet admin avec 2 pages + swipe
 // ══════════════════════════════════════════════════════════════════════════════
 function HistoriqueHeuresDeplacements({data,toast_}){
-  const [page,setPage]=useState(0); // 0=heures, 1=déplacements
-  // Vue par employé : index dans empActifs (-1 = tous)
   const [empIdx,setEmpIdx]=useState(-1); // -1=tous, 0..n=employé
   const [moisSel,setMoisSel]=useState(()=>{
     const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;
   });
-  const swipeStartX=useRef(null);
   const swipeEmpStartX=useRef(null);
 
   const empActifs=data.employes.filter(e=>e.actif);
@@ -2107,14 +2277,6 @@ function HistoriqueHeuresDeplacements({data,toast_}){
   function fmtDuree(m){if(m<=0)return"0min";const h=Math.floor(m/60),min=m%60;return h>0?`${h}h${min>0?String(min).padStart(2,"0")+"min":""}`:`${min}min`;}
   function fmtDate(d){return new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});}
 
-  // Swipe handlers pour les pages (heures/déplacements)
-  function onTouchStart(e){swipeStartX.current=e.touches[0].clientX;}
-  function onTouchEnd(e){
-    if(swipeStartX.current===null)return;
-    const dx=e.changedTouches[0].clientX-swipeStartX.current;
-    if(Math.abs(dx)>50){setPage(p=>dx<0?Math.min(p+1,1):Math.max(p-1,0));}
-    swipeStartX.current=null;
-  }
   // Swipe handlers pour sélection employé
   function onEmpTouchStart(e){swipeEmpStartX.current=e.touches[0].clientX;}
   function onEmpTouchEnd(e){
@@ -2262,111 +2424,6 @@ function HistoriqueHeuresDeplacements({data,toast_}){
     );
   };
 
-  // ── PAGE 1 : Déplacements ──
-  const pageDeplacements=()=>{
-    // Grouper tâches par jour x employé
-    const joursMap={};
-    tachesMois.filter(t=>t.date).forEach(t=>{
-      const key=t.date;
-      if(!joursMap[key])joursMap[key]={};
-      if(!joursMap[key][t.employeId])joursMap[key][t.employeId]=[];
-      const zone=data.zones.find(z=>z.id===t.zoneId);
-      if(zone&&zone.adresse&&!joursMap[key][t.employeId].some(z=>z.id===zone.id)){
-        joursMap[key][t.employeId].push(zone);
-      }
-    });
-    const jours=Object.keys(joursMap).sort().reverse();
-    const totalJoursAvecDeplacement=jours.filter(j=>Object.values(joursMap[j]).some(z=>z.length>0)).length;
-
-    return(
-      <div>
-        {jours.length===0&&(
-          <div style={{padding:"40px 20px",textAlign:"center",color:TXT3}}>
-            <div style={{fontSize:40,marginBottom:12}}>🗺️</div>
-            <div style={{fontWeight:700,fontSize:14,color:TXT2}}>Aucun déplacement ce mois</div>
-            <div style={{fontSize:12,marginTop:6}}>Les déplacements apparaissent ici quand des tâches sont assignées avec des adresses de logement.</div>
-          </div>
-        )}
-        {jours.map(jour=>{
-          const empIds=Object.keys(joursMap[jour]).filter(id=>joursMap[jour][id].length>0);
-          if(empIds.length===0)return null;
-          const empIdsFiltres=empSel==="tous"?empIds:empIds.filter(id=>id===empSel);
-          if(empIdsFiltres.length===0)return null;
-          return(
-            <div key={jour} style={{...S.card,marginBottom:8,padding:0,overflow:"hidden"}}>
-              {/* Entête jour */}
-              <div style={{background:"#f8fafc",padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                <div style={{fontWeight:700,fontSize:13,color:TXT}}>📅 {fmtDate(jour)}</div>
-                <div style={{fontSize:11,color:TXT3}}>{empIdsFiltres.length} employé{empIdsFiltres.length>1?"s":""}</div>
-              </div>
-              {/* Par employé */}
-              {empIdsFiltres.map((id,idx)=>{
-                const empId=parseInt(id);
-                const emp=data.employes.find(e=>e.id===empId);
-                const zones=joursMap[jour][id];
-                if(!zones||zones.length===0)return null;
-                const mapsUrl=buildGoogleMapsUrl(zones);
-                return(
-                  <div key={id} style={{padding:"12px 14px",borderBottom:idx<empIdsFiltres.length-1?`1px solid ${BORDER}`:"none"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                      <Avatar emp={emp} size={32}/>
-                      <div style={{fontWeight:700,fontSize:13,color:TXT,flex:1}}>{emp?.nom||"?"}</div>
-                      {mapsUrl&&(
-                        <a href={mapsUrl} target="_blank" rel="noreferrer"
-                          style={{fontSize:10,color:GOLD_DARK,fontWeight:700,textDecoration:"none",background:GOLD_BG,borderRadius:20,padding:"3px 10px",border:`1px solid ${GOLD}44`,whiteSpace:"nowrap"}}>
-                          🗺️ Ouvrir Maps
-                        </a>
-                      )}
-                    </div>
-                    {/* Carte miniature du trajet du jour */}
-                    {zones.length>0&&zones[0].adresse&&(
-                      <div style={{borderRadius:14,overflow:"hidden",marginBottom:10,height:180,position:"relative",boxShadow:"0 2px 10px rgba(0,0,0,.12)"}}>
-                        {(()=>{
-                          const origin=zones[0].adresse;
-                          const dest=zones[zones.length-1].adresse;
-                          const wps=zones.slice(1,-1).map(z=>encodeURIComponent(z.adresse)).join("|");
-                          const embedUrl=zones.length===1
-                            ?`https://maps.google.com/maps?q=${encodeURIComponent(origin)}&output=embed&z=14`
-                            :`https://maps.google.com/maps?saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(dest)}${wps?`%7C${wps}`:""}&output=embed`;
-                          return(
-                            <iframe src={embedUrl} style={{width:"100%",height:"100%",border:"none"}}
-                              loading="lazy" referrerPolicy="no-referrer-when-downgrade" title={`Trajet ${emp?.nom} ${jour}`}/>
-                          );
-                        })()}
-                        {/* Badge nombre d'arrêts */}
-                        <div style={{position:"absolute",top:8,right:8,background:"#1a73e8",color:"white",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,boxShadow:"0 2px 8px rgba(26,115,232,.4)"}}>
-                          {zones.length} arrêt{zones.length>1?"s":""}
-                        </div>
-                      </div>
-                    )}
-                    {/* Arrêts */}
-                    <div style={{display:"flex",gap:4,overflowX:"auto",scrollbarWidth:"none",paddingBottom:2}}>
-                      {zones.map((z,i)=>(
-                        <div key={z.id} style={{display:"flex",alignItems:"center",flexShrink:0}}>
-                          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-                            <div style={{width:20,height:20,borderRadius:"50%",background:i===0?"#22c55e":i===zones.length-1?"#ea4335":GOLD,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,color:"white",flexShrink:0}}>
-                              {i===0?"S":i===zones.length-1?"A":(i+1)}
-                            </div>
-                            <div style={{fontSize:8,color:TXT2,fontWeight:600,maxWidth:60,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{z.nom}</div>
-                          </div>
-                          {i<zones.length-1&&<div style={{width:16,height:1.5,background:"#dadce0",margin:"0 2px",marginBottom:12,flexShrink:0}}/>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const PAGES=[
-    {id:0,label:"⏱️ Heures travail",icon:"⏱️"},
-    {id:1,label:"🗺️ Déplacements",  icon:"🗺️"},
-  ];
 
   // Employé actuellement sélectionné pour la bannière
   const empCourant=empIdx===-1?null:empActifs[empIdx];
@@ -2376,7 +2433,7 @@ function HistoriqueHeuresDeplacements({data,toast_}){
   return(
     <div>
       {/* Titre */}
-      <div style={{padding:"0 12px 10px",fontWeight:900,fontSize:16,color:TXT}}>⏱️ Heures & Déplacements</div>
+      <div style={{padding:"0 12px 10px",fontWeight:900,fontSize:16,color:TXT}}>⏱️ Récap heures de travail</div>
 
       {/* Sélecteur de mois */}
       <div style={{padding:"0 12px",marginBottom:10}}>
@@ -2427,29 +2484,8 @@ function HistoriqueHeuresDeplacements({data,toast_}){
         </div>
       </div>
 
-      {/* Sélecteur de page — liste scrollable */}
-      <div style={{padding:"0 12px",marginBottom:10}}>
-        <div style={{display:"flex",background:"#f1f5f9",borderRadius:14,padding:3,gap:2}}>
-          {PAGES.map(p=>(
-            <button key={p.id} onClick={()=>setPage(p.id)}
-              style={{flex:1,padding:"9px 4px",borderRadius:11,border:"none",background:page===p.id?GOLD:"transparent",color:page===p.id?"#1a0d00":TXT2,fontWeight:700,fontSize:12,cursor:"pointer",transition:"all .2s",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
-              {p.icon} {p.label.split(" ").slice(1).join(" ")}
-            </button>
-          ))}
-        </div>
-        <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:8}}>
-          {PAGES.map(p=>(
-            <div key={p.id} style={{width:page===p.id?22:8,height:4,borderRadius:10,background:page===p.id?GOLD:"#d1d5db",transition:"all .3s",cursor:"pointer"}} onClick={()=>setPage(p.id)}/>
-          ))}
-        </div>
-        <div style={{textAlign:"center",fontSize:10,color:TXT3,marginTop:4}}>← swipe pour changer de vue →</div>
-      </div>
-
-      {/* Contenu swipeable */}
-      <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        {page===0&&pageHeures()}
-        {page===1&&pageDeplacements()}
-      </div>
+      {/* Contenu heures */}
+      <div>{pageHeures()}</div>
     </div>
   );
 }
@@ -3328,7 +3364,7 @@ function SuiviKm({data,setData,toast_}){
 // ══════════════════════════════════════════════════════════════════════════════
 // VUE PARAMÈTRES — avec onglets : Équipe + Gestion droits + PIN + Général
 // ══════════════════════════════════════════════════════════════════════════════
-function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pushEnabled,setPushEnabled,pushPermission,demanderNotifPush,onZoomPhoto,textSize,setTextSize}){
+function Parametres({data,setData,onEditEmp,onEditZone,setCurrentUser,toast_,nightMode,toggleNightMode,pushEnabled,setPushEnabled,pushPermission,demanderNotifPush,onZoomPhoto,textSize,setTextSize}){
   const [onglet,setOnglet]=useState(null); // null = menu principal
   const [menuTab,setMenuTab]=useState("general"); // "general" | "plus"
   const [notifDetail,setNotifDetail]=useState(null);
@@ -3362,9 +3398,10 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
   const menuItemsGeneral=[
     {id:"historique",        icon:"⧗", label:"Historique",            desc:"Tâches terminées & récapitulatif"},
     {id:"notifs",            icon:"🔔", label:"Notifications",         desc:"Activité récente", badge:nbNotifsBadge},
-    {id:"nuit",              icon:"🌙", label:"Mode nuit",             desc:nightMode?"Interface sombre activée":"Interface claire"},
-    {id:"taille",            icon:"🔡", label:"Taille de l'écriture",  desc:textSize==="normal"?"Taille normale":textSize==="grand"?"Grands caractères":"Très grands caractères"},
-    {id:"notifications",     icon:"📲", label:"Notifications push",    desc:"Alertes en temps réel"},
+    {id:"trajets_recap",     icon:"📊", label:"Récap Trajets",         desc:"Distances et temps de trajet mensuel"},
+    {id:"heures_deplacements",icon:"⏱️",label:"Récap heures de travail", desc:"Heures effectuées par employé"},
+    {id:"gestion_logements", icon:"🏠", label:"Gestion Logements",     desc:"Ajouter, modifier ou supprimer des logements"},
+    {id:"deconnexion",       icon:"↩️", label:"Déconnexion",           desc:"Quitter l'application"},
   ];
 
   const menuItemsPlus=[
@@ -3375,8 +3412,6 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
     {id:"pieces",            icon:"🏠", label:"Pièces du logement",    desc:"Liste des pièces pour signalements"},
     {id:"types_taches",      icon:"🗂️", label:"Types de tâches",       desc:"Personnaliser la liste des tâches"},
     {id:"suivi_km",          icon:"🚗", label:"Suivi déplacements",    desc:"Calcul de distance vers les logements"},
-    {id:"trajets_recap",     icon:"📊", label:"Récap Trajets",         desc:"Distances et temps de trajet mensuel"},
-    {id:"heures_deplacements",icon:"⏱️",label:"Heures & Déplacements", desc:"Historique temps de travail et trajets"},
     {id:"droits_roles",      icon:"🛡️", label:"Droits & Rôles",        desc:"Fonctionnalités accessibles par rôle"},
     {id:"gestion_equipe",    icon:"👥", label:"Gestion Équipe",        desc:"Membres, rôles, droits et PIN"},
   ];
@@ -3403,7 +3438,11 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
 
       {/* Contenu onglet Général */}
       {menuTab==="general"&&menuItemsGeneral.map((item)=>(
-        <div key={item.id} onClick={()=>item.id==="notifs"?ouvrirNotifs():setOnglet(item.id)}
+        <div key={item.id} onClick={()=>{
+          if(item.id==="notifs") return ouvrirNotifs();
+          if(item.id==="deconnexion"){try{localStorage.removeItem("ckeys_session");}catch(e){}setCurrentUser(null);return;}
+          setOnglet(item.id);
+        }}
           style={{display:"flex",alignItems:"center",gap:14,background:CARD,borderRadius:14,padding:"14px 16px",marginBottom:10,border:`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}>
           <div style={{width:44,height:44,borderRadius:12,background:GOLD_BG,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{item.icon}</div>
           <div style={{flex:1}}>
@@ -3828,6 +3867,13 @@ function Parametres({data,setData,onEditEmp,toast_,nightMode,toggleNightMode,pus
       {onglet==="trajets_recap"&&(
         <div style={{padding:"0 12px 14px"}}>
           <RecapMensuelTrajets data={data} onClose={()=>setOnglet(null)}/>
+        </div>
+      )}
+
+      {/* ── GESTION LOGEMENTS ── */}
+      {onglet==="gestion_logements"&&(
+        <div style={{padding:"0 12px 14px"}}>
+          <Logements data={data} onEdit={onEditZone} isReadOnly={false}/>
         </div>
       )}
 
@@ -4288,6 +4334,7 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
     {id:"nuit",   icon:"🌙", label:"Mode nuit",          desc:nightMode?"Interface sombre activée":"Interface claire"},
     {id:"taille", icon:"🔡", label:"Taille de l'écriture", desc:textSize==="normal"?"Taille normale":textSize==="grand"?"Grands caractères":"Très grands caractères"},
     {id:"notifs", icon:"🔔", label:"Notifications push", desc:pushPermission==="granted"?"Alertes activées":"Appuyer pour activer"},
+    {id:"deconnexion", icon:"↩️", label:"Déconnexion",   desc:"Quitter l'application"},
   ];
 
   const retourEl=()=>(
@@ -4316,6 +4363,7 @@ function EmpParametres({emp,setData,setCurrentUser,toast_,nightMode,toggleNightM
         <div key={item.id} onClick={()=>{
             if(item.id==="nuit"){toggleNightMode();return;}
             if(item.id==="notifs"&&pushPermission!=="granted"){demanderNotifPush();return;}
+            if(item.id==="deconnexion"){try{localStorage.removeItem("ckeys_session");}catch(e){}setCurrentUser(null);return;}
             setOnglet(item.id);
           }}
           style={{display:"flex",alignItems:"center",gap:14,background:CARD,borderRadius:14,padding:"14px 16px",marginBottom:10,border:`1px solid ${BORDER}`,cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.04)"}}>
@@ -4831,7 +4879,6 @@ function AppInner(){
   ]:[
     {id:"accueil",    icon:"◉",label:"Accueil"},
     {id:"planning",   icon:"⊟",label:"Planning"},
-    ...(isAdmin?[{id:"zones",icon:"⌂",label:"Logements"}]:[]),
     ...(canMessages?[{id:"messages",   icon:"✉",label:"Messages"}]:[]),
     {id:"parametres", icon:"⚙️",label:"Options"},
   ];
@@ -4899,7 +4946,7 @@ function AppInner(){
       {view==="zones"      &&isAdmin&&<Logements  data={data} onEdit={openEditZone} isReadOnly={false}/>}
       {view==="messages"   &&<Messages   data={data} setData={setData} currentUser={currentUser} toast_={toast_} envoyerNotifPush={envoyerNotifPush} onZoomPhoto={setLightboxSrc}/>}
 
-      {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushEnabled={pushEnabled} setPushEnabled={setPushEnabled} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush} onZoomPhoto={setLightboxSrc} textSize={textSize} setTextSize={setTextSize}/>}
+      {view==="parametres" &&isAdmin&&<Parametres data={data} setData={setData} onEditEmp={openEditEmp} onEditZone={openEditZone} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushEnabled={pushEnabled} setPushEnabled={setPushEnabled} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush} onZoomPhoto={setLightboxSrc} textSize={textSize} setTextSize={setTextSize}/>}
       {view==="parametres" &&isEmp&&<EmpParametres emp={currentUser} setData={setData} setCurrentUser={setCurrentUser} toast_={toast_} nightMode={nightMode} toggleNightMode={toggleNightMode} pushPermission={pushPermission} demanderNotifPush={demanderNotifPush} textSize={textSize} setTextSize={setTextSize}/>}
     </>
   );
@@ -4960,7 +5007,6 @@ function AppInner(){
           {canCreerTaches&&(view==="accueil"||view==="planning")&&(
             <button onClick={()=>openNewTache()} style={{width:"100%",padding:"11px",background:`linear-gradient(135deg,${GOLD_DARK},${GOLD})`,border:"none",borderRadius:12,color:"#1a0d00",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>＋ Nouvelle tâche</button>
           )}
-          <button onClick={()=>{try{localStorage.removeItem("ckeys_session");}catch(e){}setCurrentUser(null);}} style={{width:"100%",padding:"9px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.08)",color:"rgba(255,255,255,.5)",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:600}}>↩ Déconnexion</button>
         </div>
       </div>
       {/* Contenu */}
@@ -5010,9 +5056,6 @@ function AppInner(){
             );
           })}
         </nav>
-        <div style={{padding:"8px 0 14px",borderTop:"1px solid rgba(255,255,255,.06)",width:"100%",display:"flex",justifyContent:"center"}}>
-          <button onClick={()=>{try{localStorage.removeItem("ckeys_session");}catch(e){}setCurrentUser(null);}} style={{width:46,height:46,borderRadius:12,border:"none",background:"rgba(255,255,255,.05)",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}} title="Déconnexion">↩</button>
-        </div>
       </div>
       {/* Contenu tablette */}
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
@@ -5043,12 +5086,11 @@ function AppInner(){
   return(
     <div id="ckeys-root" style={{...S.app,background:appBg}}>
       <div style={{...S.topbar}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <div style={{display:"flex",alignItems:"center"}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <img src={LOGO} alt="CKeys" style={{width:44,height:44,objectFit:"contain",borderRadius:10,background:"rgba(255,255,255,.08)",padding:3}}/>
             <div><div style={{...S.topSub}}>{fmtDate(new Date())} · {currentUser.nom}</div></div>
           </div>
-          <button onClick={()=>{try{localStorage.removeItem("ckeys_session");}catch(e){}setCurrentUser(null);}} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(255,255,255,.7)",borderRadius:10,padding:"6px 12px",cursor:"pointer",fontSize:11,fontWeight:600}}>↩ Quitter</button>
         </div>
       </div>
       {toast&&<div style={S.toast(toast.t)}>{toast.m}</div>}
